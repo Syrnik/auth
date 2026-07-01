@@ -5,12 +5,14 @@
 
 ## Плагины
 
-- [ ] GitHub OAuth (`plugins/github`)
-- [ ] LDAP (`plugins/ldap`)
-- [ ] Magic link (`plugins/magiclink`)
-- [ ] TOTP — второй фактор (`plugins/totp`)
-- [ ] Domain blacklist — guard (`plugins/domainblacklist`); сейчас есть только тестовый `testguard`
-- [ ] reCAPTCHA — captcha (`plugins/recaptcha`)
+Сами плагины (auth-провайдеры, challenge, guard, captcha) — отдельные репозитории,
+заводятся и трекаются отдельно. Здесь — только релизный гейт для этого репозитория:
+
+- [ ] Перед релизом должен быть готов и подключён хотя бы один реальный плагин
+      каждого типа (`is_auth`/oauth, `is_challenge`, `is_guard`, `is_captcha`) —
+      чтобы убедиться, что вся плагинная система (`authPluginManager`, конфиг
+      `login_methods`/`challenge_methods`/`guard_plugins`/`captcha_plugin`)
+      работает целиком, а не только с `testguard`
 
 ## Уточнить
 

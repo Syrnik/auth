@@ -32,7 +32,9 @@
         {if $has_recovery}
             <a href="{$recovery_url|escape}">Забыли пароль?</a>
         {/if}
-        <a href="{$register_url|escape}">Регистрация</a>
+        {if $has_registration}
+            <a href="{$register_url|escape}">Регистрация</a>
+        {/if}
     </div>
 
 </div>

@@ -77,6 +77,11 @@ class authHelper
         return (bool)authConfig::get('rememberme', false);
     }
 
+    public static function isRegistrationEnabled(): bool
+    {
+        return (bool)authConfig::get('signup_enabled');
+    }
+
     /**
      * Returns list of OAuth providers for display on the login page.
      * Each item: ['id' => string, 'name' => string, 'auth_url' => string]

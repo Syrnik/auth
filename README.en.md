@@ -1,15 +1,17 @@
 # Auth — Frontend Authentication App for Webasyst
 
+*Читать на русском: [README.md](README.md)*
+
 A frontend application for the Webasyst Framework that provides a full set of user-facing authentication pages: login, registration, password recovery, and a personal account. Easily extended with plugins.
 
 ## Features
 
-- **Login** — email/password, Webasyst ID (OAuth), phone (OTP stub), third-party OAuth via plugins
+- **Login** — email/password, login/password (`wa_contact.login`), Webasyst ID and any framework OAuth adapter (VK, Google, Facebook, etc. — wired up automatically, no plugin needed), phone (SMS OTP), third-party login methods via `authMethod` plugins
 - **Registration** — with optional email confirmation
 - **Password recovery** — token link sent by email
 - **My account** (`/my/`) — profile editing
 - **Two-factor authentication** — via `authChallenge` plugins
-- **Guard plugins** — block login or signup based on any condition
+- **Guard plugins** — block login and/or signup based on any condition
 - **Captcha** — pluggable via `authCaptcha` interface
 - **Design theme** — inherits `site:default`; auth pages look like part of the site
 - **Per-domain settings** — stored in `wa-config/apps/auth/config.php`
@@ -30,20 +32,34 @@ A frontend application for the Webasyst Framework that provides a full set of us
 
 ## Configuration
 
-Settings are configured via the backend (**Auth → Settings**) and saved to `wa-config/apps/auth/config.php`. Different settings can be used for each domain.
+Settings are merged in three layers: distribution defaults from `lib/config/config.php` → saved global values → per-domain override (`authConfig::getMerged()`). The backend (**Auth → Settings**) edits a subset of these and saves to `wa-config/apps/auth/config.php`.
+
+Parameters editable in the backend:
 
 | Parameter | Default | Description |
 |---|---|---|
-| `login_methods` | `['email', 'waid']` | Active login methods |
+| `login_methods` | `['email', 'waid']` | Active login methods (order = display order) |
 | `signup_enabled` | `true` | Allow registration |
 | `signup_confirm` | `true` | Require email confirmation on signup |
 | `recovery_enabled` | `true` | Allow password recovery |
 | `rememberme` | `false` | Show "Remember me" checkbox |
 | `captcha_plugin` | `null` | Captcha plugin ID (or `null`) |
+| `adapters` | `[]` | Per-domain OAuth adapter credentials (`app_id`/`app_secret`, etc.) |
+
+Additional parameters can only be set in `lib/config/config.php` (or manually in `wa-config/apps/auth/config.php`):
+
+| Parameter | Default | Description |
+|---|---|---|
+| `challenge_methods` | `[]` | Active second-factor plugins |
+| `guard_plugins` | `[]` | Active guard plugins |
+| `signup_methods` | `['email', 'waid']` | Methods offered on the registration form |
+| `signup_fields` | `['firstname', 'lastname', 'email', 'password']` | Registration form fields |
+| `redirect_after_login` / `redirect_after_register` / `redirect_after_logout` | `null` / `null` / `'/'` | Post-action redirects (`null` = `goal_url` / `HTTP_REFERER`) |
+| `login_url` / `register_url` / `recovery_url` | `'login/'` / `'register/'` / `'recovery/'` | In-app page URLs |
 
 ## Plugin Development
 
-Plugins live in `plugins/<plugin_id>/`. A plugin can implement one or more interfaces:
+Plugins live in `plugins/<plugin_id>/`. The main plugin class must extend `authPlugin` (itself a `waPlugin` subclass that adds `getTemplatePath()` for locating files under `templates/`). A plugin can implement one or more interfaces:
 
 ### `authMethod` — Login method
 
@@ -81,22 +97,27 @@ class myPluginAuthChallenge implements authChallenge {
 
 ```php
 class myPluginAuthCaptcha implements authCaptcha {
-    public function render(): string { /* captcha HTML */ }
-    public function verifyCaptcha(array $params): bool { /* ... */ }
+    public function renderWidget(): string { /* captcha HTML, empty string if no widget needed */ }
+    public function verifyCaptcha(array $post): bool { /* ... */ }
 }
 ```
 
-Describe the plugin in `plugins/<plugin_id>/lib/config/plugin.php`:
+Describe the plugin in `plugins/<plugin_id>/lib/config/plugin.php` — `authPluginManager` uses this file to determine which interfaces the plugin must implement, and verifies it on load (throwing otherwise):
 
 ```php
 return [
-    'name'       => 'My Plugin',
-    'is_auth'    => true,   // auth method
-    'is_guard'   => true,   // guard
-    'is_captcha' => true,   // captcha
-    'version'    => '1.0.0',
+    'name'         => 'My Plugin',
+    'version'      => '1.0.0',
+    'is_auth'      => true,   // implements authMethod
+    'is_challenge' => true,   // implements authChallenge
+    'is_guard'     => true,   // implements authGuard
+    'guard_login'  => true,   // apply guard on login (is_guard only)
+    'guard_signup' => true,   // apply guard on signup (is_guard only)
+    'is_captcha'   => true,   // implements authCaptcha
 ];
 ```
+
+See `plugins/testguard/` for an example guard plugin that blocks signup only.
 
 ## Design Theme
 
@@ -108,7 +129,9 @@ Key theme files:
 |---|---|
 | `main.html` | Content wrapper (included by `site:default/index.html`) |
 | `head.html` | CSS and JS injected into the site `<head>` |
-| `login.html` | Login form |
+| `header.html` | App navigation in the site header (empty for auth) |
+| `footer.html` | App content in the site footer (empty for auth) |
+| `login.html` | Login form (includes `<method>.login_form.html` for the active method) |
 | `register.html` | Registration form |
 | `register.confirm.html` | Email confirmation pending page |
 | `recovery.html` | Password recovery form and new-password form |

@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`login` auth method** — login/password against the `wa_contact.login` field
+- **Dynamic system OAuth adapters** — every framework-level adapter (VK, Google, Facebook, etc.) is now offered in settings automatically, with per-domain credential fields, instead of only Webasyst ID
+- License files (LGPL v3) and contribution guidelines (`AGENTS.md`)
+
+### Changed
+
+- **WAID login** now goes through the auth app's own login pipeline instead of the framework's default redirect
+- Built-in form methods (`email`, `login`, `phone`) are now derived from the method classes themselves rather than a separate, duplicated label list
+- Login form templates decoupled per method, with a `<method>.login_form.html` partial for each
+
+### Fixed
+
+- Backend settings page lost its layout after the post-save redirect
+- Signup guards are now checked before a contact is created, not after
+- Registration link hidden on the login page when signup is disabled
+- OAuth logins now respect `signup_enabled`; signup UI hidden when only OAuth methods are active
+- OAuth/challenge login no longer redirects to a blank page when `redirect_after_login` is unset
+
 ## [0.1.0] - 2026-07-01
 
 ### Added

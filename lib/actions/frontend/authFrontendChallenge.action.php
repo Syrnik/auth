@@ -46,7 +46,7 @@ class authFrontendChallengeAction extends waViewAction
             wa()->getStorage()->del('auth_challenge');
             wa()->event('login', $contact);
 
-            $redirect = wa()->getStorage()->get('auth_goal_url') ?: authConfig::get('redirect_after_login', '/');
+            $redirect = wa()->getStorage()->get('auth_goal_url') ?: (authConfig::get('redirect_after_login') ?: '/');
             wa()->getStorage()->del('auth_goal_url');
             wa()->getResponse()->redirect($redirect);
             return;

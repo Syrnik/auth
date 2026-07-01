@@ -6,6 +6,12 @@ class authConfig
     private static ?array $defaults = null;
     private static ?array $saved   = null;
 
+    /**
+     * $default only applies when $key is absent from config. Several keys
+     * (e.g. redirect_after_login) are deliberately declared as null in
+     * lib/config/config.php, so their stored value IS null — callers must
+     * chain `?: fallback` on the result instead of passing $default here.
+     */
     public static function get(string $key, $default = null, string $domain = null)
     {
         $config = self::getMerged($domain);

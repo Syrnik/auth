@@ -176,7 +176,7 @@ class authLoginFormAction extends waViewAction
             'goal_url'        => $this->goal_url,
             'error'           => $this->error,
             'step_vars'       => $this->step_vars,
-            'login_methods'   => authPluginManager::getEnabled(),
+            'form_methods'    => authHelper::getFormMethods(),
             'oauth_providers' => authHelper::getOAuthProviders(),
             'csrf_token'      => authHelper::getCsrfToken(),
             'has_recovery'    => authHelper::hasRecovery(),

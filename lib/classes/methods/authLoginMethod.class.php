@@ -24,13 +24,7 @@ class authLoginMethod extends authBuiltinMethod implements authMethod
             throw new authGuardException('Введите логин и пароль.');
         }
 
-        // When both email and login methods are enabled, the combined form submits here.
-        // Try wa_contact.login first; fall back to email lookup when input looks like one.
         $contact = $this->findByLogin($login);
-        if (!$contact && filter_var($login, FILTER_VALIDATE_EMAIL)) {
-            $contact = $this->findByEmail($login);
-        }
-
         if (!$contact) {
             throw new authGuardException('Пользователь не найден или неверный пароль.');
         }
@@ -66,17 +60,4 @@ class authLoginMethod extends authBuiltinMethod implements authMethod
         return $model->query($sql, ['login' => $login])->fetchAssoc() ?: null;
     }
 
-    private function findByEmail(string $email): ?array
-    {
-        $model = new waContactModel();
-        $sql = "SELECT c.* FROM wa_contact c
-                JOIN wa_contact_emails e ON c.id = e.contact_id
-                WHERE e.email = s:email
-                  AND e.sort = 0
-                  AND c.password != ''
-                  AND c.is_user > -1
-                ORDER BY c.id LIMIT 1";
-
-        return $model->query($sql, ['email' => $email])->fetchAssoc() ?: null;
-    }
 }

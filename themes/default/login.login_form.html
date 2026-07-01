@@ -1,0 +1,13 @@
+<div class="auth-field">
+    <label>Логин</label>
+    <input type="text" name="login" autocomplete="username" autofocus>
+</div>
+<div class="auth-field">
+    <label>Пароль</label>
+    <input type="password" name="password" autocomplete="current-password">
+</div>
+{if $rememberme}
+    <div class="auth-field">
+        <label><input type="checkbox" name="rememberme" value="1"> Запомнить меня</label>
+    </div>
+{/if}

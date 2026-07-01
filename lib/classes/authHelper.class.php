@@ -81,6 +81,27 @@ class authHelper
      * Returns list of OAuth providers for display on the login page.
      * Each item: ['id' => string, 'name' => string, 'auth_url' => string]
      */
+    /**
+     * Form-based methods with their theme partial path.
+     * Returns [['id' => ..., 'partial' => absolute_path_or_null], ...]
+     */
+    public static function getFormMethods(): array
+    {
+        $result = [];
+        $theme_path = wa()->getAppPath('themes/default', 'auth');
+        foreach (authPluginManager::getEnabled() as $id => $method) {
+            if (self::methodIsOAuth($method)) {
+                continue;
+            }
+            $partial = $theme_path . '/' . $id . '.login_form.html';
+            $result[] = [
+                'id'      => $id,
+                'partial' => file_exists($partial) ? $partial : null,
+            ];
+        }
+        return $result;
+    }
+
     public static function getOAuthProviders(): array
     {
         $providers = [];

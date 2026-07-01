@@ -1,0 +1,23 @@
+{if !empty($step_vars.show_code_field)}
+    <div class="auth-field">
+        <label>Код из SMS</label>
+        <input type="text" name="otp_code" autocomplete="one-time-code" autofocus>
+    </div>
+    {if !empty($step_vars.error)}
+        <div class="auth-field-error">{$step_vars.error|escape}</div>
+    {/if}
+{else}
+    <div class="auth-field">
+        <label>Email</label>
+        <input type="email" name="email" autocomplete="email" autofocus>
+    </div>
+    <div class="auth-field">
+        <label>Пароль</label>
+        <input type="password" name="password" autocomplete="current-password">
+    </div>
+    {if $rememberme}
+        <div class="auth-field">
+            <label><input type="checkbox" name="rememberme" value="1"> Запомнить меня</label>
+        </div>
+    {/if}
+{/if}

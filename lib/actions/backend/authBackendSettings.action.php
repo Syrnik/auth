@@ -4,6 +4,9 @@ class authBackendSettingsAction extends waViewAction
 {
     public function execute(): void
     {
+        $this->setLayout(new authDefaultLayout());
+        $this->setTemplate('BackendSettings');
+
         $domain = waRequest::get('domain', '', 'string');
 
         if (waRequest::method() === 'post') {

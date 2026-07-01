@@ -69,11 +69,11 @@ class authBackendSettingsAction extends waViewAction
      */
     private function getAvailableMethods(array $config): array
     {
-        $methods = [
-            'email' => ['name' => 'Email / пароль'],
-            'login' => ['name' => 'Логин / пароль'],
-            'phone' => ['name' => 'Телефон (OTP)'],
-        ];
+        $methods = [];
+
+        foreach (authPluginManager::getBuiltinFormMethods() as $id => $class) {
+            $methods[$id] = ['name' => (new $class())->getName()];
+        }
 
         $all_adapters = (array)($config['adapters'] ?? []);
 

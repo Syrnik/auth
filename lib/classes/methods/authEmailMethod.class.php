@@ -12,7 +12,7 @@ class authEmailMethod extends authBuiltinMethod implements authMethod
 
     public function getName(): string
     {
-        return 'Email';
+        return 'Email / пароль';
     }
 
     public function authenticate(array $params): ?int

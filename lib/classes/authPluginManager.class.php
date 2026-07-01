@@ -95,6 +95,21 @@ class authPluginManager
     }
 
     /**
+     * This app's own built-in form-based methods (not framework adapters, not
+     * plugins) — id => class name. Single source of truth for both runtime
+     * loading (loadBuiltin()) and the backend settings screen, so a new method
+     * only needs to be added here once.
+     */
+    public static function getBuiltinFormMethods(): array
+    {
+        return [
+            'email' => 'authEmailMethod',
+            'login' => 'authLoginMethod',
+            'phone' => 'authPhoneMethod',
+        ];
+    }
+
+    /**
      * All framework-level OAuth adapters (VK, Facebook, Google, Webasyst ID, ...),
      * keyed by our method id, valued by the provider id used with wa()->getAuth().
      * For every id except 'waid' the two are identical; 'waid' is Webasyst ID's
@@ -121,12 +136,8 @@ class authPluginManager
 
     private static function loadBuiltin(string $id): ?object
     {
-        $map = [
-            'email' => 'authEmailMethod',
-            'login' => 'authLoginMethod',
-            'waid'  => 'authWaidMethod',
-            'phone' => 'authPhoneMethod',
-        ];
+        $map = self::getBuiltinFormMethods();
+        $map['waid'] = 'authWaidMethod';
 
         if (isset($map[$id])) {
             $class = $map[$id];

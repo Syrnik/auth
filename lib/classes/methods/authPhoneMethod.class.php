@@ -15,7 +15,7 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
 
     public function getName(): string
     {
-        return 'Phone';
+        return 'Телефон (OTP)';
     }
 
     public function authenticate(array $params): ?int

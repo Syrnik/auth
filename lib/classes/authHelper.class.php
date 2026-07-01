@@ -77,9 +77,23 @@ class authHelper
         return (bool)authConfig::get('rememberme', false);
     }
 
+    /**
+     * The registration form is only meaningful when there is at least one
+     * password-based (non-OAuth) login method enabled — otherwise visitors
+     * already get an account created for them on first OAuth login via
+     * authContactResolver, and a separate signup form/link is redundant.
+     */
     public static function isRegistrationEnabled(): bool
     {
-        return (bool)authConfig::get('signup_enabled');
+        if (!authConfig::get('signup_enabled')) {
+            return false;
+        }
+        foreach (authPluginManager::getEnabled() as $method) {
+            if (!self::methodIsOAuth($method)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -12,6 +12,8 @@ class authContactResolver
      * create a new one. Guards run against the raw OAuth data BEFORE any
      * contact is created, same as the plain registration form — a blocked
      * signup never touches the database, so there is nothing to roll back.
+     * Respects the signup_enabled setting: an unknown OAuth identity is not
+     * silently turned into a new account just because registration is off.
      * Returns [contact_id, is_new]. Throws authGuardException if blocked.
      */
     public static function resolve(array $data): array
@@ -19,6 +21,10 @@ class authContactResolver
         $contact_id = self::find($data);
         if ($contact_id !== null) {
             return [$contact_id, false];
+        }
+
+        if (!authConfig::get('signup_enabled')) {
+            throw new authGuardException('Регистрация отключена.');
         }
 
         foreach (authPluginManager::getGuardsEnabled('signup') as $guard) {

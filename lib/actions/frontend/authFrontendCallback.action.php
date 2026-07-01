@@ -73,6 +73,7 @@ class authFrontendCallbackAction extends waViewAction
             'csrf_token'      => authHelper::getCsrfToken(),
             'has_recovery'    => authHelper::hasRecovery(),
             'rememberme'      => authHelper::isRememberMeEnabled(),
+            'has_registration' => authHelper::isRegistrationEnabled(),
             'register_url'    => authHelper::getRegisterUrl(),
             'recovery_url'    => authHelper::getRecoveryUrl(),
         ]);

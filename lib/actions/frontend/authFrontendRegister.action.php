@@ -4,7 +4,7 @@ class authFrontendRegisterAction extends waViewAction
 {
     public function execute(): void
     {
-        if (!authConfig::get('signup_enabled')) {
+        if (!authHelper::isRegistrationEnabled()) {
             throw new waException('Регистрация отключена.', 404);
         }
 

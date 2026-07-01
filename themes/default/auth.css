@@ -1,0 +1,57 @@
+.auth-container {
+    max-width: 480px;
+    margin: 2rem auto;
+}
+
+.auth-error {
+    color: #c00;
+    margin-bottom: 12px;
+}
+
+.auth-success {
+    color: #060;
+    margin-bottom: 12px;
+}
+
+.auth-field {
+    margin-bottom: 12px;
+}
+
+.auth-field label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.auth-field input[type=text],
+.auth-field input[type=email],
+.auth-field input[type=password] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid #ccc;
+}
+
+.auth-submit {
+    padding: 10px 24px;
+    cursor: pointer;
+}
+
+.auth-links {
+    margin-top: 16px;
+}
+
+.auth-links a {
+    margin-right: 12px;
+}
+
+.auth-oauth {
+    margin-bottom: 20px;
+}
+
+.auth-oauth-btn {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 8px 16px;
+    border: 1px solid #999;
+    text-decoration: none;
+}

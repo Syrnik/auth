@@ -1,0 +1,47 @@
+<div class="auth-page auth-register">
+
+    {foreach $errors as $field => $msg}
+        <div class="auth-error">{$msg|escape}</div>
+    {/foreach}
+
+    <h2>Регистрация</h2>
+
+    <form method="post" class="auth-form">
+        <input type="hidden" name="_csrf" value="{$csrf_token|escape}">
+
+        {if in_array('firstname', $signup_fields)}
+            <div class="auth-field">
+                <label>Имя</label>
+                <input type="text" name="firstname" value="{$data.firstname|default:''|escape}" autocomplete="given-name">
+            </div>
+        {/if}
+
+        {if in_array('lastname', $signup_fields)}
+            <div class="auth-field">
+                <label>Фамилия</label>
+                <input type="text" name="lastname" value="{$data.lastname|default:''|escape}" autocomplete="family-name">
+            </div>
+        {/if}
+
+        {if in_array('email', $signup_fields)}
+            <div class="auth-field">
+                <label>Email</label>
+                <input type="email" name="email" value="{$data.email|default:''|escape}" autocomplete="email">
+            </div>
+        {/if}
+
+        {if in_array('password', $signup_fields)}
+            <div class="auth-field">
+                <label>Пароль</label>
+                <input type="password" name="password" autocomplete="new-password">
+            </div>
+        {/if}
+
+        <button type="submit" class="auth-submit">Зарегистрироваться</button>
+    </form>
+
+    <div class="auth-links">
+        <a href="{$login_url|escape}">Уже есть аккаунт? Войти</a>
+    </div>
+
+</div>

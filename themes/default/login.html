@@ -1,0 +1,57 @@
+<div class="auth-page auth-login">
+
+    {if $error}
+        <div class="auth-error">{$error|escape}</div>
+    {/if}
+
+    {* OAuth providers (buttons/links) *}
+    {if $oauth_providers}
+        <div class="auth-oauth">
+            {foreach $oauth_providers as $provider}
+                <a href="{$provider.auth_url|escape}" class="auth-oauth-btn" data-provider="{$provider.id|escape}">
+                    Войти через {$provider.name|escape}
+                </a>
+            {/foreach}
+        </div>
+    {/if}
+
+    <form method="post" data-auth="login" class="auth-form">
+        <input type="hidden" name="_csrf" value="{$csrf_token|escape}">
+        <input type="hidden" name="auth_method" value="email">
+        {if $goal_url}<input type="hidden" name="goal_url" value="{$goal_url|escape}">{/if}
+
+        {if !empty($step_vars.show_code_field)}
+            <div class="auth-field">
+                <label>Код из SMS</label>
+                <input type="text" name="otp_code" autocomplete="one-time-code" autofocus>
+            </div>
+            {if !empty($step_vars.error)}
+                <div class="auth-field-error">{$step_vars.error|escape}</div>
+            {/if}
+        {else}
+            <div class="auth-field">
+                <label>Email</label>
+                <input type="email" name="email" autocomplete="email" autofocus>
+            </div>
+            <div class="auth-field">
+                <label>Пароль</label>
+                <input type="password" name="password" autocomplete="current-password">
+            </div>
+            {if $rememberme}
+                <div class="auth-field">
+                    <label><input type="checkbox" name="rememberme" value="1"> Запомнить меня</label>
+                </div>
+            {/if}
+        {/if}
+
+        <button type="submit" class="auth-submit">Войти</button>
+    </form>
+
+    <div class="auth-links">
+        {if $has_recovery}
+            <a href="{$recovery_url|escape}">Забыли пароль?</a>
+        {/if}
+        <a href="{$register_url|escape}">Регистрация</a>
+    </div>
+
+</div>

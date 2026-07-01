@@ -1,0 +1,23 @@
+<div class="auth-page auth-my-profile">
+
+    {if $saved}
+        <div class="auth-success">Изменения сохранены.</div>
+    {/if}
+
+    <h2>Мой профиль</h2>
+
+    <form method="post" enctype="multipart/form-data" class="auth-form">
+        {$wa->csrf()}
+
+        {if $form}
+            {$form->html()}
+        {/if}
+
+        <button type="submit" class="auth-submit">Сохранить</button>
+    </form>
+
+    <div class="auth-links">
+        <a href="{$wa_app_url}logout/">Выйти</a>
+    </div>
+
+</div>

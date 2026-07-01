@@ -1,0 +1,13 @@
+<div class="auth-page auth-confirm">
+
+    {if $error}
+        <div class="auth-error">{$error|escape}</div>
+        <p><a href="{$wa_app_url}register/">Вернуться к регистрации</a></p>
+    {else}
+        <div class="auth-success">
+            <p>Мы отправили письмо с подтверждением на адрес <strong>{$email|default:''|escape}</strong>.</p>
+            <p>Перейдите по ссылке в письме, чтобы завершить регистрацию.</p>
+        </div>
+    {/if}
+
+</div>

@@ -1,0 +1,74 @@
+<div class="block">
+
+    {if $wa->get('saved')}
+        <div class="msg oktext">Настройки сохранены.</div>
+    {/if}
+
+    <form method="post" action="">
+        <input type="hidden" name="_csrf" value="{$wa->csrf()|escape}">
+        <input type="hidden" name="domain" value="{$domain|escape}">
+
+        <h3>Методы входа</h3>
+        <div class="fields">
+            {foreach $available_methods as $id => $name}
+                <div class="field">
+                    <label>
+                        <input type="checkbox" name="login_methods[]" value="{$id|escape}"
+                            {if in_array($id, $config.login_methods)}checked{/if}>
+                        {$name|escape}
+                    </label>
+                </div>
+            {/foreach}
+        </div>
+
+        <h3>Регистрация</h3>
+        <div class="fields">
+            <div class="field">
+                <label>
+                    <input type="checkbox" name="signup_enabled" value="1" {if $config.signup_enabled}checked{/if}>
+                    Разрешить регистрацию
+                </label>
+            </div>
+            <div class="field">
+                <label>
+                    <input type="checkbox" name="signup_confirm" value="1" {if $config.signup_confirm}checked{/if}>
+                    Подтверждение email при регистрации
+                </label>
+            </div>
+        </div>
+
+        <h3>Прочее</h3>
+        <div class="fields">
+            <div class="field">
+                <label>
+                    <input type="checkbox" name="recovery_enabled" value="1" {if $config.recovery_enabled}checked{/if}>
+                    Восстановление пароля
+                </label>
+            </div>
+            <div class="field">
+                <label>
+                    <input type="checkbox" name="rememberme" value="1" {if $config.rememberme}checked{/if}>
+                    «Запомнить меня»
+                </label>
+            </div>
+        </div>
+
+        <h3>Капча</h3>
+        <div class="fields">
+            <div class="field">
+                <select name="captcha_plugin">
+                    {foreach $available_captchas as $label => $value}
+                        <option value="{$value|escape}" {if $config.captcha_plugin == $value}selected{/if}>
+                            {$label|escape}
+                        </option>
+                    {/foreach}
+                </select>
+            </div>
+        </div>
+
+        <div class="submit-block">
+            <input type="submit" value="Сохранить" class="button green">
+        </div>
+    </form>
+
+</div>

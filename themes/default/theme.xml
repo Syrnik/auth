@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
+<theme id="default" system="1" vendor="" author="" app="auth" parent_theme_id="site:default" version="1.0">
+    <name locale="en_US">Default</name>
+    <name locale="ru_RU">По умолчанию</name>
+    <files>
+        <file path="index.html" parent="1">
+        </file>
+        <file path="head.html">
+            <description locale="en_US">Auth-specific &lt;head&gt; content</description>
+            <description locale="ru_RU">CSS и JS форм авторизации</description>
+        </file>
+        <file path="header.html">
+            <description locale="en_US">App navigation in site header (empty for auth)</description>
+            <description locale="ru_RU">Навигация приложения в хедере сайта</description>
+        </file>
+        <file path="footer.html">
+            <description locale="en_US">App content in site footer (empty for auth)</description>
+            <description locale="ru_RU">Контент приложения в футере сайта</description>
+        </file>
+        <file path="main.html">
+            <description locale="en_US">Auth content wrapper</description>
+            <description locale="ru_RU">Обёртка страниц авторизации</description>
+        </file>
+        <file path="auth.css">
+            <description locale="en_US">Auth forms stylesheet</description>
+            <description locale="ru_RU">Стили форм авторизации</description>
+        </file>
+        <file path="login.html">
+            <description locale="en_US">Login form</description>
+            <description locale="ru_RU">Форма входа</description>
+        </file>
+        <file path="register.html">
+            <description locale="en_US">Registration form</description>
+            <description locale="ru_RU">Форма регистрации</description>
+        </file>
+        <file path="register.confirm.html">
+            <description locale="en_US">Email confirmation page</description>
+            <description locale="ru_RU">Страница подтверждения email</description>
+        </file>
+        <file path="recovery.html">
+            <description locale="en_US">Password recovery</description>
+            <description locale="ru_RU">Восстановление пароля</description>
+        </file>
+        <file path="challenge.html">
+            <description locale="en_US">Two-factor authentication</description>
+            <description locale="ru_RU">Двухфакторная аутентификация</description>
+        </file>
+        <file path="my.profile.html">
+            <description locale="en_US">My profile</description>
+            <description locale="ru_RU">Мой профиль</description>
+        </file>
+    </files>
+</theme>

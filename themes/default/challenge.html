@@ -1,0 +1,21 @@
+<div class="auth-page auth-challenge">
+
+    {if $error}
+        <div class="auth-error">{$error|escape}</div>
+    {/if}
+
+    {if $challenge_form_html}
+        {$challenge_form_html}
+    {else}
+        <h2>Подтверждение входа</h2>
+        <form method="post" data-auth="challenge" class="auth-form">
+            {$wa->csrf()}
+            <div class="auth-field">
+                <label>Код подтверждения</label>
+                <input type="text" name="code" autocomplete="one-time-code" autofocus>
+            </div>
+            <button type="submit" class="auth-submit">Подтвердить</button>
+        </form>
+    {/if}
+
+</div>

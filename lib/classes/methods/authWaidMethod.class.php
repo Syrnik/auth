@@ -61,7 +61,7 @@ class authWaidMethod extends authBuiltinMethod implements authMethod
         // Second leg: WAID returned with auth code — exchange and identify contact.
         $data = $adapter->processCallback();
 
-        [$contact_id, $is_new] = $this->findOrCreateContact($data);
+        [$contact_id, $is_new] = authContactResolver::findOrCreate($data);
         return new authCallbackResult($contact_id, $is_new);
     }
 
@@ -74,8 +74,7 @@ class authWaidMethod extends authBuiltinMethod implements authMethod
 
     private function getAdapter(): ?authWaidAdapter
     {
-        $auth_config = wa()->getAuthConfig();
-        $credentials = $auth_config['adapters']['webasystID'] ?? [];
+        $credentials = self::getCredentials();
         if (empty($credentials['app_id'])) {
             return null;
         }
@@ -83,72 +82,17 @@ class authWaidMethod extends authBuiltinMethod implements authMethod
     }
 
     /**
-     * Find existing contact by WAID source_id or email, or create a new one.
-     * Returns [contact_id, is_new].
+     * Credentials configured in this app's own settings screen take priority.
+     * Falls back to the framework's own Webasyst ID registration (wa-config/auth.php,
+     * managed by the Site app) so installs that already had WAID working keep working
+     * until the admin re-enters credentials here.
      */
-    private function findOrCreateContact(array $data): array
+    public static function getCredentials(): array
     {
-        $field              = 'webasystID_id';
-        $contact_data_model = new waContactDataModel();
-
-        // Find by WAID contact ID (fastest path for returning users).
-        $row = $contact_data_model->getByField([
-            'field' => $field,
-            'value' => $data['source_id'],
-            'sort'  => 0,
-        ]);
-        if ($row) {
-            return [(int) $row['contact_id'], false];
+        $credentials = authConfig::getAdapterCredentials('waid');
+        if (!empty($credentials['app_id'])) {
+            return $credentials;
         }
-
-        // Find by primary email and link WAID ID to existing account.
-        $email = $this->extractEmail($data);
-        if ($email) {
-            $contact_model = new waContactModel();
-            $contact_id    = (int) $contact_model->query(
-                "SELECT c.id FROM wa_contact_emails e
-                 JOIN wa_contact c ON e.contact_id = c.id
-                 WHERE e.email = s:email AND e.sort = 0 AND c.password != ''",
-                ['email' => $email]
-            )->fetchField('id');
-
-            if ($contact_id) {
-                $contact_data_model->insert([
-                    'contact_id' => $contact_id,
-                    'field'      => $field,
-                    'value'      => $data['source_id'],
-                    'sort'       => 0,
-                ]);
-                return [$contact_id, false];
-            }
-        }
-
-        // Create new contact.
-        $contact    = new waContact();
-        $save_data  = $data;
-        $save_data[$field]             = $data['source_id'];
-        $save_data['create_method']    = 'webasystID';
-        $save_data['create_app_id']    = 'auth';
-        unset($save_data['source'], $save_data['source_id'], $save_data['photo_url']);
-        // Unusable password so the account cannot be brute-forced via password form.
-        $contact->setPassword(
-            substr(waContact::getPasswordHash(uniqid((string) time(), true)), 0, -1),
-            true
-        );
-        $contact->save($save_data);
-
-        return [(int) $contact->getId(), true];
-    }
-
-    private function extractEmail(array $data): string
-    {
-        if (empty($data['email'])) {
-            return '';
-        }
-        $email = $data['email'];
-        if (is_array($email)) {
-            $email = $email[0]['value'] ?? ($email[0] ?? '');
-        }
-        return is_string($email) ? trim($email) : '';
+        return wa()->getAuthConfig()['adapters']['webasystID'] ?? [];
     }
 }

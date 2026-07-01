@@ -27,6 +27,15 @@ class authConfig
         return (array)self::get('guard_plugins', [], $domain);
     }
 
+    /**
+     * Saved credentials for a system/OAuth adapter, keyed by method id (e.g. 'waid', 'vkontakte').
+     */
+    public static function getAdapterCredentials(string $id, string $domain = null): array
+    {
+        $adapters = (array)self::get('adapters', [], $domain);
+        return (array)($adapters[$id] ?? []);
+    }
+
     // -------------------------------------------------------------------------
 
     /**

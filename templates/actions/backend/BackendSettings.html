@@ -22,14 +22,28 @@
 
             <h6 class="heading custom-mt-0">[`Login methods`]</h6>
             <div class="field-group">
-                {foreach $available_methods as $id => $name}
+                {foreach $available_methods as $id => $m}
                     <div class="field">
                         <div class="value">
                             <label>
                                 <input type="checkbox" name="login_methods[]" value="{$id|escape}"
                                     {if in_array($id, $config.login_methods)}checked{/if}>
-                                {$name|escape}
+                                {$m.name|escape}
                             </label>
+                            {if !empty($m.oauth)}
+                                <div class="custom-mt-8 custom-ml-24">
+                                    {foreach $m.controls as $field_id => $c}
+                                        <div class="flexbox middle custom-mb-4">
+                                            {if !empty($c.html)}
+                                                {$c.html}
+                                            {else}
+                                                <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label}</span>
+                                                <input type="text" name="adapters[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
+                                            {/if}
+                                        </div>
+                                    {/foreach}
+                                </div>
+                            {/if}
                         </div>
                     </div>
                 {/foreach}

@@ -94,6 +94,29 @@ class authPluginManager
         self::$cache = [];
     }
 
+    /**
+     * All framework-level OAuth adapters (VK, Facebook, Google, Webasyst ID, ...),
+     * keyed by our method id, valued by the provider id used with wa()->getAuth().
+     * For every id except 'waid' the two are identical; 'waid' is Webasyst ID's
+     * short alias for provider id 'webasystID' (used throughout our routes already).
+     * New adapters dropped into wa-system/auth/adapters/ appear here automatically.
+     */
+    public static function getSystemAdapters(): array
+    {
+        static $map = null;
+        if ($map === null) {
+            $map = ['waid' => waWebasystIDAuthAdapter::PROVIDER_ID];
+            $path = wa()->getConfig()->getPath('system') . '/auth/adapters/';
+            foreach ((array)@scandir($path) as $f) {
+                if (substr($f, -14) === 'Auth.class.php') {
+                    $id = substr($f, 0, -14);
+                    $map[$id] = $id;
+                }
+            }
+        }
+        return $map;
+    }
+
     // -------------------------------------------------------------------------
 
     private static function loadBuiltin(string $id): ?object
@@ -105,16 +128,17 @@ class authPluginManager
             'phone' => 'authPhoneMethod',
         ];
 
-        if (!isset($map[$id])) {
-            return null;
+        if (isset($map[$id])) {
+            $class = $map[$id];
+            return class_exists($class) ? new $class() : null;
         }
 
-        $class = $map[$id];
-        if (!class_exists($class)) {
-            return null;
+        $system_adapters = self::getSystemAdapters();
+        if (isset($system_adapters[$id]) && $id !== 'waid') {
+            return new authSocialMethod($id, $system_adapters[$id]);
         }
 
-        return new $class();
+        return null;
     }
 
     /**

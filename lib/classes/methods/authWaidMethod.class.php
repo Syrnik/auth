@@ -59,9 +59,10 @@ class authWaidMethod extends authBuiltinMethod implements authMethod
         }
 
         // Second leg: WAID returned with auth code — exchange and identify contact.
+        // authContactResolver runs signup guards before creating anything new.
         $data = $adapter->processCallback();
 
-        [$contact_id, $is_new] = authContactResolver::findOrCreate($data);
+        [$contact_id, $is_new] = authContactResolver::resolve($data);
         return new authCallbackResult($contact_id, $is_new);
     }
 

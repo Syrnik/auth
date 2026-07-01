@@ -32,17 +32,15 @@ class authOAuthController extends waOAuthController
 
     protected function afterAuth($data)
     {
-        [$contact_id, $is_new] = authContactResolver::findOrCreate($data);
+        // authContactResolver runs signup guards against the raw OAuth data
+        // before creating anything, so a blocked signup never touches the DB.
+        try {
+            [$contact_id, $is_new] = authContactResolver::resolve($data);
+        } catch (authGuardException $e) {
+            $this->displayError($e->getMessage());
+        }
 
         if ($is_new) {
-            try {
-                foreach (authPluginManager::getGuardsEnabled('signup') as $guard) {
-                    $guard->checkSignup(['contact_id' => $contact_id]);
-                }
-            } catch (authGuardException $e) {
-                (new waContact($contact_id))->delete();
-                $this->displayError($e->getMessage());
-            }
             wa()->event('signup', new waContact($contact_id));
         }
 

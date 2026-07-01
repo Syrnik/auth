@@ -8,10 +8,31 @@
 class authContactResolver
 {
     /**
-     * Find existing contact by source id or email, or create a new one.
-     * Returns [contact_id, is_new].
+     * Find an existing contact for this identity, or run signup guards and
+     * create a new one. Guards run against the raw OAuth data BEFORE any
+     * contact is created, same as the plain registration form — a blocked
+     * signup never touches the database, so there is nothing to roll back.
+     * Returns [contact_id, is_new]. Throws authGuardException if blocked.
      */
-    public static function findOrCreate(array $data): array
+    public static function resolve(array $data): array
+    {
+        $contact_id = self::find($data);
+        if ($contact_id !== null) {
+            return [$contact_id, false];
+        }
+
+        foreach (authPluginManager::getGuardsEnabled('signup') as $guard) {
+            $guard->checkSignup($data);
+        }
+
+        return [self::create($data), true];
+    }
+
+    /**
+     * Look up an existing contact by source id or linked email. Returns null
+     * if no match — the caller should treat this as a new signup.
+     */
+    public static function find(array $data): ?int
     {
         $field              = $data['source'] . '_id';
         $contact_data_model = new waContactDataModel();
@@ -22,7 +43,7 @@ class authContactResolver
             'sort'  => 0,
         ]);
         if ($row) {
-            return [(int) $row['contact_id'], false];
+            return (int) $row['contact_id'];
         }
 
         $email = self::extractEmail($data);
@@ -42,10 +63,20 @@ class authContactResolver
                     'value'      => $data['source_id'],
                     'sort'       => 0,
                 ]);
-                return [$contact_id, false];
+                return $contact_id;
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Create a new contact from OAuth data. Caller is responsible for
+     * running signup guards first — this method does not check them.
+     */
+    public static function create(array $data): int
+    {
+        $field      = $data['source'] . '_id';
         $contact    = new waContact();
         $save_data  = $data;
         $save_data[$field]             = $data['source_id'];
@@ -59,7 +90,7 @@ class authContactResolver
         );
         $contact->save($save_data);
 
-        return [(int) $contact->getId(), true];
+        return (int) $contact->getId();
     }
 
     private static function extractEmail(array $data): string

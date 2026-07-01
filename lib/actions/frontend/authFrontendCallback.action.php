@@ -11,7 +11,9 @@ class authFrontendCallbackAction extends waViewAction
             throw new waException('Метод авторизации не найден.', 404);
         }
 
-        // Handle OAuth callback
+        // Handle OAuth callback. handleCallback() runs signup guards (via
+        // authContactResolver) before creating any contact, so a blocked
+        // signup surfaces here as a plain waException — nothing to roll back.
         try {
             $result = $method->handleCallback(waRequest::get());
         } catch (waException $e) {
@@ -21,21 +23,7 @@ class authFrontendCallbackAction extends waViewAction
 
         $contact = new waContact($result->contact_id);
 
-        // Signup guards for new contacts
         if ($result->is_new) {
-            try {
-                $post = ['contact_id' => $result->contact_id];
-                foreach (authPluginManager::getGuardsEnabled('signup') as $guard) {
-                    $guard->checkSignup($post);
-                }
-            } catch (authGuardException $e) {
-                if ($result->is_new) {
-                    // Remove freshly-created contact if guard blocks signup
-                    $contact->delete();
-                }
-                $this->renderError($e->getMessage());
-                return;
-            }
             wa()->event('signup', $contact);
         }
 
@@ -69,10 +57,25 @@ class authFrontendCallbackAction extends waViewAction
         wa()->getResponse()->redirect($redirect);
     }
 
+    /**
+     * Renders login.html directly (not via authLoginFormAction), so it must
+     * assign the same vars that template expects or Smarty warns/breaks.
+     */
     private function renderError(string $message): void
     {
         $this->setLayout(new authFrontendLayout());
-        $this->view->assign(['error' => $message]);
+        $this->view->assign([
+            'goal_url'        => (string) (wa()->getStorage()->get('auth_goal_url') ?? ''),
+            'error'           => $message,
+            'step_vars'       => [],
+            'form_methods'    => authHelper::getFormMethods(),
+            'oauth_providers' => authHelper::getOAuthProviders(),
+            'csrf_token'      => authHelper::getCsrfToken(),
+            'has_recovery'    => authHelper::hasRecovery(),
+            'rememberme'      => authHelper::isRememberMeEnabled(),
+            'register_url'    => authHelper::getRegisterUrl(),
+            'recovery_url'    => authHelper::getRecoveryUrl(),
+        ]);
         $this->setThemeTemplate('login.html');
     }
 }

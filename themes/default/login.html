@@ -1,10 +1,33 @@
+{* Determine active form-based methods *}
+{$has_email = array_key_exists('email', $login_methods)}
+{$has_login = array_key_exists('login', $login_methods)}
+
+{if $has_email && $has_login}
+    {$login_field_label = 'Email или логин'}
+    {$login_field_name  = 'login'}
+    {$login_field_type  = 'text'}
+    {$form_method       = 'email'}
+{elseif $has_email}
+    {$login_field_label = 'Email'}
+    {$login_field_name  = 'email'}
+    {$login_field_type  = 'email'}
+    {$form_method       = 'email'}
+{elseif $has_login}
+    {$login_field_label = 'Логин'}
+    {$login_field_name  = 'login'}
+    {$login_field_type  = 'text'}
+    {$form_method       = 'login'}
+{else}
+    {$form_method = ''}
+{/if}
+
 <div class="auth-page auth-login">
 
     {if $error}
         <div class="auth-error">{$error|escape}</div>
     {/if}
 
-    {* OAuth providers (buttons/links) *}
+    {* OAuth providers *}
     {if $oauth_providers}
         <div class="auth-oauth">
             {foreach $oauth_providers as $provider}
@@ -15,37 +38,40 @@
         </div>
     {/if}
 
-    <form method="post" data-auth="login" class="auth-form">
-        <input type="hidden" name="_csrf" value="{$csrf_token|escape}">
-        <input type="hidden" name="auth_method" value="email">
-        {if $goal_url}<input type="hidden" name="goal_url" value="{$goal_url|escape}">{/if}
+    {* Form-based login (email, login, phone all share one form; method determines backend lookup) *}
+    {if $form_method}
+        <form method="post" data-auth="login" class="auth-form">
+            <input type="hidden" name="_csrf" value="{$csrf_token|escape}">
+            <input type="hidden" name="auth_method" value="{$form_method|escape}">
+            {if $goal_url}<input type="hidden" name="goal_url" value="{$goal_url|escape}">{/if}
 
-        {if !empty($step_vars.show_code_field)}
-            <div class="auth-field">
-                <label>Код из SMS</label>
-                <input type="text" name="otp_code" autocomplete="one-time-code" autofocus>
-            </div>
-            {if !empty($step_vars.error)}
-                <div class="auth-field-error">{$step_vars.error|escape}</div>
-            {/if}
-        {else}
-            <div class="auth-field">
-                <label>Email</label>
-                <input type="email" name="email" autocomplete="email" autofocus>
-            </div>
-            <div class="auth-field">
-                <label>Пароль</label>
-                <input type="password" name="password" autocomplete="current-password">
-            </div>
-            {if $rememberme}
+            {if !empty($step_vars.show_code_field)}
                 <div class="auth-field">
-                    <label><input type="checkbox" name="rememberme" value="1"> Запомнить меня</label>
+                    <label>Код из SMS</label>
+                    <input type="text" name="otp_code" autocomplete="one-time-code" autofocus>
                 </div>
+                {if !empty($step_vars.error)}
+                    <div class="auth-field-error">{$step_vars.error|escape}</div>
+                {/if}
+            {else}
+                <div class="auth-field">
+                    <label>{$login_field_label}</label>
+                    <input type="{$login_field_type}" name="{$login_field_name}" autocomplete="{if $login_field_type == 'email'}email{else}username{/if}" autofocus>
+                </div>
+                <div class="auth-field">
+                    <label>Пароль</label>
+                    <input type="password" name="password" autocomplete="current-password">
+                </div>
+                {if $rememberme}
+                    <div class="auth-field">
+                        <label><input type="checkbox" name="rememberme" value="1"> Запомнить меня</label>
+                    </div>
+                {/if}
             {/if}
-        {/if}
 
-        <button type="submit" class="auth-submit">Войти</button>
-    </form>
+            <button type="submit" class="auth-submit">Войти</button>
+        </form>
+    {/if}
 
     <div class="auth-links">
         {if $has_recovery}

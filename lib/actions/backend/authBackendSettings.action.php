@@ -61,6 +61,7 @@ class authBackendSettingsAction extends waViewAction
     {
         $methods = [
             'email' => 'Email / пароль',
+            'login' => 'Логин / пароль',
             'waid'  => 'Webasyst ID',
             'phone' => 'Телефон (OTP)',
         ];

@@ -100,6 +100,7 @@ class authPluginManager
     {
         $map = [
             'email' => 'authEmailMethod',
+            'login' => 'authLoginMethod',
             'waid'  => 'authWaidMethod',
             'phone' => 'authPhoneMethod',
         ];

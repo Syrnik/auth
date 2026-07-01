@@ -4,60 +4,20 @@ class authBackendSettingsAction extends waViewAction
 {
     public function execute(): void
     {
-        // Determine which domain we're editing
-        $domain = waRequest::get('domain', '', 'string') ?: authConfig::currentDomain();
+        $domain = waRequest::get('domain', '', 'string');
 
         if (waRequest::method() === 'post') {
             $this->save($domain);
             return;
         }
 
-        $available_methods = [
-            'email' => 'Email / пароль',
-            'waid'  => 'Webasyst ID',
-            'phone' => 'Телефон (OTP)',
-        ];
-
-        // Add installed auth plugins
-        $plugins_path = wa()->getAppPath('plugins', 'auth');
-        if (is_dir($plugins_path)) {
-            foreach (scandir($plugins_path) as $dir) {
-                if ($dir[0] === '.' || !is_dir($plugins_path . '/' . $dir)) {
-                    continue;
-                }
-                $info_path = $plugins_path . '/' . $dir . '/lib/config/plugin.php';
-                if (file_exists($info_path)) {
-                    $info = (array)include($info_path);
-                    if (!empty($info['is_auth'])) {
-                        $available_methods[$dir . '_plugin'] = $info['name'] ?? $dir;
-                    }
-                }
-            }
-        }
-
-        $available_captchas = ['(нет)' => ''];
-        if (is_dir($plugins_path)) {
-            foreach (scandir($plugins_path) as $dir) {
-                if ($dir[0] === '.' || !is_dir($plugins_path . '/' . $dir)) {
-                    continue;
-                }
-                $info_path = $plugins_path . '/' . $dir . '/lib/config/plugin.php';
-                if (file_exists($info_path)) {
-                    $info = (array)include($info_path);
-                    if (!empty($info['is_captcha'])) {
-                        $available_captchas[$info['name'] ?? $dir] = $dir . '_plugin';
-                    }
-                }
-            }
-        }
-
-        $config = authConfig::getMerged($domain);
+        $config = $domain ? authConfig::getMerged($domain) : authConfig::getGlobal();
 
         $this->view->assign([
-            'domain'            => $domain,
-            'available_methods' => $available_methods,
-            'available_captchas' => $available_captchas,
-            'config'            => $config,
+            'domain'             => $domain,
+            'available_methods'  => $this->getAvailableMethods(),
+            'available_captchas' => $this->getAvailableCaptchas(),
+            'config'             => $config,
         ]);
     }
 
@@ -74,20 +34,76 @@ class authBackendSettingsAction extends waViewAction
             'captcha_plugin'   => (string)($post['captcha_plugin'] ?? ''),
         ];
 
-        // Load existing saved config
-        // true = user override: wa-config/apps/auth/config.php; getConfigPath() also creates the directory
         $config_path = wa()->getConfig()->getConfigPath('config.php', true, 'auth');
         $existing = file_exists($config_path) ? (array)include($config_path) : [];
 
-        // Merge domain-specific settings
-        if (!isset($existing['domains'])) {
-            $existing['domains'] = [];
+        if ($domain) {
+            $existing['domains'][$domain] = $new;
+        } else {
+            $domains = $existing['domains'] ?? [];
+            $existing = $new;
+            if ($domains) {
+                $existing['domains'] = $domains;
+            }
         }
-        $existing['domains'][$domain] = $new;
-        waUtils::varExportToFile($existing, $config_path);
 
+        waUtils::varExportToFile($existing, $config_path);
         authConfig::clearCache();
 
-        wa()->getResponse()->redirect('?module=backend&action=settings&domain=' . urlencode($domain) . '&saved=1');
+        $redirect = '?module=backend&action=settings&saved=1';
+        if ($domain) {
+            $redirect .= '&domain=' . urlencode($domain);
+        }
+        wa()->getResponse()->redirect($redirect);
+    }
+
+    private function getAvailableMethods(): array
+    {
+        $methods = [
+            'email' => 'Email / пароль',
+            'waid'  => 'Webasyst ID',
+            'phone' => 'Телефон (OTP)',
+        ];
+
+        $plugins_path = wa()->getAppPath('plugins', 'auth');
+        if (is_dir($plugins_path)) {
+            foreach (scandir($plugins_path) as $dir) {
+                if ($dir[0] === '.' || !is_dir($plugins_path . '/' . $dir)) {
+                    continue;
+                }
+                $info_path = $plugins_path . '/' . $dir . '/lib/config/plugin.php';
+                if (file_exists($info_path)) {
+                    $info = (array)include($info_path);
+                    if (!empty($info['is_auth'])) {
+                        $methods[$dir] = $info['name'] ?? $dir;
+                    }
+                }
+            }
+        }
+
+        return $methods;
+    }
+
+    private function getAvailableCaptchas(): array
+    {
+        $captchas = ['' => '(нет)'];
+
+        $plugins_path = wa()->getAppPath('plugins', 'auth');
+        if (is_dir($plugins_path)) {
+            foreach (scandir($plugins_path) as $dir) {
+                if ($dir[0] === '.' || !is_dir($plugins_path . '/' . $dir)) {
+                    continue;
+                }
+                $info_path = $plugins_path . '/' . $dir . '/lib/config/plugin.php';
+                if (file_exists($info_path)) {
+                    $info = (array)include($info_path);
+                    if (!empty($info['is_captcha'])) {
+                        $captchas[$dir] = $info['name'] ?? $dir;
+                    }
+                }
+            }
+        }
+
+        return $captchas;
     }
 }

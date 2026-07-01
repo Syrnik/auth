@@ -2,11 +2,10 @@
 
 class authConfig
 {
-    private static array $cache = [];
+    private static array $cache    = [];
+    private static ?array $defaults = null;
+    private static ?array $saved   = null;
 
-    /**
-     * Get a config value for the given domain (or current domain if null).
-     */
     public static function get(string $key, $default = null, string $domain = null)
     {
         $config = self::getMerged($domain);
@@ -30,19 +29,29 @@ class authConfig
 
     // -------------------------------------------------------------------------
 
+    /**
+     * Global config (distribution defaults merged with saved global keys).
+     * Does not apply per-domain overrides. Used for the "По умолчанию" settings screen.
+     */
+    public static function getGlobal(): array
+    {
+        $merged = array_merge(self::loadDefaults(), self::loadSaved());
+        unset($merged['domains']);
+        return $merged;
+    }
+
+    /**
+     * Three-level merge: distribution defaults → global saved → per-domain override.
+     */
     public static function getMerged(string $domain = null): array
     {
         $domain = $domain ?: self::currentDomain();
 
         if (!isset(self::$cache[$domain])) {
-            $defaults = self::loadDefaults();
-            $global   = self::loadSaved();
-
-            // Global-level keys (everything except 'domains')
-            $merged = array_merge($defaults, $global);
+            $global = self::loadSaved();
+            $merged = array_merge(self::loadDefaults(), $global);
             unset($merged['domains']);
 
-            // Domain-level override
             if (isset($global['domains'][$domain]) && is_array($global['domains'][$domain])) {
                 $merged = array_merge($merged, $global['domains'][$domain]);
             }
@@ -55,24 +64,22 @@ class authConfig
 
     private static function loadDefaults(): array
     {
-        static $defaults = null;
-        if ($defaults === null) {
+        if (self::$defaults === null) {
             // false = distribution file: wa-apps/auth/lib/config/config.php (read-only)
             $path = wa()->getConfig()->getConfigPath('config.php', false, 'auth');
-            $defaults = file_exists($path) ? (array)include($path) : [];
+            self::$defaults = file_exists($path) ? (array)include($path) : [];
         }
-        return $defaults;
+        return self::$defaults;
     }
 
     private static function loadSaved(): array
     {
-        static $saved = null;
-        if ($saved === null) {
+        if (self::$saved === null) {
             // true = user override: wa-config/apps/auth/config.php (writable)
             $path = wa()->getConfig()->getConfigPath('config.php', true, 'auth');
-            $saved = file_exists($path) ? (array)include($path) : [];
+            self::$saved = file_exists($path) ? (array)include($path) : [];
         }
-        return $saved;
+        return self::$saved;
     }
 
     public static function currentDomain(): string
@@ -82,6 +89,8 @@ class authConfig
 
     public static function clearCache(): void
     {
-        self::$cache = [];
+        self::$cache    = [];
+        self::$defaults = null;
+        self::$saved    = null;
     }
 }

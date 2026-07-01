@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>{$wa->appName()} &mdash; {$wa->accountName()}</title>
+    {$wa->css()}
+
+    <script src="{$wa_url}wa-content/js/jquery/jquery-3.6.0.min.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery/jquery-migrate-3.3.2.min.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery-wa/wa.js?v={$wa->version(true)}"></script>
+
+    <script src="{$wa_url}wa-content/js/jquery-plugins/jquery.json.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery-plugins/jquery.store.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery-plugins/jquery.history.js"></script>
+    <script src="{$wa_url}wa-content/js/jquery-plugins/jquery.tmpl.min.js"></script>
+
+    {$wa->js(false)}
+</head>
+<body>
+    <div id="wa">
+        {$wa->header()}
+        <div id="wa-app" class="flexbox wrap-mobile">
+            {$sidebar}
+            <main class="content s-hide-scrollbar not-blank js-main-content">
+                {$content}
+            </main>
+        </div>
+    </div>
+</body>
+</html>

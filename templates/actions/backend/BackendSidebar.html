@@ -1,0 +1,49 @@
+<div class="sidebar flexbox width-adaptive-wider hide-scrollbar mobile-friendly b-app-sidebar">
+
+    <div class="sidebar-body">
+        <div class="box custom-py-0">
+            <ul class="menu">
+                <li class="rounded{if !$current_domain && $action == 'settings'} selected{/if}">
+                    <a href="?module=backend&amp;action=settings">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>[`Default`]</span>
+                    </a>
+                </li>
+                {foreach $domains as $domain}
+                    <li class="rounded{if $current_domain == $domain} selected{/if}">
+                        <a href="?module=backend&amp;action=settings&amp;domain={$domain|escape:'url'}">
+                            <i class="fas fa-globe"></i>
+                            <span>{$domain|escape}</span>
+                        </a>
+                    </li>
+                {/foreach}
+            </ul>
+        </div>
+    </div>
+
+    <div class="sidebar-footer shadowed">
+        <div class="box custom-py-0">
+            <ul class="menu">
+                <li class="rounded{if $action == 'plugins'} selected{/if}">
+                    <a href="?module=backend&amp;action=plugins">
+                        <i class="fas fa-plug"></i>
+                        <span>[`Plugins`]</span>
+                    </a>
+                </li>
+                <li class="rounded{if $action == 'design' || $action == 'themes'} selected{/if}">
+                    <a href="?module=design#/design/themes/">
+                        <i class="fas fa-palette"></i>
+                        <span>[s`Design`]</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<script>
+(function($) {
+    $('.b-app-sidebar').waShowSidebar();
+})(jQuery);
+</script>

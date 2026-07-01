@@ -140,4 +140,4 @@ return [
 
 ## Лицензия
 
-LGPL v3. Подробнее — в файле [LICENSE](LICENSE).
+Лицензионное соглашение конечного пользователя Webasyst (Webasyst EULA). Подробнее — в файле [LICENSE_ru](LICENSE_ru) (английская версия — [LICENSE](LICENSE)).

@@ -140,4 +140,4 @@ Key theme files:
 
 ## License
 
-LGPL v3. See [LICENSE](LICENSE) for details.
+Webasyst End User License Agreement (EULA). See [LICENSE](LICENSE) for details (Russian version — [LICENSE_ru](LICENSE_ru)).

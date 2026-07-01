@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`login` auth method** — login/password against the `wa_contact.login` field
 - **Dynamic system OAuth adapters** — every framework-level adapter (VK, Google, Facebook, etc.) is now offered in settings automatically, with per-domain credential fields, instead of only Webasyst ID
-- License files (LGPL v3) and contribution guidelines (`AGENTS.md`)
+- License files (Webasyst EULA) and contribution guidelines (`AGENTS.md`)
 
 ### Changed
 

@@ -88,12 +88,10 @@ class authHelper
             if (!self::methodIsOAuth($method)) {
                 continue;
             }
-            // WAID built-in uses its own URL (standard Webasyst oauth.php flow).
-            // OAuth plugins use our callback route.
-            if ($method instanceof authWaidMethod) {
-                $auth_url = $method->getWaidUrl();
-            } else {
-                $auth_url = self::getCallbackUrl($id);
+            try {
+                $auth_url = $method->getCallbackUrl();
+            } catch (BadMethodCallException $e) {
+                continue;
             }
             if (!$auth_url) {
                 continue;

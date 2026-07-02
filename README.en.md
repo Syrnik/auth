@@ -45,13 +45,14 @@ Parameters editable in the backend:
 | `rememberme` | `false` | Show "Remember me" checkbox |
 | `captcha_plugin` | `null` | Captcha plugin ID (or `null`) |
 | `adapters` | `[]` | Per-domain OAuth adapter credentials (`app_id`/`app_secret`, etc.) |
+| `guard_plugins` | `[]` | Active guard plugins ("Signup and login protection" section) |
+| `plugin_settings` | `[]` | Plugins' own per-domain settings, keyed by plugin ID (see [plugin settings](#per-domain-plugin-settings)) |
 
 Additional parameters can only be set in `lib/config/config.php` (or manually in `wa-config/apps/auth/config.php`):
 
 | Parameter | Default | Description |
 |---|---|---|
 | `challenge_methods` | `[]` | Active second-factor plugins |
-| `guard_plugins` | `[]` | Active guard plugins |
 | `signup_methods` | `['email', 'waid']` | Methods offered on the registration form |
 | `signup_fields` | `['firstname', 'lastname', 'email', 'password']` | Registration form fields |
 | `redirect_after_login` / `redirect_after_register` / `redirect_after_logout` | `null` / `null` / `'/'` | Post-action redirects (`null` = `goal_url` / `HTTP_REFERER`) |
@@ -119,7 +120,59 @@ return [
 ];
 ```
 
-See `plugins/testguard/` for an example guard plugin that blocks signup only.
+See `plugins/testguard/` for an example guard plugin that blocks signup only. For a guard plugin with per-domain settings, see blackmailguard (email blacklist; lives in a separate repository, installs into `plugins/blackmailguard/`).
+
+### Per-domain Plugin Settings
+
+A plugin can keep its own settings separately for each site. They live in the same app config (`wa-config/apps/auth/config.php`), inside the domain section under the `plugin_settings` key:
+
+```php
+'domains' => [
+    'example.com' => [
+        // ...
+        'plugin_settings' => [
+            'myplugin' => ['rules' => ['*@spam.com']],
+        ],
+    ],
+],
+```
+
+`authPlugin` provides three methods for this (all with safe defaults — a plugin without settings doesn't have to override anything):
+
+```php
+class authMypluginPlugin extends authPlugin implements authGuard
+{
+    // Controls for the backend settings screen. $settings — the domain's current settings.
+    public function getSettingsControls(array $settings): array
+    {
+        return [
+            'rules' => [
+                'label' => 'Rules',
+                'type'  => 'textarea',           // 'text' (default) or 'textarea'
+                'value' => implode("\n", (array)($settings['rules'] ?? [])),
+                'hint'  => 'Hint under the field', // optional
+            ],
+        ];
+    }
+
+    // POST from those controls → the array that gets stored in the config.
+    // Normalization belongs here: textarea → array of lines, etc.
+    public function prepareSettings(array $post): array
+    {
+        $lines = preg_split('~\R~u', (string)($post['rules'] ?? ''));
+        return ['rules' => array_values(array_filter(array_map('trim', $lines), 'strlen'))];
+    }
+
+    public function checkSignup(array $form_data): void
+    {
+        // Read the current domain's settings (or pass a domain explicitly)
+        $rules = (array)($this->getDomainSettings()['rules'] ?? []);
+        // ...
+    }
+}
+```
+
+The backend settings screen currently renders these controls for guard plugins (the "Signup and login protection" section); the mechanism is shared, so challenge and captcha plugins can adopt the same three methods — only their sections on the settings screen remain to be rendered. Settings are saved even for disabled plugins: toggling a guard off and back on does not lose its rules.
 
 ## Design Theme
 

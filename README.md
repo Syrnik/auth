@@ -45,13 +45,14 @@
 | `rememberme` | `false` | Показывать «Запомнить меня» |
 | `captcha_plugin` | `null` | ID капча-плагина (или `null`) |
 | `adapters` | `[]` | Учётные данные OAuth-адаптеров (`app_id`/`app_secret` и т.д.) на домен |
+| `guard_plugins` | `[]` | Активные guard-плагины (секция «Signup and login protection») |
+| `plugin_settings` | `[]` | Собственные настройки плагинов на домен, по ID плагина (см. [настройки плагина](#настройки-плагина-на-домен)) |
 
 Дополнительные параметры задаются только в `lib/config/config.php` (или вручную в `wa-config/apps/auth/config.php`):
 
 | Параметр | По умолчанию | Описание |
 |---|---|---|
 | `challenge_methods` | `[]` | Активные плагины второго фактора |
-| `guard_plugins` | `[]` | Активные guard-плагины |
 | `signup_methods` | `['email', 'waid']` | Методы, доступные при регистрации |
 | `signup_fields` | `['firstname', 'lastname', 'email', 'password']` | Поля формы регистрации |
 | `redirect_after_login` / `redirect_after_register` / `redirect_after_logout` | `null` / `null` / `'/'` | Редиректы после действий (`null` = `goal_url` / `HTTP_REFERER`) |
@@ -119,7 +120,59 @@ return [
 ];
 ```
 
-Пример guard-плагина, блокирующего только регистрацию, — `plugins/testguard/`.
+Пример guard-плагина, блокирующего только регистрацию, — `plugins/testguard/`. Пример guard-плагина с per-domain настройками — blackmailguard (чёрный список email; живёт в отдельном репозитории, устанавливается в `plugins/blackmailguard/`).
+
+### Настройки плагина на домен
+
+Плагин может хранить собственные настройки отдельно для каждого сайта. Они лежат в том же конфиге приложения (`wa-config/apps/auth/config.php`), внутри секции домена в ключе `plugin_settings`:
+
+```php
+'domains' => [
+    'example.com' => [
+        // ...
+        'plugin_settings' => [
+            'myplugin' => ['rules' => ['*@spam.com']],
+        ],
+    ],
+],
+```
+
+Для работы с ними `authPlugin` даёт три метода (все с безопасными реализациями по умолчанию — плагин без настроек ничего переопределять не обязан):
+
+```php
+class authMypluginPlugin extends authPlugin implements authGuard
+{
+    // Поля для экрана настроек в бэкенде. $settings — текущие настройки домена.
+    public function getSettingsControls(array $settings): array
+    {
+        return [
+            'rules' => [
+                'label' => 'Правила',
+                'type'  => 'textarea',            // 'text' (по умолчанию) или 'textarea'
+                'value' => implode("\n", (array)($settings['rules'] ?? [])),
+                'hint'  => 'Подсказка под полем', // необязательно
+            ],
+        ];
+    }
+
+    // POST из этих полей → массив, который будет сохранён в конфиг.
+    // Здесь же нормализация: textarea → массив строк и т.п.
+    public function prepareSettings(array $post): array
+    {
+        $lines = preg_split('~\R~u', (string)($post['rules'] ?? ''));
+        return ['rules' => array_values(array_filter(array_map('trim', $lines), 'strlen'))];
+    }
+
+    public function checkSignup(array $form_data): void
+    {
+        // Чтение настроек текущего домена (или явно указанного вторым аргументом)
+        $rules = (array)($this->getDomainSettings()['rules'] ?? []);
+        // ...
+    }
+}
+```
+
+Экран настроек в бэкенде сейчас отображает эти поля для guard-плагинов (секция «Signup and login protection»); механизм общий, так что challenge- и captcha-плагины смогут использовать те же три метода — потребуется только отрисовать их секции на экране настроек. Настройки сохраняются и для выключенных плагинов: выключение и повторное включение guard-плагина не теряет его правила.
 
 ## Тема дизайна
 

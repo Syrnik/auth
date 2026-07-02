@@ -1,24 +1,23 @@
 <div class="article">
     <div class="article-body">
 
+    {if $no_domains}
+
         <div class="flexbox middle wrap space-16 custom-mb-32">
-            <h1 class="custom-mb-0">
-                {if $domain}
-                    {$domain|escape}
-                {else}
-                    [`Default settings`]
-                {/if}
-            </h1>
-            {if $domain}
-                <p class="hint custom-mb-0">[`Domain-specific overrides. Unconfigured options inherit from default settings.`]</p>
-            {/if}
+            <h1 class="custom-mb-0">[`Settings`]</h1>
+        </div>
+        <p class="hint">[`This app is not mounted on any site yet. Add a route to the Auth app in Site → Settings, then configure authentication for that site here.`]</p>
+
+    {else}
+
+        <div class="flexbox middle wrap space-16 custom-mb-32">
+            <h1 class="custom-mb-0">{$domain|escape}</h1>
+            <p class="hint custom-mb-0">[`Enable at least one login method, otherwise this site has no login or registration.`]</p>
         </div>
 
         <form method="post" action="" id="auth-settings-form">
+            <input type="hidden" name="domain" value="{$domain|escape}">
             {$wa->csrf()}
-            {if $domain}
-                <input type="hidden" name="domain" value="{$domain|escape}">
-            {/if}
 
             <h6 class="heading custom-mt-0">[`Login methods`]</h6>
             <div class="field-group">
@@ -116,9 +115,12 @@
 
         </form>
 
+    {/if}
+
     </div>
 </div>
 
+{if !$no_domains}
 <div class="bottombar sticky box flexbox middle custom-px-48 b-not-blank-bottombar">
     <div class="article">
         <div class="article-body custom-py-0">
@@ -137,3 +139,4 @@
         </div>
     </div>
 </div>
+{/if}

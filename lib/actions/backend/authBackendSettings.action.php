@@ -14,10 +14,31 @@ class authBackendSettingsAction extends waViewAction
             return;
         }
 
-        $config = $domain ? authConfig::getMerged($domain) : authConfig::getGlobal();
+        // Sites the auth app is mounted on. Each carries its own settings;
+        // there is no global "default" screen anymore.
+        $domains = array_keys(wa()->getRouting()->getByApp('auth'));
+
+        if (!$domains) {
+            $this->view->assign([
+                'domain'             => '',
+                'no_domains'         => true,
+                'available_methods'  => [],
+                'available_captchas' => [],
+                'config'             => [],
+            ]);
+            return;
+        }
+
+        // Default to the first site when none (or an unknown one) is requested.
+        if (!$domain || !in_array($domain, $domains, true)) {
+            $domain = $domains[0];
+        }
+
+        $config = authConfig::getMerged($domain);
 
         $this->view->assign([
             'domain'             => $domain,
+            'no_domains'         => false,
             'available_methods'  => $this->getAvailableMethods($config),
             'available_captchas' => $this->getAvailableCaptchas(),
             'config'             => $config,
@@ -26,10 +47,15 @@ class authBackendSettingsAction extends waViewAction
 
     private function save(string $domain): void
     {
+        if (!$domain) {
+            wa()->getResponse()->redirect('?module=backend&action=settings');
+            return;
+        }
+
         $post = waRequest::post();
 
         $new = [
-            'login_methods'    => (array)($post['login_methods'] ?? ['email']),
+            'login_methods'    => (array)($post['login_methods'] ?? []),
             'signup_enabled'   => !empty($post['signup_enabled']),
             'signup_confirm'   => !empty($post['signup_confirm']),
             'recovery_enabled' => !empty($post['recovery_enabled']),
@@ -41,24 +67,17 @@ class authBackendSettingsAction extends waViewAction
         $config_path = wa()->getConfig()->getConfigPath('config.php', true, 'auth');
         $existing = file_exists($config_path) ? (array)include($config_path) : [];
 
-        if ($domain) {
-            $existing['domains'][$domain] = $new;
-        } else {
-            $domains = $existing['domains'] ?? [];
-            $existing = $new;
-            if ($domains) {
-                $existing['domains'] = $domains;
-            }
-        }
+        // Store settings strictly per domain; any legacy top-level keys from the
+        // old global-defaults layout are intentionally dropped here.
+        $domains = (isset($existing['domains']) && is_array($existing['domains'])) ? $existing['domains'] : [];
+        $domains[$domain] = $new;
 
-        waUtils::varExportToFile($existing, $config_path);
+        waUtils::varExportToFile(['domains' => $domains], $config_path);
         authConfig::clearCache();
 
-        $redirect = '?module=backend&action=settings&saved=1';
-        if ($domain) {
-            $redirect .= '&domain=' . urlencode($domain);
-        }
-        wa()->getResponse()->redirect($redirect);
+        wa()->getResponse()->redirect(
+            '?module=backend&action=settings&saved=1&domain=' . urlencode($domain)
+        );
     }
 
     /**

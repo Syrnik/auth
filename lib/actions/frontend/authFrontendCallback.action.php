@@ -4,6 +4,11 @@ class authFrontendCallbackAction extends waViewAction
 {
     public function execute(): void
     {
+        // No login methods enabled for this site → auth is off here.
+        if (!authConfig::isEnabled()) {
+            throw new waException('Страница не найдена', 404);
+        }
+
         $method_id = waRequest::param('method_id', '', 'string');
         $method = authPluginManager::get($method_id);
 

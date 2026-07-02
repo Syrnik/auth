@@ -32,14 +32,14 @@ A frontend application for the Webasyst Framework that provides a full set of us
 
 ## Configuration
 
-Settings are merged in three layers: distribution defaults from `lib/config/config.php` → saved global values → per-domain override (`authConfig::getMerged()`). The backend (**Auth → Settings**) edits a subset of these and saves to `wa-config/apps/auth/config.php`.
+Settings are stored per site (domain). There is no global "default" layer: a site either has its own configuration or has no authentication at all. When read, values are merged in two layers: distribution defaults from `lib/config/config.php` (per-field fallback) → the site's saved settings (`authConfig::getMerged()`). A site counts as "enabled" as soon as at least one login method is activated for it (`authConfig::isEnabled()`); otherwise `login/`, `register/` and `recovery/` return 404. The backend (**Auth → Settings**) edits a subset of these and saves to the `domains` key in `wa-config/apps/auth/config.php`.
 
 Parameters editable in the backend:
 
 | Parameter | Default | Description |
 |---|---|---|
-| `login_methods` | `['email', 'waid']` | Active login methods (order = display order) |
-| `signup_enabled` | `true` | Allow registration |
+| `login_methods` | `[]` | Active login methods (order = display order). Empty → the site has no authentication |
+| `signup_enabled` | `false` | Allow registration |
 | `signup_confirm` | `true` | Require email confirmation on signup |
 | `recovery_enabled` | `true` | Allow password recovery |
 | `rememberme` | `false` | Show "Remember me" checkbox |

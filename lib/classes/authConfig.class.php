@@ -20,7 +20,18 @@ class authConfig
 
     public static function getLoginMethods(string $domain = null): array
     {
-        return (array)self::get('login_methods', ['email'], $domain);
+        return (array)self::get('login_methods', [], $domain);
+    }
+
+    /**
+     * The auth app is active on a site only once the admin enables at least one
+     * login method for that domain. A domain with no enabled methods has no
+     * login/registration at all — it's just a landing page. There is no global
+     * "default" fallback: every site carries its own settings or has none.
+     */
+    public static function isEnabled(string $domain = null): bool
+    {
+        return count(self::getLoginMethods($domain)) > 0;
     }
 
     public static function getChallengeMethods(string $domain = null): array
@@ -45,33 +56,21 @@ class authConfig
     // -------------------------------------------------------------------------
 
     /**
-     * Global config (distribution defaults merged with saved global keys).
-     * Does not apply per-domain overrides. Used for the "По умолчанию" settings screen.
-     */
-    public static function getGlobal(): array
-    {
-        $merged = array_merge(self::loadDefaults(), self::loadSaved());
-        unset($merged['domains']);
-        return $merged;
-    }
-
-    /**
-     * Three-level merge: distribution defaults → global saved → per-domain override.
+     * Two-level merge: distribution defaults (per-field fallback) → per-domain
+     * saved settings. There is no global settings layer — a domain either has
+     * its own saved config or falls back to the (disabled) distribution defaults.
      */
     public static function getMerged(string $domain = null): array
     {
         $domain = $domain ?: self::currentDomain();
 
         if (!isset(self::$cache[$domain])) {
-            $global = self::loadSaved();
-            $merged = array_merge(self::loadDefaults(), $global);
-            unset($merged['domains']);
+            $saved      = self::loadSaved();
+            $per_domain = (isset($saved['domains'][$domain]) && is_array($saved['domains'][$domain]))
+                ? $saved['domains'][$domain]
+                : [];
 
-            if (isset($global['domains'][$domain]) && is_array($global['domains'][$domain])) {
-                $merged = array_merge($merged, $global['domains'][$domain]);
-            }
-
-            self::$cache[$domain] = $merged;
+            self::$cache[$domain] = array_merge(self::loadDefaults(), $per_domain);
         }
 
         return self::$cache[$domain];

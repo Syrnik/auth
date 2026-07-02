@@ -9,6 +9,11 @@ class authLoginController extends waViewController
 {
     public function execute(): void
     {
+        // No login methods enabled for this site → auth is off here.
+        if (!authConfig::isEnabled()) {
+            throw new waException('Страница не найдена', 404);
+        }
+
         if (waRequest::method() === 'post') {
             $this->handlePost();
         } else {

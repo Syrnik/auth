@@ -3,7 +3,10 @@ return [
     // Активные методы входа. Порядок = порядок отображения.
     // Без суффикса → встроенный метод ('email', 'phone', 'waid').
     // С суффиксом _plugin → плагин: 'github_plugin' загрузит plugins/github/.
-    'login_methods' => ['email', 'waid'],
+    //
+    // Пусто по умолчанию: пока для домена не включён хотя бы один метод,
+    // на этом сайте авторизации нет вовсе (см. authConfig::isEnabled).
+    'login_methods' => [],
 
     // Второй фактор (challenge).
     // Плагин сам решает через isRequired($contact_id), нужен ли он конкретному пользователю.
@@ -19,8 +22,8 @@ return [
     'rememberme' => false,
 
     // Регистрация
-    'signup_enabled' => true,
-    'signup_methods' => ['email', 'waid'],
+    'signup_enabled' => false,
+    'signup_methods' => [],
     'signup_confirm' => true,
     'signup_fields'  => ['firstname', 'lastname', 'email', 'password'],
 

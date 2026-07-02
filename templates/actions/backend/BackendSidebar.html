@@ -3,18 +3,19 @@
     <div class="sidebar-body">
         <div class="box custom-py-0">
             <ul class="menu">
-                <li class="rounded{if !$current_domain && $action == 'settings'} selected{/if}">
-                    <a href="?module=backend&amp;action=settings">
-                        <i class="fas fa-sliders-h"></i>
-                        <span>[`Default`]</span>
-                    </a>
-                </li>
                 {foreach $domains as $domain}
                     <li class="rounded{if $current_domain == $domain} selected{/if}">
                         <a href="?module=backend&amp;action=settings&amp;domain={$domain|escape:'url'}">
                             <i class="fas fa-globe"></i>
                             <span>{$domain|escape}</span>
+                            {if !$domains_enabled[$domain]}
+                                <span class="hint custom-ml-4">[`off`]</span>
+                            {/if}
                         </a>
+                    </li>
+                {foreachelse}
+                    <li class="rounded">
+                        <span class="hint">[`No sites use this app`]</span>
                     </li>
                 {/foreach}
             </ul>

@@ -24,6 +24,7 @@ class authBackendSettingsAction extends waViewAction
                 'no_domains'         => true,
                 'available_methods'  => [],
                 'available_captchas' => [],
+                'available_guards'   => [],
                 'config'             => [],
             ]);
             return;
@@ -41,6 +42,7 @@ class authBackendSettingsAction extends waViewAction
             'no_domains'         => false,
             'available_methods'  => $this->getAvailableMethods($config),
             'available_captchas' => $this->getAvailableCaptchas(),
+            'available_guards'   => $this->getAvailableGuards($domain),
             'config'             => $config,
         ]);
     }
@@ -54,6 +56,8 @@ class authBackendSettingsAction extends waViewAction
 
         $post = waRequest::post();
 
+        $guards = $this->getGuardPluginInstances();
+
         $new = [
             'login_methods'    => (array)($post['login_methods'] ?? []),
             'signup_enabled'   => !empty($post['signup_enabled']),
@@ -62,6 +66,11 @@ class authBackendSettingsAction extends waViewAction
             'rememberme'       => !empty($post['rememberme']),
             'captcha_plugin'   => (string)($post['captcha_plugin'] ?? ''),
             'adapters'         => $this->collectAdapterCredentials((array)($post['adapters'] ?? [])),
+            'guard_plugins'    => array_values(array_intersect(
+                (array)($post['guard_plugins'] ?? []),
+                array_keys($guards)
+            )),
+            'plugin_settings'  => $this->collectPluginSettings($guards, (array)($post['plugin_settings'] ?? [])),
         ];
 
         $config_path = wa()->getConfig()->getConfigPath('config.php', true, 'auth');
@@ -146,6 +155,60 @@ class authBackendSettingsAction extends waViewAction
         foreach (authPluginManager::getSystemAdapters() as $id => $provider_id) {
             if (!empty($post_adapters[$id]) && is_array($post_adapters[$id])) {
                 $result[$id] = array_map('strval', $post_adapters[$id]);
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Guard plugins the admin can enable for this domain, with their per-domain
+     * settings controls: [id => ['name' => ..., 'controls' => [field_id => [...]]]]
+     */
+    private function getAvailableGuards(string $domain): array
+    {
+        $guards = [];
+        foreach ($this->getGuardPluginInstances() as $id => $plugin) {
+            $guards[$id] = [
+                'name'     => $plugin->getName(),
+                'controls' => $plugin->getSettingsControls(authConfig::getPluginSettings($id, $domain)),
+            ];
+        }
+        return $guards;
+    }
+
+    /**
+     * All installed guard plugins: [plugin_id => authPlugin&authGuard instance]
+     */
+    private function getGuardPluginInstances(): array
+    {
+        $result = [];
+        $plugins_path = wa()->getAppPath('plugins', 'auth');
+        if (!is_dir($plugins_path)) {
+            return $result;
+        }
+        foreach (scandir($plugins_path) as $dir) {
+            if ($dir[0] === '.' || !is_dir($plugins_path . '/' . $dir)) {
+                continue;
+            }
+            $plugin = authPluginManager::get($dir . '_plugin');
+            if ($plugin instanceof authGuard && $plugin instanceof authPlugin) {
+                $result[$dir] = $plugin;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Runs each guard plugin's own POST data through its prepareSettings().
+     * Settings are kept even for currently disabled plugins, so toggling
+     * a guard off and on does not lose its rules.
+     */
+    private function collectPluginSettings(array $guards, array $post_settings): array
+    {
+        $result = [];
+        foreach ($guards as $id => $plugin) {
+            if (isset($post_settings[$id]) && is_array($post_settings[$id])) {
+                $result[$id] = $plugin->prepareSettings($post_settings[$id]);
             }
         }
         return $result;

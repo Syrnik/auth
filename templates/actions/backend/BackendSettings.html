@@ -113,6 +113,39 @@
                 <input type="hidden" name="captcha_plugin" value="">
             {/if}
 
+            {if $available_guards}
+                <h6 class="heading">[`Signup and login protection`]</h6>
+                <div class="field-group">
+                    {foreach $available_guards as $id => $g}
+                        <div class="field">
+                            <div class="value">
+                                <label>
+                                    <input type="checkbox" name="guard_plugins[]" value="{$id|escape}"
+                                        {if in_array($id, $config.guard_plugins)}checked{/if}>
+                                    {$g.name|escape}
+                                </label>
+                                {if $g.controls}
+                                    <div class="custom-mt-8 custom-ml-24">
+                                        {foreach $g.controls as $field_id => $c}
+                                            <div class="custom-mb-8">
+                                                {if ($c.type|default:'text') == 'textarea'}
+                                                    <div class="hint custom-mb-4">{$c.label|escape}</div>
+                                                    <textarea name="plugin_settings[{$id|escape}][{$field_id|escape}]" rows="6" style="width:380px;">{$c.value|escape}</textarea>
+                                                {else}
+                                                    <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label|escape}</span>
+                                                    <input type="text" name="plugin_settings[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
+                                                {/if}
+                                                {if !empty($c.hint)}<div class="hint custom-mt-4">{$c.hint|escape}</div>{/if}
+                                            </div>
+                                        {/foreach}
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+                    {/foreach}
+                </div>
+            {/if}
+
         </form>
 
     {/if}

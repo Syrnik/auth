@@ -45,6 +45,16 @@ class authConfig
     }
 
     /**
+     * Per-domain settings of an app plugin (e.g. a guard's blacklist rules),
+     * stored under 'plugin_settings' => [plugin_id => [...]] in the domain config.
+     */
+    public static function getPluginSettings(string $plugin_id, string $domain = null): array
+    {
+        $all = (array)self::get('plugin_settings', [], $domain);
+        return (array)($all[$plugin_id] ?? []);
+    }
+
+    /**
      * Saved credentials for a system/OAuth adapter, keyed by method id (e.g. 'waid', 'vkontakte').
      */
     public static function getAdapterCredentials(string $id, string $domain = null): array

@@ -1,3 +1,6 @@
 .idea/
 .vscode/
 *.DS_Store
+
+# Separate repository (task 76.14)
+plugins/blackmailguard/

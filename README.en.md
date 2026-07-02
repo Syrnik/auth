@@ -83,6 +83,8 @@ class myPluginAuthGuard implements authGuard {
 }
 ```
 
+Multiple guard plugins may be active at once. They are called as a chain, in the exact order listed in `guard_plugins`; at each point (login/signup) only plugins with the matching `guard_login` / `guard_signup` flag participate. The first `authGuardException` thrown stops the chain and the whole request — remaining guards are not called, and the exception message is shown to the user. A guard cannot allow access, only pass (by not throwing) or block: the action proceeds only if every guard stays silent.
+
 ### `authChallenge` — Second factor
 
 ```php

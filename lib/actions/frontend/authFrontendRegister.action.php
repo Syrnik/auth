@@ -40,13 +40,15 @@ class authFrontendRegisterAction extends waViewAction
             $errors['captcha'] = 'Неверный код капчи.';
         }
 
-        // Guards
+        // Guards: a guard block is final, so show it alone and stop —
+        // field validation makes no sense for a signup that cannot proceed
         try {
             foreach (authPluginManager::getGuardsEnabled('signup') as $guard) {
                 $guard->checkSignup($post);
             }
         } catch (authGuardException $e) {
-            $errors['guard'] = $e->getMessage();
+            $this->showForm(['guard' => $e->getMessage()], $post);
+            return;
         }
 
         // Basic field validation

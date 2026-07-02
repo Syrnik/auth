@@ -61,6 +61,26 @@
       делает core для `signup`/`waid_auth`, см. `waOAuthController::createContact()`,
       `waWebasystIDWAAuthController::authBackendUser()`) или заводить свою таблицу —
       и как плагины смогут писать в этот же лог единообразно
+- [ ] Во Framework v4.1.0 появилась поддержка «мгновенного входа» через виджет —
+      интерфейс `waiAuthAdapterOmnipresent::renderOmnipresentWidget()`
+      (`wa-system/auth/waiAuthAdapterOmnipresent.interface.php`), пока реализован
+      только у `yandexAuth` (Yandex ID Smart Login, JS-виджет `YaAuthSuggest`).
+      Виджет рендерится core-фреймворком в `<head>` любой фронтенд-страницы
+      (`waViewHelper::getHeadHtml()`), если у адаптера в `wa-config/auth.php` стоит
+      `is_omnipresent`, и заканчивает вход через штатный `oauth.php?...&type=site`
+      (`waOAuthController::afterAuth()`) — то есть в обход `auth`-приложения
+      полностью: без guard'ов, без капчи, без событий `signup`/`login` `auth`-app,
+      контакт свяжется по старой схеме (`yandex_id` в `wa_contact_data`). А план
+      `auth`-приложения сознательно игнорирует `wa-config/auth.php`/`adapters`.
+      Нужно решить: не давать включать `is_omnipresent` на доменах с `auth`,
+      подхватывать этот кейс в своём пайплайне, или пока просто не касаться
+- [ ] Идея (не проработана): для опытных пользователей предложить/задокументировать
+      правило rewrite в `.htaccess`/nginx-конфиге, которое перенаправляет запросы к
+      `oauth.php` (штатный core-эндпоинт, включая описанный выше кейс с `oauth.php`)
+      либо на 404, либо на свой endpoint `auth`-приложения. Как именно это должно
+      работать (когда безопасно резать `oauth.php` целиком, что теряется при этом
+      из core-функциональности, какой у нас должен быть свой endpoint-заменитель) —
+      пока не сформулировано, требует отдельного обсуждения
 
 ## Итоговая проверка (сквозной прогон)
 

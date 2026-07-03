@@ -38,7 +38,7 @@
 
 | Параметр | По умолчанию | Описание |
 |---|---|---|
-| `login_methods` | `[]` | Активные методы входа (порядок = порядок отображения). Пусто → на сайте нет авторизации |
+| `login_methods` | `[]` | Активные методы входа (порядок = порядок отображения). Пусто → на сайте нет авторизации. Формат id: `email` (встроенный), `github_plugin` (плагин), `oidc_plugin:gitlab` (именованный инстанс multi-instance-плагина) |
 | `signup_enabled` | `false` | Разрешить регистрацию |
 | `signup_confirm` | `true` | Требовать подтверждение email |
 | `recovery_enabled` | `true` | Разрешить восстановление пароля |
@@ -109,14 +109,16 @@ class myPluginAuthCaptcha implements authCaptcha {
 
 ```php
 return [
-    'name'         => 'My Plugin',
-    'version'      => '1.0.0',
-    'is_auth'      => true,   // реализует authMethod
-    'is_challenge' => true,   // реализует authChallenge
-    'is_guard'     => true,   // реализует authGuard
-    'guard_login'  => true,   // применять guard при входе (только для is_guard)
-    'guard_signup' => true,   // применять guard при регистрации (только для is_guard)
-    'is_captcha'   => true,   // реализует authCaptcha
+    'name'           => 'My Plugin',
+    'version'        => '1.0.0',
+    'is_auth'        => true,   // реализует authMethod
+    'is_challenge'   => true,   // реализует authChallenge
+    'is_guard'       => true,   // реализует authGuard
+    'guard_login'    => true,   // применять guard при входе (только для is_guard)
+    'guard_signup'   => true,   // применять guard при регистрации (только для is_guard)
+    'is_captcha'     => true,   // реализует authCaptcha
+    'auth_type'      => 'oauth', // OAuth-метод: кнопка вместо формы (только для is_auth)
+    'multi_instance' => true,   // поддержка именованных инстансов (см. ниже)
 ];
 ```
 
@@ -172,7 +174,20 @@ class authMypluginPlugin extends authPlugin implements authGuard
 }
 ```
 
-Экран настроек в бэкенде сейчас отображает эти поля для guard-плагинов (секция «Signup and login protection»); механизм общий, так что challenge- и captcha-плагины смогут использовать те же три метода — потребуется только отрисовать их секции на экране настроек. Настройки сохраняются и для выключенных плагинов: выключение и повторное включение guard-плагина не теряет его правила.
+Экран настроек в бэкенде отображает эти поля для guard-плагинов (секция «Signup and login protection») и auth-плагинов (секция «Login methods»); механизм общий, так что challenge- и captcha-плагины смогут использовать те же три метода — потребуется только отрисовать их секции на экране настроек. Настройки сохраняются и для выключенных плагинов: выключение и повторное включение guard-плагина не теряет его правила.
+
+### Именованные инстансы (multi_instance)
+
+Плагин с `'multi_instance' => true` в `plugin.php` можно включить на одном сайте несколько раз с разными настройками — например, generic OIDC-плагин с кнопками «Войти через GitLab» и «Войти через Keycloak» от одного и того же кода. Каждое подключение — именованный инстанс со своим ключом (`[a-z0-9][a-z0-9_-]*`):
+
+- в `login_methods` (а также `guard_plugins`/`challenge_methods`/`captcha_plugin`) инстанс записывается как `<plugin_id>_plugin:<ключ>`: `oidc_plugin:gitlab`, `oidc_plugin:keycloak`;
+- в `plugin_settings` у такого плагина — по блоку настроек на инстанс: `'oidc' => ['gitlab' => [...], 'keycloak' => [...]]`;
+- `authPluginManager` загружает и кеширует каждый инстанс отдельно; внутри плагина ключ доступен через `$this->getInstance()` (у обычных плагинов — `null`), а полный id метода — через `$this->getMethodId()` (`oidc_plugin:gitlab`) — его же нужно возвращать из `authMethod::getId()` и использовать в callback-URL;
+- `getDomainSettings()` возвращает срез настроек текущего инстанса — код плагина одинаково работает и с инстансами, и без них;
+- если среди контролов настроек есть поле `name`, его значение используется как название метода на странице входа (`getName()`), чтобы кнопки инстансов различались;
+- экран настроек в бэкенде для такого плагина показывает список инстансов с добавлением и удалением вместо одного чекбокса.
+
+Плагины без `multi_instance` ничего не замечают: id без `:` работают как раньше, а id с `:` для них считаются ошибкой и не загружаются. Пример multi-instance-плагина — `plugins/testmulti/` (тестовая заглушка без реального провайдера).
 
 ## Тема дизайна
 

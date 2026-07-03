@@ -40,7 +40,7 @@ class authBackendSettingsAction extends waViewAction
         $this->view->assign([
             'domain'             => $domain,
             'no_domains'         => false,
-            'available_methods'  => $this->getAvailableMethods($config),
+            'available_methods'  => $this->getAvailableMethods($config, $domain),
             'available_captchas' => $this->getAvailableCaptchas(),
             'available_guards'   => $this->getAvailableGuards($domain),
             'config'             => $config,
@@ -56,7 +56,10 @@ class authBackendSettingsAction extends waViewAction
 
         $post = waRequest::post();
 
-        $guards = $this->getGuardPluginInstances();
+        // Both guard and auth plugins may carry per-domain settings; a plugin
+        // that is both appears once (keys are plugin dir names).
+        $guards  = $this->getGuardPluginInstances();
+        $plugins = $guards + $this->getAuthPluginInstances();
 
         $new = [
             'login_methods'    => (array)($post['login_methods'] ?? []),
@@ -70,7 +73,7 @@ class authBackendSettingsAction extends waViewAction
                 (array)($post['guard_plugins'] ?? []),
                 array_keys($guards)
             )),
-            'plugin_settings'  => $this->collectPluginSettings($guards, (array)($post['plugin_settings'] ?? [])),
+            'plugin_settings'  => $this->collectPluginSettings($plugins, (array)($post['plugin_settings'] ?? [])),
         ];
 
         $config_path = wa()->getConfig()->getConfigPath('config.php', true, 'auth');
@@ -94,8 +97,12 @@ class authBackendSettingsAction extends waViewAction
      * every framework-level OAuth adapter (Webasyst ID, VK, Google, ...) whether
      * or not it's configured yet, and this app's own plugins.
      * Returns [id => ['name' => ..., 'oauth' => bool, 'controls' => [field_id => ['label'|'html', 'value']]]]
+     * Plugin entries are keyed '{dir}_plugin' and add 'plugin_id'; a plugin with
+     * multi_instance => true gets 'instances' (existing named instances with their
+     * controls) and 'new_controls' (empty controls for the add-instance template)
+     * instead of a single 'controls' block.
      */
-    private function getAvailableMethods(array $config): array
+    private function getAvailableMethods(array $config, string $domain): array
     {
         $methods = [];
 
@@ -127,23 +134,67 @@ class authBackendSettingsAction extends waViewAction
             ];
         }
 
-        $plugins_path = wa()->getAppPath('plugins', 'auth');
-        if (is_dir($plugins_path)) {
-            foreach (scandir($plugins_path) as $dir) {
-                if ($dir[0] === '.' || !is_dir($plugins_path . '/' . $dir)) {
-                    continue;
-                }
-                $info_path = $plugins_path . '/' . $dir . '/lib/config/plugin.php';
-                if (file_exists($info_path)) {
-                    $info = (array)include($info_path);
-                    if (!empty($info['is_auth'])) {
-                        $methods[$dir] = ['name' => $info['name'] ?? $dir];
-                    }
-                }
+        foreach ($this->getAuthPluginInstances() as $dir => $plugin) {
+            $info      = $plugin->getInfo();
+            $method_id = $dir . '_plugin';
+            $entry     = [
+                'name'      => $info['name'] ?? $dir,
+                'plugin_id' => $dir,
+            ];
+            if (!empty($info['auth_type']) && $info['auth_type'] === 'oauth') {
+                $entry['oauth'] = true;
             }
+            if (!empty($info['multi_instance'])) {
+                $entry['multi_instance'] = true;
+                $entry['instances']      = $this->getPluginInstances($dir, $plugin, $domain, $config);
+                $entry['new_controls']   = $plugin->getSettingsControls([]);
+            } else {
+                $entry['plugin_controls'] = $plugin->getSettingsControls(
+                    authConfig::getPluginSettings($dir, $domain)
+                );
+            }
+            $methods[$method_id] = $entry;
         }
 
         return $methods;
+    }
+
+    /**
+     * Existing named instances of a multi-instance plugin on this domain:
+     * every settings block under plugin_settings[plugin_id], plus instances
+     * enabled in login_methods that have no saved settings yet (so they still
+     * show up instead of silently disappearing from the screen).
+     * Returns [instance_key => ['enabled' => bool, 'controls' => [...]]]
+     */
+    private function getPluginInstances(string $dir, authPlugin $plugin, string $domain, array $config): array
+    {
+        // $dir, not $plugin->getId(): authMethod plugins override getId()
+        // to return their method id ('testmulti_plugin'), not the dir name.
+        $method_id = $dir . '_plugin';
+        $enabled   = (array)($config['login_methods'] ?? []);
+
+        $instances = [];
+        foreach (authConfig::getPluginSettings($dir, $domain) as $key => $settings) {
+            if (!is_array($settings)) {
+                continue;
+            }
+            $instances[$key] = [
+                'enabled'  => in_array($method_id . ':' . $key, $enabled, true),
+                'controls' => $plugin->getSettingsControls($settings),
+            ];
+        }
+
+        foreach ($enabled as $id) {
+            [$id, $instance] = authPluginManager::splitInstance($id);
+            if ($id === $method_id && $instance !== null && !isset($instances[$instance])) {
+                $instances[$instance] = [
+                    'enabled'  => true,
+                    'controls' => $plugin->getSettingsControls([]),
+                ];
+            }
+        }
+
+        return $instances;
     }
 
     /**
@@ -181,6 +232,19 @@ class authBackendSettingsAction extends waViewAction
      */
     private function getGuardPluginInstances(): array
     {
+        return $this->getPluginInstancesOf(authGuard::class);
+    }
+
+    /**
+     * All installed auth-method plugins: [plugin_id => authPlugin&authMethod instance]
+     */
+    private function getAuthPluginInstances(): array
+    {
+        return $this->getPluginInstancesOf(authMethod::class);
+    }
+
+    private function getPluginInstancesOf(string $interface): array
+    {
         $result = [];
         $plugins_path = wa()->getAppPath('plugins', 'auth');
         if (!is_dir($plugins_path)) {
@@ -191,7 +255,7 @@ class authBackendSettingsAction extends waViewAction
                 continue;
             }
             $plugin = authPluginManager::get($dir . '_plugin');
-            if ($plugin instanceof authGuard && $plugin instanceof authPlugin) {
+            if ($plugin instanceof $interface && $plugin instanceof authPlugin) {
                 $result[$dir] = $plugin;
             }
         }
@@ -199,16 +263,37 @@ class authBackendSettingsAction extends waViewAction
     }
 
     /**
-     * Runs each guard plugin's own POST data through its prepareSettings().
+     * Runs each plugin's own POST data through its prepareSettings().
      * Settings are kept even for currently disabled plugins, so toggling
      * a guard off and on does not lose its rules.
+     *
+     * For multi_instance plugins POST carries one block per named instance
+     * (plugin_settings[plugin][instance_key][field]); each block goes through
+     * prepareSettings() separately. An instance absent from POST is deleted —
+     * the screen always renders every existing instance, so absence means
+     * the admin removed it.
      */
-    private function collectPluginSettings(array $guards, array $post_settings): array
+    private function collectPluginSettings(array $plugins, array $post_settings): array
     {
         $result = [];
-        foreach ($guards as $id => $plugin) {
-            if (isset($post_settings[$id]) && is_array($post_settings[$id])) {
+        foreach ($plugins as $id => $plugin) {
+            if (!isset($post_settings[$id]) || !is_array($post_settings[$id])) {
+                continue;
+            }
+            if (empty($plugin->getInfo()['multi_instance'])) {
                 $result[$id] = $plugin->prepareSettings($post_settings[$id]);
+                continue;
+            }
+            $instances = [];
+            foreach ($post_settings[$id] as $key => $values) {
+                $key = strtolower(trim((string)$key));
+                if (!is_array($values) || !preg_match('~^[a-z0-9][a-z0-9_-]*$~', $key)) {
+                    continue;
+                }
+                $instances[$key] = $plugin->prepareSettings($values);
+            }
+            if ($instances) {
+                $result[$id] = $instances;
             }
         }
         return $result;

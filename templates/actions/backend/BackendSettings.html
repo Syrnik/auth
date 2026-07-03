@@ -1,3 +1,21 @@
+{* Settings controls of an app plugin (guard block, single auth plugin block,
+   or one named instance of a multi_instance plugin). $prefix is the POST
+   name prefix, e.g. plugin_settings[oidc][gitlab] *}
+{function name=plugin_controls controls=[] prefix=''}
+    {foreach $controls as $field_id => $c}
+        <div class="custom-mb-8">
+            {if ($c.type|default:'text') == 'textarea'}
+                <div class="hint custom-mb-4">{$c.label|escape}</div>
+                <textarea name="{$prefix}[{$field_id|escape}]" rows="6" style="width:380px;">{$c.value|escape}</textarea>
+            {else}
+                <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label|escape}</span>
+                <input type="text" name="{$prefix}[{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
+            {/if}
+            {if !empty($c.hint)}<div class="hint custom-mt-4">{$c.hint|escape}</div>{/if}
+        </div>
+    {/foreach}
+{/function}
+
 <div class="article">
     <div class="article-body">
 
@@ -24,24 +42,66 @@
                 {foreach $available_methods as $id => $m}
                     <div class="field">
                         <div class="value">
-                            <label>
-                                <input type="checkbox" name="login_methods[]" value="{$id|escape}"
-                                    {if in_array($id, $config.login_methods)}checked{/if}>
-                                {$m.name|escape}
-                            </label>
-                            {if !empty($m.oauth)}
-                                <div class="custom-mt-8 custom-ml-24">
-                                    {foreach $m.controls as $field_id => $c}
-                                        <div class="flexbox middle custom-mb-4">
-                                            {if !empty($c.html)}
-                                                {$c.html}
-                                            {else}
-                                                <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label}</span>
-                                                <input type="text" name="adapters[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
-                                            {/if}
+                            {if !empty($m.multi_instance)}
+                                {* Multi-instance plugin: a list of named connections instead of
+                                   a single checkbox. Each instance is enabled separately as
+                                   login method '{$id}:{key}' and keeps its own settings block. *}
+                                <div>{$m.name|escape} <span class="hint">[`several named connections can be added`]</span></div>
+                                <div class="js-auth-instances custom-ml-24" data-method="{$id|escape}">
+                                    {foreach $m.instances as $ikey => $inst}
+                                        <div class="js-auth-instance custom-mt-12" data-key="{$ikey|escape}">
+                                            <label>
+                                                <input type="checkbox" name="login_methods[]" value="{$id|escape}:{$ikey|escape}"
+                                                    {if $inst.enabled}checked{/if}>
+                                                <span class="badge count gray">{$ikey|escape}</span>
+                                            </label>
+                                            <a href="#" class="js-auth-instance-delete text-red smaller custom-ml-8">[`delete`]</a>
+                                            <div class="custom-mt-8 custom-ml-24">
+                                                {plugin_controls controls=$inst.controls prefix="plugin_settings[{$m.plugin_id}][{$ikey}]"}
+                                            </div>
                                         </div>
                                     {/foreach}
                                 </div>
+                                <template class="js-auth-instance-template">
+                                    <div class="js-auth-instance custom-mt-12" data-key="%key%">
+                                        <label>
+                                            <input type="checkbox" name="login_methods[]" value="{$id|escape}:%key%" checked>
+                                            <span class="badge count gray">%key%</span>
+                                        </label>
+                                        <a href="#" class="js-auth-instance-delete text-red smaller custom-ml-8">[`delete`]</a>
+                                        <div class="custom-mt-8 custom-ml-24">
+                                            {plugin_controls controls=$m.new_controls prefix="plugin_settings[{$m.plugin_id}][%key%]"}
+                                        </div>
+                                    </div>
+                                </template>
+                                <div class="custom-mt-8 custom-ml-24">
+                                    <a href="#" class="js-auth-instance-add">+ [`Add connection`]</a>
+                                </div>
+                            {else}
+                                <label>
+                                    <input type="checkbox" name="login_methods[]" value="{$id|escape}"
+                                        {if in_array($id, $config.login_methods)}checked{/if}>
+                                    {$m.name|escape}
+                                </label>
+                                {if !empty($m.oauth) && !empty($m.controls)}
+                                    <div class="custom-mt-8 custom-ml-24">
+                                        {foreach $m.controls as $field_id => $c}
+                                            <div class="flexbox middle custom-mb-4">
+                                                {if !empty($c.html)}
+                                                    {$c.html}
+                                                {else}
+                                                    <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label}</span>
+                                                    <input type="text" name="adapters[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
+                                                {/if}
+                                            </div>
+                                        {/foreach}
+                                    </div>
+                                {/if}
+                                {if !empty($m.plugin_controls)}
+                                    <div class="custom-mt-8 custom-ml-24">
+                                        {plugin_controls controls=$m.plugin_controls prefix="plugin_settings[{$m.plugin_id}]"}
+                                    </div>
+                                {/if}
                             {/if}
                         </div>
                     </div>
@@ -147,6 +207,43 @@
             {/if}
 
         </form>
+
+        <script>
+        (function() {
+            // Add/delete named instances of multi-instance plugins. Deletion only
+            // removes the block from the form; settings are actually dropped on save.
+            document.getElementById('auth-settings-form').addEventListener('click', function(e) {
+                var del = e.target.closest('.js-auth-instance-delete');
+                if (del) {
+                    e.preventDefault();
+                    del.closest('.js-auth-instance').remove();
+                    return;
+                }
+                var add = e.target.closest('.js-auth-instance-add');
+                if (!add) {
+                    return;
+                }
+                e.preventDefault();
+                var field = add.closest('.field');
+                var container = field.querySelector('.js-auth-instances');
+                var key = window.prompt('[`Connection ID: Latin letters, digits, hyphen, underscore`]');
+                if (key === null) {
+                    return;
+                }
+                key = key.trim().toLowerCase();
+                if (!/^[a-z0-9][a-z0-9_-]*$/.test(key)) {
+                    alert('[`Invalid ID. Allowed: Latin letters, digits, hyphen, underscore; starts with a letter or digit.`]');
+                    return;
+                }
+                if (container.querySelector('.js-auth-instance[data-key="' + key + '"]')) {
+                    alert('[`A connection with this ID already exists.`]');
+                    return;
+                }
+                var html = field.querySelector('.js-auth-instance-template').innerHTML.replace(/%key%/g, key);
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        })();
+        </script>
 
     {/if}
 

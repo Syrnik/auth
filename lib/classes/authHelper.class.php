@@ -112,7 +112,10 @@ class authHelper
             if (self::methodIsOAuth($method)) {
                 continue;
             }
-            $partial = $theme_path . '/' . $id . '.login_form.html';
+            // Instances of a multi_instance plugin share the plugin's partial:
+            // ':' is not filesystem-safe, and a per-instance form makes no sense.
+            [$base_id, ] = authPluginManager::splitInstance($id);
+            $partial = $theme_path . '/' . $base_id . '.login_form.html';
             $result[] = [
                 'id'      => $id,
                 'partial' => file_exists($partial) ? $partial : null,

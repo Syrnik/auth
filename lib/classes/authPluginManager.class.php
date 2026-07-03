@@ -8,13 +8,29 @@ class authPluginManager
      * Get a method/plugin instance by its config ID.
      * 'email' → built-in authEmailMethod
      * 'github_plugin' → plugin from plugins/github/
+     * 'oidc_plugin:gitlab' → named instance 'gitlab' of a multi_instance plugin plugins/oidc/
      */
     public static function get(string $id): ?object
     {
+        [$id, $instance] = self::splitInstance($id);
         if (str_ends_with($id, '_plugin')) {
-            return self::loadPlugin(substr($id, 0, -7));
+            return self::loadPlugin(substr($id, 0, -7), $instance);
         }
-        return self::loadBuiltin($id);
+        return $instance === null ? self::loadBuiltin($id) : null;
+    }
+
+    /**
+     * Split a config id into [id, instance_key]: 'oidc_plugin:gitlab' →
+     * ['oidc_plugin', 'gitlab']; ids without ':' get a null instance.
+     */
+    public static function splitInstance(string $id): array
+    {
+        $pos = strpos($id, ':');
+        if ($pos === false) {
+            return [$id, null];
+        }
+        $instance = substr($id, $pos + 1);
+        return [substr($id, 0, $pos), $instance === '' ? null : $instance];
     }
 
     /**
@@ -59,6 +75,7 @@ class authPluginManager
     {
         $result = [];
         foreach (authConfig::getGuardPlugins() as $id) {
+            [$id, $instance] = self::splitInstance($id);
             $plugin_id = str_ends_with($id, '_plugin') ? substr($id, 0, -7) : $id;
             $info = self::readPluginInfo($plugin_id);
             if (!$info) {
@@ -68,7 +85,7 @@ class authPluginManager
             if (empty($info[$flag])) {
                 continue;
             }
-            $plugin = self::loadPlugin($plugin_id, 'is_guard');
+            $plugin = self::loadPlugin($plugin_id, $instance, 'is_guard');
             if ($plugin instanceof authGuard) {
                 $result[] = $plugin;
             }
@@ -85,8 +102,9 @@ class authPluginManager
         if (!$id) {
             return null;
         }
+        [$id, $instance] = self::splitInstance($id);
         $plugin_id = str_ends_with($id, '_plugin') ? substr($id, 0, -7) : $id;
-        return self::loadPlugin($plugin_id, 'is_captcha');
+        return self::loadPlugin($plugin_id, $instance, 'is_captcha');
     }
 
     public static function clearCache(): void
@@ -154,11 +172,12 @@ class authPluginManager
 
     /**
      * @param string $plugin_id  Plugin directory name (without _plugin suffix)
+     * @param string|null $instance  Named instance key for multi_instance plugins ('oidc_plugin:gitlab' → 'gitlab')
      * @param string|null $required_flag  Required flag in plugin.php (e.g. 'is_auth', 'is_captcha')
      */
-    private static function loadPlugin(string $plugin_id, ?string $required_flag = null): ?object
+    private static function loadPlugin(string $plugin_id, ?string $instance = null, ?string $required_flag = null): ?object
     {
-        $cache_key = $plugin_id . ':' . ($required_flag ?? '');
+        $cache_key = $plugin_id . '|' . ($instance ?? '') . '|' . ($required_flag ?? '');
         if (isset(self::$cache[$cache_key])) {
             return self::$cache[$cache_key];
         }
@@ -172,6 +191,16 @@ class authPluginManager
         if ($required_flag && empty($info[$required_flag])) {
             self::$cache[$cache_key] = null;
             return null;
+        }
+
+        // Instance-qualified ids are only valid for plugins that declared
+        // multi_instance support; for everyone else the id is a typo.
+        if ($instance !== null && empty($info['multi_instance'])) {
+            self::$cache[$cache_key] = null;
+            return null;
+        }
+        if ($instance !== null) {
+            $info['instance'] = $instance;
         }
 
         $class = 'auth' . ucfirst($plugin_id) . 'Plugin';

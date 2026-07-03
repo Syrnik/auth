@@ -47,11 +47,18 @@ class authConfig
     /**
      * Per-domain settings of an app plugin (e.g. a guard's blacklist rules),
      * stored under 'plugin_settings' => [plugin_id => [...]] in the domain config.
+     * Multi-instance plugins keep one settings block per named instance:
+     * 'plugin_settings' => [plugin_id => [instance_key => [...]]] — pass
+     * $instance to get that slice ($instance === null keeps the old behavior).
      */
-    public static function getPluginSettings(string $plugin_id, string $domain = null): array
+    public static function getPluginSettings(string $plugin_id, string $domain = null, string $instance = null): array
     {
         $all = (array)self::get('plugin_settings', [], $domain);
-        return (array)($all[$plugin_id] ?? []);
+        $settings = (array)($all[$plugin_id] ?? []);
+        if ($instance !== null) {
+            return (array)($settings[$instance] ?? []);
+        }
+        return $settings;
     }
 
     /**

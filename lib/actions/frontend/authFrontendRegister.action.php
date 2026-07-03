@@ -88,12 +88,7 @@ class authFrontendRegisterAction extends waViewAction
 
         // Confirm by email
         if (authConfig::get('signup_confirm') && in_array('email', $fields)) {
-            $token = bin2hex(random_bytes(32));
-            $model = new waModel();
-            $model->query(
-                "INSERT INTO auth_signup_confirm (contact_id, token, created_datetime) VALUES (i:cid, s:token, NOW())",
-                ['cid' => $contact->getId(), 'token' => $token]
-            );
+            $token = (new authSignupConfirmModel())->createToken($contact->getId());
 
             $confirm_url = wa()->getRouteUrl(
                 'auth/frontend/confirm',

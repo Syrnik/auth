@@ -34,10 +34,14 @@ class authOAuthController extends waOAuthController
     {
         // authContactResolver runs signup guards against the raw OAuth data
         // before creating anything, so a blocked signup never touches the DB.
+        // displayError() ends the request (echo + exit); the explicit return
+        // keeps $contact_id/$is_new from being read uninitialized if a future
+        // refactor ever makes displayError() fall through instead of exiting.
         try {
             [$contact_id, $is_new] = authContactResolver::resolve($data);
         } catch (authGuardException $e) {
             $this->displayError($e->getMessage());
+            return null;
         }
 
         if ($is_new) {
@@ -50,6 +54,7 @@ class authOAuthController extends waOAuthController
             }
         } catch (authGuardException $e) {
             $this->displayError($e->getMessage());
+            return null;
         }
 
         foreach (authPluginManager::getChallengeEnabled() as $challenge) {

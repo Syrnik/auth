@@ -26,8 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Registration link hidden on the login page when signup is disabled
 - OAuth logins now respect `signup_enabled`; signup UI hidden when only OAuth methods are active
 - OAuth/challenge login no longer redirects to a blank page when `redirect_after_login` is unset
+- Logout no longer emits an empty redirect when `redirect_after_logout` is stored as `null`; falls back to `/`
+- OAuth `afterAuth()` returns explicitly after a blocked signup/login guard instead of reading possibly-uninitialized variables
 
 ### Security
+
+- **Phone OTP hardening** — resends are throttled (60s cooldown, max 5 per flow) so the SMS channel can't be spammed, verification is capped at 5 attempts so a 6-digit code can't be brute-forced within its lifetime, and the code is stored hashed in the session instead of in plain text
+- Email confirmation tokens are now issued and validated through `authSignupConfirmModel`, which sweeps expired rows on each new token — expired `auth_signup_confirm` rows no longer linger in the database
 
 - Post-authentication redirects are now confined to the current site. Both the user-supplied `goal_url` and the admin-configured `redirect_after_login` / `redirect_after_register` values pass through `authHelper::localRedirectUrl()`, closing an open-redirect / phishing vector (`//evil.com`, `/\evil.com`, absolute off-site URLs, `javascript:`, CR/LF injection)
 - Password-recovery tokens moved out of `wa_app_settings` into a dedicated, self-expiring `auth_password_recovery` table; expired tokens are swept automatically so single-use secrets no longer accumulate indefinitely

@@ -10,18 +10,15 @@ class authFrontendConfirmAction extends waViewAction
             return;
         }
 
-        $model = new waModel();
-        $row = $model->query(
-            "SELECT * FROM auth_signup_confirm WHERE token = s:token AND created_datetime > DATE_SUB(NOW(), INTERVAL 24 HOUR)",
-            ['token' => $token]
-        )->fetchAssoc();
+        $model = new authSignupConfirmModel();
+        $row = $model->getValid($token);
 
         if (!$row) {
             $this->showError('Ссылка недействительна или устарела.');
             return;
         }
 
-        $model->query("DELETE FROM auth_signup_confirm WHERE id = i:id", ['id' => $row['id']]);
+        $model->deleteById($row['id']);
 
         $contact = new waContact((int)$row['contact_id']);
         if (!$contact->exists()) {

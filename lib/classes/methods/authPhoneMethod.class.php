@@ -5,8 +5,11 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
     const AUTH_TYPE  = 'form';
     const HAS_RECOVERY = false;
 
-    private const OTP_SESSION_KEY  = 'auth_phone_otp';
-    private const OTP_TTL_SECONDS = 300;
+    private const OTP_SESSION_KEY        = 'auth_phone_otp';
+    private const OTP_TTL_SECONDS        = 300;
+    private const RESEND_COOLDOWN_SECONDS = 60;
+    private const MAX_SENDS              = 5;
+    private const MAX_ATTEMPTS           = 5;
 
     public function getId(): string
     {
@@ -49,6 +52,26 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
 
     private function sendOtp(string $phone): ?int
     {
+        $now    = time();
+        $stored = wa()->getStorage()->get(self::OTP_SESSION_KEY);
+        $active = $stored && $stored['phone'] === $phone && $now < ($stored['expires'] ?? 0);
+
+        // Throttle resends for the same number so the SMS channel can't be spammed
+        // (each message costs money) and the code can't be endlessly re-rolled.
+        if ($active) {
+            $since_last = $now - ($stored['last_sent'] ?? 0);
+            if ($since_last < self::RESEND_COOLDOWN_SECONDS) {
+                throw new authMethodStepException([
+                    'show_code_field' => true,
+                    'error' => sprintf('Код уже отправлен. Повторная отправка через %d сек.', self::RESEND_COOLDOWN_SECONDS - $since_last),
+                ]);
+            }
+            if (($stored['sends'] ?? 0) >= self::MAX_SENDS) {
+                wa()->getStorage()->del(self::OTP_SESSION_KEY);
+                throw new authGuardException('Слишком много запросов кода. Попробуйте позже.');
+            }
+        }
+
         $contact = $this->findByPhone($phone);
         if (!$contact) {
             throw new authGuardException('Пользователь с таким номером не найден.');
@@ -58,8 +81,12 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
         wa()->getStorage()->set(self::OTP_SESSION_KEY, [
             'contact_id' => (int)$contact['id'],
             'phone'      => $phone,
-            'code'       => $code,
-            'expires'    => time() + self::OTP_TTL_SECONDS,
+            // Never keep the plain code in the session store.
+            'hash'       => password_hash($code, PASSWORD_DEFAULT),
+            'expires'    => $now + self::OTP_TTL_SECONDS,
+            'attempts'   => 0,
+            'sends'      => ($active ? (int)$stored['sends'] : 0) + 1,
+            'last_sent'  => $now,
         ]);
 
         $this->sendSms($phone, $code);
@@ -71,14 +98,29 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
     {
         $stored = wa()->getStorage()->get(self::OTP_SESSION_KEY);
 
-        if (!$stored
-            || $stored['phone'] !== $phone
-            || $stored['code'] !== $code
-            || time() > $stored['expires']
-        ) {
+        if (!$stored || $stored['phone'] !== $phone || time() > ($stored['expires'] ?? 0)) {
+            wa()->getStorage()->del(self::OTP_SESSION_KEY);
             throw new authMethodStepException([
                 'show_code_field' => true,
-                'error'           => 'Неверный или устаревший код.',
+                'error'           => 'Код устарел. Запросите новый.',
+            ]);
+        }
+
+        // Cap guesses so a 6-digit code can't be brute-forced within its TTL.
+        if (($stored['attempts'] ?? 0) >= self::MAX_ATTEMPTS) {
+            wa()->getStorage()->del(self::OTP_SESSION_KEY);
+            throw new authGuardException('Слишком много неверных попыток. Запросите новый код.');
+        }
+
+        if (!password_verify($code, (string)($stored['hash'] ?? ''))) {
+            $stored['attempts'] = (int)($stored['attempts'] ?? 0) + 1;
+            wa()->getStorage()->set(self::OTP_SESSION_KEY, $stored);
+            $left = self::MAX_ATTEMPTS - $stored['attempts'];
+            throw new authMethodStepException([
+                'show_code_field' => true,
+                'error'           => $left > 0
+                    ? sprintf('Неверный код. Осталось попыток: %d.', $left)
+                    : 'Неверный код.',
             ]);
         }
 

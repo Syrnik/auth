@@ -53,7 +53,7 @@ class authContactResolver
         }
 
         $email = self::extractEmail($data);
-        if ($email) {
+        if ($email && self::canLinkByEmail($data)) {
             $contact_model = new waContactModel();
             $contact_id    = (int) $contact_model->query(
                 "SELECT c.id FROM wa_contact_emails e
@@ -77,6 +77,30 @@ class authContactResolver
     }
 
     /**
+     * Whether an OAuth identity may be attached to an existing password account
+     * purely because their email addresses match.
+     *
+     * This is an account-takeover surface: a provider that lets a user sign in
+     * with an unverified email would let an attacker claim someone else's local
+     * account just by putting that victim's address on their social profile.
+     *
+     * So we only allow it when the email is trustworthy: an adapter/plugin that
+     * explicitly vouches for it (email_verified / verified_email in the payload
+     * — e.g. our WAID adapter sets this), or, failing an explicit signal, when
+     * the admin has opted in via the oauth_link_by_email setting. Matching by
+     * the provider's own source_id is always safe and handled before this.
+     */
+    private static function canLinkByEmail(array $data): bool
+    {
+        foreach (['email_verified', 'verified_email'] as $flag) {
+            if (array_key_exists($flag, $data)) {
+                return (bool) $data[$flag];
+            }
+        }
+        return (bool) authConfig::get('oauth_link_by_email', false);
+    }
+
+    /**
      * Create a new contact from OAuth data. Caller is responsible for
      * running signup guards first — this method does not check them.
      */
@@ -88,7 +112,10 @@ class authContactResolver
         $save_data[$field]             = $data['source_id'];
         $save_data['create_method']    = $data['source'];
         $save_data['create_app_id']    = 'auth';
-        unset($save_data['source'], $save_data['source_id'], $save_data['photo_url']);
+        unset(
+            $save_data['source'], $save_data['source_id'], $save_data['photo_url'],
+            $save_data['email_verified'], $save_data['verified_email']
+        );
         // Unusable password so the account cannot be brute-forced via password form.
         $contact->setPassword(
             substr(waContact::getPasswordHash(uniqid((string) time(), true)), 0, -1),

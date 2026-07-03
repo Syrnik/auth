@@ -64,25 +64,14 @@ class authFrontendCallbackAction extends waViewAction
     }
 
     /**
-     * Renders login.html directly (not via authLoginFormAction), so it must
-     * assign the same vars that template expects or Smarty warns/breaks.
+     * Renders login.html directly (not via authLoginFormAction), so it reuses
+     * the same template-variable set via authHelper::loginViewData().
      */
     private function renderError(string $message): void
     {
+        $goal_url = (string) (wa()->getStorage()->get('auth_goal_url') ?? '');
         $this->setLayout(new authFrontendLayout());
-        $this->view->assign([
-            'goal_url'        => (string) (wa()->getStorage()->get('auth_goal_url') ?? ''),
-            'error'           => $message,
-            'step_vars'       => [],
-            'form_methods'    => authHelper::getFormMethods(),
-            'oauth_providers' => authHelper::getOAuthProviders(),
-            'csrf_token'      => authHelper::getCsrfToken(),
-            'has_recovery'    => authHelper::hasRecovery(),
-            'rememberme'      => authHelper::isRememberMeEnabled(),
-            'has_registration' => authHelper::isRegistrationEnabled(),
-            'register_url'    => authHelper::getRegisterUrl(),
-            'recovery_url'    => authHelper::getRecoveryUrl(),
-        ]);
+        $this->view->assign(authHelper::loginViewData($goal_url, $message));
         $this->setThemeTemplate('login.html');
     }
 }

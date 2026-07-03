@@ -140,7 +140,7 @@ class authPluginManager
         if ($map === null) {
             $map = ['waid' => waWebasystIDAuthAdapter::PROVIDER_ID];
             $path = wa()->getConfig()->getPath('system') . '/auth/adapters/';
-            foreach ((array)@scandir($path) as $f) {
+            foreach ((is_dir($path) ? scandir($path) : []) as $f) {
                 if (substr($f, -14) === 'Auth.class.php') {
                     $id = substr($f, 0, -14);
                     $map[$id] = $id;

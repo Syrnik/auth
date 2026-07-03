@@ -157,6 +157,29 @@ class authHelper
     }
 
     /**
+     * The full set of template variables login.html expects. Both the normal
+     * form action and the OAuth callback's error path render that template, so
+     * they share this single source instead of two hand-kept assign() blocks
+     * that drift out of sync (a missing key makes Smarty warn or break).
+     */
+    public static function loginViewData(string $goal_url = '', string $error = '', array $step_vars = []): array
+    {
+        return [
+            'goal_url'         => $goal_url,
+            'error'            => $error,
+            'step_vars'        => $step_vars,
+            'form_methods'     => self::getFormMethods(),
+            'oauth_providers'  => self::getOAuthProviders(),
+            'csrf_token'       => self::getCsrfToken(),
+            'has_recovery'     => self::hasRecovery(),
+            'rememberme'       => self::isRememberMeEnabled(),
+            'has_registration' => self::isRegistrationEnabled(),
+            'register_url'     => self::getRegisterUrl(),
+            'recovery_url'     => self::getRecoveryUrl(),
+        ];
+    }
+
+    /**
      * Sanitize a post-auth redirect target that originates from user input
      * (the goal_url carried through the login flow) so it can never send the
      * visitor to another site — the classic open-redirect / phishing vector.

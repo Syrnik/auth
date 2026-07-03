@@ -2,6 +2,8 @@
 
 class authFrontendRegisterAction extends waViewAction
 {
+    use authJsonResponseTrait;
+
     public function execute(): void
     {
         if (!authHelper::isRegistrationEnabled()) {
@@ -56,6 +58,11 @@ class authFrontendRegisterAction extends waViewAction
             $errors['email'] = 'Email обязателен.';
         } elseif (in_array('email', $fields) && !filter_var($post['email'], FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = 'Некорректный email.';
+        } elseif (in_array('email', $fields) && $this->emailTaken($post['email'])) {
+            // Block a duplicate up front: two accounts sharing an email make the
+            // email login method ambiguous (it takes the lowest id), so the second
+            // registrant could never log in by email anyway.
+            $errors['email'] = 'Этот email уже зарегистрирован.';
         }
         if (in_array('password', $fields) && empty($post['password'])) {
             $errors['password'] = 'Пароль обязателен.';
@@ -119,6 +126,18 @@ class authFrontendRegisterAction extends waViewAction
         }
     }
 
+    private function emailTaken(string $email): bool
+    {
+        $model = new waContactModel();
+        return (bool) $model->query(
+            "SELECT c.id FROM wa_contact_emails e
+             JOIN wa_contact c ON e.contact_id = c.id
+             WHERE e.email = s:email AND c.is_user > -1
+             LIMIT 1",
+            ['email' => $email]
+        )->fetchField('id');
+    }
+
     private function sendConfirmEmail(string $email, string $confirm_url): void
     {
         try {
@@ -131,11 +150,4 @@ class authFrontendRegisterAction extends waViewAction
         }
     }
 
-    private function sendJson(array $data): void
-    {
-        wa()->getResponse()->addHeader('Content-Type', 'application/json');
-        wa()->getResponse()->sendHeaders();
-        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        exit;
-    }
 }

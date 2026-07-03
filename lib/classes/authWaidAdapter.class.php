@@ -47,6 +47,9 @@ class authWaidAdapter extends waWebasystIDSiteAuth
             'source'    => $this->getId(),   // 'webasystID'
             'source_id' => $waid_contact_id,
             'photo_url' => $photo_url,
+            // Webasyst ID only exposes confirmed emails, so the address is safe
+            // to link onto an existing local account (see authContactResolver).
+            'email_verified' => true,
         ]);
     }
 }

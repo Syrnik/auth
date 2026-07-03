@@ -7,6 +7,8 @@
  */
 class authLoginController extends waViewController
 {
+    use authJsonResponseTrait;
+
     public function execute(): void
     {
         // No login methods enabled for this site → auth is off here.
@@ -119,7 +121,8 @@ class authLoginController extends waViewController
         wa()->getStorage()->del('auth_goal_url');
         wa()->event('login', $contact);
 
-        $redirect_url = $stored_goal ?: (authConfig::get('redirect_after_login') ?? '/');
+        $fallback     = authHelper::localRedirectUrl(authConfig::get('redirect_after_login'), '/');
+        $redirect_url = authHelper::localRedirectUrl($stored_goal, $fallback);
 
         if (waRequest::isXMLHttpRequest()) {
             $this->sendJson(['status' => 'ok', 'redirect' => $redirect_url]);
@@ -150,13 +153,6 @@ class authLoginController extends waViewController
         }
     }
 
-    private function sendJson(array $data): void
-    {
-        wa()->getResponse()->addHeader('Content-Type', 'application/json');
-        wa()->getResponse()->sendHeaders();
-        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        exit;
-    }
 }
 
 // Companion action: renders login.html.
@@ -177,19 +173,7 @@ class authLoginFormAction extends waViewAction
 
     public function execute(): void
     {
-        $this->view->assign([
-            'goal_url'        => $this->goal_url,
-            'error'           => $this->error,
-            'step_vars'       => $this->step_vars,
-            'form_methods'    => authHelper::getFormMethods(),
-            'oauth_providers' => authHelper::getOAuthProviders(),
-            'csrf_token'      => authHelper::getCsrfToken(),
-            'has_recovery'    => authHelper::hasRecovery(),
-            'rememberme'      => authHelper::isRememberMeEnabled(),
-            'has_registration' => authHelper::isRegistrationEnabled(),
-            'register_url'    => authHelper::getRegisterUrl(),
-            'recovery_url'    => authHelper::getRecoveryUrl(),
-        ]);
+        $this->view->assign(authHelper::loginViewData($this->goal_url, $this->error, $this->step_vars));
 
         $this->setThemeTemplate('login.html');
     }

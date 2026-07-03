@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **WAID login** now goes through the auth app's own login pipeline instead of the framework's default redirect
 - Built-in form methods (`email`, `login`, `phone`) are now derived from the method classes themselves rather than a separate, duplicated label list
 - Login form templates decoupled per method, with a `<method>.login_form.html` partial for each
+- The JSON response terminator shared by the login and registration controllers is now a single `authJsonResponseTrait` instead of two copies
+- `login.html` template variables are assembled once in `authHelper::loginViewData()`, used by both the login form action and the OAuth callback error path
 
 ### Fixed
 
@@ -26,6 +28,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Registration link hidden on the login page when signup is disabled
 - OAuth logins now respect `signup_enabled`; signup UI hidden when only OAuth methods are active
 - OAuth/challenge login no longer redirects to a blank page when `redirect_after_login` is unset
+- Logout no longer emits an empty redirect when `redirect_after_logout` is stored as `null`; falls back to `/`
+- OAuth `afterAuth()` returns explicitly after a blocked signup/login guard instead of reading possibly-uninitialized variables
+- Registration rejects an email that already belongs to a user account instead of silently creating a second account that could never log in by email
+- `authPluginManager::getSystemAdapters()` guards the adapters directory with `is_dir()` instead of silencing `scandir()` with `@`
+
+### Security
+
+- **Phone OTP hardening** — resends are throttled (60s cooldown, max 5 per flow) so the SMS channel can't be spammed, verification is capped at 5 attempts so a 6-digit code can't be brute-forced within its lifetime, and the code is stored hashed in the session instead of in plain text
+- Email confirmation tokens are now issued and validated through `authSignupConfirmModel`, which sweeps expired rows on each new token — expired `auth_signup_confirm` rows no longer linger in the database
+
+- Post-authentication redirects are now confined to the current site. Both the user-supplied `goal_url` and the admin-configured `redirect_after_login` / `redirect_after_register` values pass through `authHelper::localRedirectUrl()`, closing an open-redirect / phishing vector (`//evil.com`, `/\evil.com`, absolute off-site URLs, `javascript:`, CR/LF injection)
+- Password-recovery tokens moved out of `wa_app_settings` into a dedicated, self-expiring `auth_password_recovery` table; expired tokens are swept automatically so single-use secrets no longer accumulate indefinitely
+- OAuth identities are no longer auto-linked to an existing password account by a bare email match, which allowed account takeover via a provider that doesn't verify emails. Linking now requires either an adapter that vouches for the address (`email_verified` in the payload — set by the Webasyst ID adapter) or the new opt-in `oauth_link_by_email` setting; matching by the provider's own `source_id` is unaffected
 
 ## [0.1.0] - 2026-07-01
 

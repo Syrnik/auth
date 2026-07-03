@@ -8,6 +8,10 @@ Format: `<type>[optional scope]: <description>`
 
 Common types: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `ci`.
 
+When the work relates to a task from the wa-tasks tracker, append the task
+number to the end of the subject line as `Task: #<number>`, e.g.
+`fix: validate redirect targets Task: #76.26`.
+
 ## Changelog
 
 The `CHANGELOG.md` file must follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.

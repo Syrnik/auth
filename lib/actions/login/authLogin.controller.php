@@ -119,7 +119,7 @@ class authLoginController extends waViewController
         wa()->getStorage()->del('auth_goal_url');
         wa()->event('login', $contact);
 
-        $fallback     = authConfig::get('redirect_after_login') ?: '/';
+        $fallback     = authHelper::localRedirectUrl(authConfig::get('redirect_after_login'), '/');
         $redirect_url = authHelper::localRedirectUrl($stored_goal, $fallback);
 
         if (waRequest::isXMLHttpRequest()) {

@@ -27,6 +27,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OAuth logins now respect `signup_enabled`; signup UI hidden when only OAuth methods are active
 - OAuth/challenge login no longer redirects to a blank page when `redirect_after_login` is unset
 
+### Security
+
+- Post-authentication redirects are now confined to the current site. Both the user-supplied `goal_url` and the admin-configured `redirect_after_login` / `redirect_after_register` values pass through `authHelper::localRedirectUrl()`, closing an open-redirect / phishing vector (`//evil.com`, `/\evil.com`, absolute off-site URLs, `javascript:`, CR/LF injection)
+- Password-recovery tokens moved out of `wa_app_settings` into a dedicated, self-expiring `auth_password_recovery` table; expired tokens are swept automatically so single-use secrets no longer accumulate indefinitely
+
 ## [0.1.0] - 2026-07-01
 
 ### Added

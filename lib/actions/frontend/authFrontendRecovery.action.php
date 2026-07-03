@@ -107,7 +107,7 @@ class authFrontendRecoveryAction extends waViewAction
             wa()->getAuth()->auth(['id' => $contact->getId()]);
             wa()->event('login', $contact);
 
-            $redirect = authConfig::get('redirect_after_login') ?: authHelper::getMyUrl();
+            $redirect = authHelper::localRedirectUrl(authConfig::get('redirect_after_login'), authHelper::getMyUrl());
             wa()->getResponse()->redirect($redirect);
             return;
         }

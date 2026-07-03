@@ -115,7 +115,7 @@ class authFrontendRegisterAction extends waViewAction
         // Auto-login
         wa()->getAuth()->auth(['id' => $contact->getId()]);
         wa()->event('login', $contact);
-        $redirect = authConfig::get('redirect_after_register') ?: authHelper::getMyUrl();
+        $redirect = authHelper::localRedirectUrl(authConfig::get('redirect_after_register'), authHelper::getMyUrl());
 
         if (waRequest::isXMLHttpRequest()) {
             $this->sendJson(['status' => 'ok', 'redirect' => $redirect]);

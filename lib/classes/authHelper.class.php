@@ -156,6 +156,39 @@ class authHelper
         return waRequest::cookie('_csrf', '');
     }
 
+    /**
+     * Sanitize a post-auth redirect target that originates from user input
+     * (the goal_url carried through the login flow) so it can never send the
+     * visitor to another site — the classic open-redirect / phishing vector.
+     *
+     * Only same-site destinations survive: root-relative paths ("/my/") and
+     * absolute URLs whose host equals the current request host. Everything else
+     * collapses to $fallback — protocol-relative "//evil.com", the "/\evil.com"
+     * backslash trick browsers normalize to "//", "https://evil.com",
+     * "javascript:..." and CR/LF header-injection payloads.
+     */
+    public static function localRedirectUrl(?string $url, string $fallback = '/'): string
+    {
+        $url = trim((string)$url);
+        if ($url === '' || strpbrk($url, "\r\n\0") !== false) {
+            return $fallback;
+        }
+
+        // Common case: a root-relative path. Reject "//" and "/\", which a
+        // browser reads as protocol-relative — i.e. a jump to another host.
+        if ($url[0] === '/') {
+            return (isset($url[1]) && ($url[1] === '/' || $url[1] === '\\')) ? $fallback : $url;
+        }
+
+        // Absolute URL: keep it only if it points back at the current host.
+        $host = parse_url($url, PHP_URL_HOST);
+        if ($host !== null && strcasecmp($host, (string)waRequest::server('HTTP_HOST')) === 0) {
+            return $url;
+        }
+
+        return $fallback;
+    }
+
     // -------------------------------------------------------------------------
 
     private static function methodHasRecovery($method): bool

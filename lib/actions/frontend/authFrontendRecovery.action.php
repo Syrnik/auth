@@ -42,13 +42,7 @@ class authFrontendRecoveryAction extends waViewAction
 
         // Always show "sent" to prevent email enumeration
         if ($contact_row) {
-            $token = bin2hex(random_bytes(27));
-            $settings = new waAppSettingsModel();
-            $settings->set('auth', 'recovery_' . $token, json_encode([
-                'contact_id' => (int)$contact_row['id'],
-                'email'      => $email,
-                'expires'    => time() + 3600,
-            ]));
+            $token = (new authPasswordRecoveryModel())->createToken((int)$contact_row['id']);
 
             $recovery_url = wa()->getRouteUrl('auth/frontend/recovery', ['token' => $token], true);
             $this->sendRecoveryEmail($email, $recovery_url);
@@ -63,11 +57,10 @@ class authFrontendRecoveryAction extends waViewAction
     // POST with token: validate and change password
     private function handleTokenStep(string $token): void
     {
-        $settings = new waAppSettingsModel();
-        $stored_json = $settings->get('auth', 'recovery_' . $token, '');
-        $stored = $stored_json ? json_decode($stored_json, true) : null;
+        $recovery_model = new authPasswordRecoveryModel();
+        $stored = $recovery_model->getValid($token);
 
-        if (!$stored || time() > ($stored['expires'] ?? 0)) {
+        if (!$stored) {
             $this->setLayout(new authFrontendLayout());
             $this->view->assign(['error' => 'Ссылка недействительна или устарела.', 'token' => '', 'password_changed' => false]);
             $this->setThemeTemplate('recovery.html');
@@ -102,9 +95,15 @@ class authFrontendRecoveryAction extends waViewAction
             $contact['password'] = $password;
             $contact->save();
 
-            // Invalidate token
-            $settings->del('auth', 'recovery_' . $token);
+            // Invalidate this recovery token so the link can't be replayed.
+            $recovery_model->deleteByToken($token);
 
+            // Other active sessions of this contact are invalidated by the
+            // framework itself: the session/remember-me token is derived from
+            // the password hash (waAuth::getToken), so once the password changes,
+            // every other session fails waAuthUser's periodic token re-check and
+            // every stale auth_token cookie stops matching. Re-authing here rotates
+            // the current session onto the new token so this browser stays logged in.
             wa()->getAuth()->auth(['id' => $contact->getId()]);
             wa()->event('login', $contact);
 

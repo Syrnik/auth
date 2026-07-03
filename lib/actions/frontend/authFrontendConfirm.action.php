@@ -32,9 +32,8 @@ class authFrontendConfirmAction extends waViewAction
         wa()->getAuth()->auth(['id' => $contact->getId()]);
         wa()->event('login', $contact);
 
-        $redirect = wa()->getStorage()->get('auth_goal_url')
-            ?: authConfig::get('redirect_after_register')
-            ?: authHelper::getMyUrl();
+        $fallback = authConfig::get('redirect_after_register') ?: authHelper::getMyUrl();
+        $redirect = authHelper::localRedirectUrl(wa()->getStorage()->get('auth_goal_url'), $fallback);
 
         wa()->getStorage()->del('auth_goal_url');
         wa()->getResponse()->redirect($redirect);

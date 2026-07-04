@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`login` auth method** — login/password against the `wa_contact.login` field
 - **Dynamic system OAuth adapters** — every framework-level adapter (VK, Google, Facebook, etc.) is now offered in settings automatically, with per-domain credential fields, instead of only Webasyst ID
 - License files (Webasyst EULA) and contribution guidelines (`AGENTS.md`)
+- **Two-factor authentication settings** — `challenge_methods` (2FA plugins) can now be enabled per domain from the backend settings screen instead of hand-editing `config.php`
+- **Captcha widget** wired into the login and registration forms, with per-domain settings (site key/secret, etc.) for captcha plugins on the backend settings screen
+- Clean backend routing — `/settings/` and `/plugins/` replace the old `?module=backend&action=...` query URLs
+- **Backend Plugins page** rebuilt on the standard Webasyst `waPluginsActions` screen: installed plugins get a real settings UI (`waPlugin::getSettings()`/`saveSettings()`) instead of a static read-only list
 
 ### Changed
 
@@ -20,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Login form templates decoupled per method, with a `<method>.login_form.html` partial for each
 - The JSON response terminator shared by the login and registration controllers is now a single `authJsonResponseTrait` instead of two copies
 - `login.html` template variables are assembled once in `authHelper::loginViewData()`, used by both the login form action and the OAuth callback error path
+- Backend settings form UI restructured with semantic field/value markup, `wa-checkbox`-styled checkboxes and `wa-select`-wrapped selects
 
 ### Fixed
 
@@ -32,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OAuth `afterAuth()` returns explicitly after a blocked signup/login guard instead of reading possibly-uninitialized variables
 - Registration rejects an email that already belongs to a user account instead of silently creating a second account that could never log in by email
 - `authPluginManager::getSystemAdapters()` guards the adapters directory with `is_dir()` instead of silencing `scandir()` with `@`
+- Registration now stops immediately on a failed captcha check, matching login — a guard error could otherwise silently overwrite the captcha error before it reached the user
+- Backend Plugins page never got the app header/sidebar (missing `setLayout()`), fixed by replacing the whole screen with the standard plugin page above
 
 ### Security
 

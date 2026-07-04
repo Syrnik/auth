@@ -20,12 +20,13 @@ class authBackendSettingsAction extends waViewAction
 
         if (!$domains) {
             $this->view->assign([
-                'domain'             => '',
-                'no_domains'         => true,
-                'available_methods'  => [],
-                'available_captchas' => [],
-                'available_guards'   => [],
-                'config'             => [],
+                'domain'              => '',
+                'no_domains'          => true,
+                'available_methods'   => [],
+                'available_captchas'  => [],
+                'available_guards'    => [],
+                'available_challenges' => [],
+                'config'              => [],
             ]);
             return;
         }
@@ -38,12 +39,13 @@ class authBackendSettingsAction extends waViewAction
         $config = authConfig::getMerged($domain);
 
         $this->view->assign([
-            'domain'             => $domain,
-            'no_domains'         => false,
-            'available_methods'  => $this->getAvailableMethods($config, $domain),
-            'available_captchas' => $this->getAvailableCaptchas($domain),
-            'available_guards'   => $this->getAvailableGuards($domain),
-            'config'             => $config,
+            'domain'               => $domain,
+            'no_domains'           => false,
+            'available_methods'    => $this->getAvailableMethods($config, $domain),
+            'available_captchas'   => $this->getAvailableCaptchas($domain),
+            'available_guards'     => $this->getAvailableGuards($domain),
+            'available_challenges' => $this->getAvailableChallenges($domain),
+            'config'               => $config,
         ]);
     }
 
@@ -56,25 +58,36 @@ class authBackendSettingsAction extends waViewAction
 
         $post = waRequest::post();
 
-        // Guard, captcha, and auth plugins may all carry per-domain settings; a
-        // plugin that is more than one of these appears once (keys are plugin dir names).
-        $guards   = $this->getGuardPluginInstances();
-        $captchas = $this->getCaptchaPluginInstances();
-        $plugins  = $guards + $captchas + $this->getAuthPluginInstances();
+        // Guard, captcha, challenge, and auth plugins may all carry per-domain
+        // settings; a plugin that is more than one of these appears once
+        // (keys are plugin dir names).
+        $guards     = $this->getGuardPluginInstances();
+        $captchas   = $this->getCaptchaPluginInstances();
+        $challenges = $this->getChallengePluginInstances();
+        $plugins    = $guards + $captchas + $challenges + $this->getAuthPluginInstances();
 
         $new = [
-            'login_methods'    => (array)($post['login_methods'] ?? []),
-            'signup_enabled'   => !empty($post['signup_enabled']),
-            'signup_confirm'   => !empty($post['signup_confirm']),
-            'recovery_enabled' => !empty($post['recovery_enabled']),
-            'rememberme'       => !empty($post['rememberme']),
-            'captcha_plugin'   => (string)($post['captcha_plugin'] ?? ''),
-            'adapters'         => $this->collectAdapterCredentials((array)($post['adapters'] ?? [])),
-            'guard_plugins'    => array_values(array_intersect(
+            'login_methods'     => (array)($post['login_methods'] ?? []),
+            'signup_enabled'    => !empty($post['signup_enabled']),
+            'signup_confirm'    => !empty($post['signup_confirm']),
+            'recovery_enabled'  => !empty($post['recovery_enabled']),
+            'rememberme'        => !empty($post['rememberme']),
+            'captcha_plugin'    => (string)($post['captcha_plugin'] ?? ''),
+            'adapters'          => $this->collectAdapterCredentials((array)($post['adapters'] ?? [])),
+            'guard_plugins'     => array_values(array_intersect(
                 (array)($post['guard_plugins'] ?? []),
                 array_keys($guards)
             )),
-            'plugin_settings'  => $this->collectPluginSettings($plugins, (array)($post['plugin_settings'] ?? [])),
+            'challenge_methods' => array_values(array_intersect(
+                (array)($post['challenge_methods'] ?? []),
+                // Unlike guard_plugins/captcha_plugin (lenient, suffix optional),
+                // challenge_methods is resolved by authPluginManager::get(), the
+                // same strict resolver login_methods uses — a plugin id there
+                // MUST carry the '_plugin' suffix or it's mistaken for a builtin
+                // method and silently resolves to null.
+                array_map(fn($dir) => $dir . '_plugin', array_keys($challenges))
+            )),
+            'plugin_settings'   => $this->collectPluginSettings($plugins, (array)($post['plugin_settings'] ?? [])),
         ];
 
         $config_path = wa()->getConfig()->getConfigPath('config.php', true, 'auth');
@@ -234,6 +247,35 @@ class authBackendSettingsAction extends waViewAction
     private function getGuardPluginInstances(): array
     {
         return $this->getPluginInstancesOf(authGuard::class);
+    }
+
+    /**
+     * Challenge (2FA) plugins the admin can enable for this domain, with their
+     * per-domain settings controls. Entries are keyed '{dir}_plugin' — same
+     * suffix convention as getAvailableMethods() — because challenge_methods,
+     * like login_methods, is resolved by authPluginManager::get(), which
+     * requires the suffix to tell a plugin id apart from a builtin method id.
+     * Returns [method_id => ['name' => ..., 'plugin_id' => dir, 'controls' => [field_id => [...]]]]
+     */
+    private function getAvailableChallenges(string $domain): array
+    {
+        $challenges = [];
+        foreach ($this->getChallengePluginInstances() as $dir => $plugin) {
+            $challenges[$dir . '_plugin'] = [
+                'name'      => $plugin->getName(),
+                'plugin_id' => $dir,
+                'controls'  => $plugin->getSettingsControls(authConfig::getPluginSettings($dir, $domain)),
+            ];
+        }
+        return $challenges;
+    }
+
+    /**
+     * All installed challenge plugins: [plugin_id => authPlugin&authChallenge instance]
+     */
+    private function getChallengePluginInstances(): array
+    {
+        return $this->getPluginInstancesOf(authChallenge::class);
     }
 
     /**

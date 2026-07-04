@@ -224,6 +224,28 @@
                 </div>
             {/if}
 
+            {if $available_challenges}
+                <h6 class="heading">[`Two-factor authentication`]</h6>
+                <div class="field-group">
+                    {foreach $available_challenges as $id => $c}
+                        <div class="field">
+                            <div class="value">
+                                <label>
+                                    <input type="checkbox" name="challenge_methods[]" value="{$id|escape}"
+                                        {if in_array($id, $config.challenge_methods)}checked{/if}>
+                                    {$c.name|escape}
+                                </label>
+                                {if $c.controls}
+                                    <div class="custom-mt-8 custom-ml-24">
+                                        {plugin_controls controls=$c.controls prefix="plugin_settings[{$c.plugin_id}]"}
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+                    {/foreach}
+                </div>
+            {/if}
+
         </form>
 
         <script>

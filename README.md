@@ -46,6 +46,7 @@
 | `captcha_plugin` | `null` | ID капча-плагина (или `null`) |
 | `adapters` | `[]` | Учётные данные OAuth-адаптеров (`app_id`/`app_secret` и т.д.) на домен |
 | `guard_plugins` | `[]` | Активные guard-плагины (секция «Signup and login protection») |
+| `challenge_methods` | `[]` | Активные challenge-плагины, второй фактор (секция «Two-factor authentication») |
 | `plugin_settings` | `[]` | Собственные настройки плагинов на домен, по ID плагина (см. [настройки плагина](#настройки-плагина-на-домен)) |
 
 Дополнительные параметры задаются только в `lib/config/config.php` (или вручную в `wa-config/apps/auth/config.php`):

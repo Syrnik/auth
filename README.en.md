@@ -46,6 +46,7 @@ Parameters editable in the backend:
 | `captcha_plugin` | `null` | Captcha plugin ID (or `null`) |
 | `adapters` | `[]` | Per-domain OAuth adapter credentials (`app_id`/`app_secret`, etc.) |
 | `guard_plugins` | `[]` | Active guard plugins ("Signup and login protection" section) |
+| `challenge_methods` | `[]` | Active challenge plugins, second factor ("Two-factor authentication" section) |
 | `plugin_settings` | `[]` | Plugins' own per-domain settings, keyed by plugin ID (see [plugin settings](#per-domain-plugin-settings)) |
 
 Additional parameters can only be set in `lib/config/config.php` (or manually in `wa-config/apps/auth/config.php`):

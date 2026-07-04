@@ -2,25 +2,31 @@
    or one named instance of a multi_instance plugin). $prefix is the POST
    name prefix, e.g. plugin_settings[oidc][gitlab] *}
 {function name=plugin_controls controls=[] prefix=''}
-    {foreach $controls as $field_id => $c}
-        <div class="custom-mb-8">
-            {if ($c.type|default:'text') == 'textarea'}
-                <div class="hint custom-mb-4">{$c.label|escape}</div>
-                <textarea name="{$prefix}[{$field_id|escape}]" rows="6" style="width:380px;">{$c.value|escape}</textarea>
-            {elseif ($c.type|default:'text') == 'select'}
-                <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label|escape}</span>
-                <select name="{$prefix}[{$field_id|escape}]">
-                    {foreach $c.options as $ovalue => $olabel}
-                        <option value="{$ovalue|escape}" {if $c.value == $ovalue}selected{/if}>{$olabel|escape}</option>
-                    {/foreach}
-                </select>
-            {else}
-                <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label|escape}</span>
-                <input type="text" name="{$prefix}[{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
-            {/if}
-            {if !empty($c.hint)}<div class="hint custom-mt-4">{$c.hint|escape}</div>{/if}
+    {if $controls}
+        <div class="fields">
+        {foreach $controls as $field_id => $c}
+            <div class="field">
+                <div class="name">{$c.label|escape}</div>
+                <div class="value">
+                {if ($c.type|default:'text') == 'textarea'}
+                    <textarea name="{$prefix}[{$field_id|escape}]" rows="6" style="width:380px;">{$c.value|escape}</textarea>
+                {elseif ($c.type|default:'text') == 'select'}
+                    <div class="wa-select">
+                        <select name="{$prefix}[{$field_id|escape}]">
+                            {foreach $c.options as $ovalue => $olabel}
+                                <option value="{$ovalue|escape}" {if $c.value == $ovalue}selected{/if}>{$olabel|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                {else}
+                    <input type="text" name="{$prefix}[{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
+                {/if}
+                {if !empty($c.hint)}<div class="hint custom-mt-4">{$c.hint|escape}</div>{/if}
+                </div>
+            </div>
+        {/foreach}
         </div>
-    {/foreach}
+    {/if}
 {/function}
 
 <div class="article">
@@ -40,79 +46,104 @@
             <p class="hint custom-mb-0">[`Enable at least one login method, otherwise this site has no login or registration.`]</p>
         </div>
 
-        <form method="post" action="" id="auth-settings-form">
+        <form method="post" action="" id="auth-settings-form" class="fields">
             <input type="hidden" name="domain" value="{$domain|escape}">
             {$wa->csrf()}
 
             <h6 class="heading custom-mt-0">[`Login methods`]</h6>
             <div class="field-group">
-                {foreach $available_methods as $id => $m}
-                    <div class="field">
-                        <div class="value">
-                            {if !empty($m.multi_instance)}
-                                {* Multi-instance plugin: a list of named connections instead of
-                                   a single checkbox. Each instance is enabled separately as
-                                   login method '{$id}:{key}' and keeps its own settings block. *}
-                                <div>{$m.name|escape} <span class="hint">[`several named connections can be added`]</span></div>
-                                <div class="js-auth-instances custom-ml-24" data-method="{$id|escape}">
-                                    {foreach $m.instances as $ikey => $inst}
-                                        <div class="js-auth-instance custom-mt-12" data-key="{$ikey|escape}">
-                                            <label>
-                                                <input type="checkbox" name="login_methods[]" value="{$id|escape}:{$ikey|escape}"
-                                                    {if $inst.enabled}checked{/if}>
-                                                <span class="badge count gray">{$ikey|escape}</span>
-                                            </label>
-                                            <a href="#" class="js-auth-instance-delete text-red smaller custom-ml-8">[`delete`]</a>
-                                            <div class="custom-mt-8 custom-ml-24">
-                                                {plugin_controls controls=$inst.controls prefix="plugin_settings[{$m.plugin_id}][{$ikey}]"}
-                                            </div>
+                <div class="field">
+                    <div class="value">
+                        <ul>
+                        {foreach $available_methods as $id => $m}
+                            <li>
+                                    {if !empty($m.multi_instance)}
+                                        {* Multi-instance plugin: a list of named connections instead of
+                                           a single checkbox. Each instance is enabled separately as
+                                           login method '{$id}:{key}' and keeps its own settings block. *}
+                                        <div>{$m.name|escape} <span class="hint">[`several named connections can be added`]</span></div>
+                                        <div class="js-auth-instances custom-ml-24" data-method="{$id|escape}">
+                                            {foreach $m.instances as $ikey => $inst}
+                                                <div class="js-auth-instance custom-mt-12" data-key="{$ikey|escape}">
+                                                    <label>
+                                                        <span class="wa-checkbox">
+                                                            <input type="checkbox" name="login_methods[]" value="{$id|escape}:{$ikey|escape}"
+                                                                {if $inst.enabled}checked{/if}>
+                                                            <span>
+                                                                <span class="icon">
+                                                                    <i class="fas fa-check"></i>
+                                                                </span>
+                                                            </span>
+                                                        </span>
+                                                        <span class="badge count gray">{$ikey|escape}</span>
+                                                    </label>
+                                                    <a href="#" class="js-auth-instance-delete text-red smaller custom-ml-8">[`delete`]</a>
+                                                    <div class="custom-mt-8 custom-ml-24">
+                                                        {plugin_controls controls=$inst.controls prefix="plugin_settings[{$m.plugin_id}][{$ikey}]"}
+                                                    </div>
+                                                </div>
+                                            {/foreach}
                                         </div>
-                                    {/foreach}
-                                </div>
-                                <template class="js-auth-instance-template">
-                                    <div class="js-auth-instance custom-mt-12" data-key="%key%">
-                                        <label>
-                                            <input type="checkbox" name="login_methods[]" value="{$id|escape}:%key%" checked>
-                                            <span class="badge count gray">%key%</span>
-                                        </label>
-                                        <a href="#" class="js-auth-instance-delete text-red smaller custom-ml-8">[`delete`]</a>
+                                        <template class="js-auth-instance-template">
+                                            <div class="js-auth-instance custom-mt-12" data-key="%key%">
+                                                <label>
+                                                    <span class="wa-checkbox">
+                                                        <input type="checkbox" name="login_methods[]" value="{$id|escape}:%key%" checked>
+                                                        <span>
+                                                            <span class="icon">
+                                                                <i class="fas fa-check"></i>
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                    <span class="badge count gray">%key%</span>
+                                                </label>
+                                                <a href="#" class="js-auth-instance-delete text-red smaller custom-ml-8">[`delete`]</a>
+                                                <div class="custom-mt-8 custom-ml-24">
+                                                    {plugin_controls controls=$m.new_controls prefix="plugin_settings[{$m.plugin_id}][%key%]"}
+                                                </div>
+                                            </div>
+                                        </template>
                                         <div class="custom-mt-8 custom-ml-24">
-                                            {plugin_controls controls=$m.new_controls prefix="plugin_settings[{$m.plugin_id}][%key%]"}
+                                            <a href="#" class="js-auth-instance-add">+ [`Add connection`]</a>
                                         </div>
-                                    </div>
-                                </template>
-                                <div class="custom-mt-8 custom-ml-24">
-                                    <a href="#" class="js-auth-instance-add">+ [`Add connection`]</a>
-                                </div>
-                            {else}
-                                <label>
-                                    <input type="checkbox" name="login_methods[]" value="{$id|escape}"
-                                        {if in_array($id, $config.login_methods)}checked{/if}>
-                                    {$m.name|escape}
-                                </label>
-                                {if !empty($m.oauth) && !empty($m.controls)}
-                                    <div class="custom-mt-8 custom-ml-24">
-                                        {foreach $m.controls as $field_id => $c}
-                                            <div class="flexbox middle custom-mb-4">
-                                                {if !empty($c.html)}
-                                                    {$c.html}
-                                                {else}
-                                                    <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label}</span>
-                                                    <input type="text" name="adapters[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
-                                                {/if}
+                                    {else}
+                                        <label>
+                                            <span class="wa-checkbox">
+                                                <input type="checkbox" name="login_methods[]" value="{$id|escape}"
+                                                    {if in_array($id, $config.login_methods)}checked{/if}>
+                                                <span>
+                                                    <span class="icon">
+                                                        <i class="fas fa-check"></i>
+                                                    </span>
+                                                </span>
+                                            </span>
+                                            {$m.name|escape}
+                                        </label>
+                                        {if !empty($m.oauth) && !empty($m.controls)}
+                                            <div class="custom-mt-8 custom-ml-24">
+                                                {foreach $m.controls as $field_id => $c}
+                                                    <div class="flexbox middle custom-mb-4">
+                                                        {if !empty($c.html)}
+                                                            {$c.html}
+                                                        {else}
+                                                            <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label}</span>
+                                                            <input type="text" name="adapters[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
+                                                        {/if}
+                                                    </div>
+                                                {/foreach}
                                             </div>
-                                        {/foreach}
-                                    </div>
-                                {/if}
-                                {if !empty($m.plugin_controls)}
-                                    <div class="custom-mt-8 custom-ml-24">
-                                        {plugin_controls controls=$m.plugin_controls prefix="plugin_settings[{$m.plugin_id}]"}
-                                    </div>
-                                {/if}
-                            {/if}
-                        </div>
+                                        {/if}
+                                        {if !empty($m.plugin_controls)}
+                                            <div class="custom-mt-8 custom-ml-24">
+                                                {plugin_controls controls=$m.plugin_controls prefix="plugin_settings[{$m.plugin_id}]"}
+                                            </div>
+                                        {/if}
+                                    {/if}
+                                </li>
+                        {/foreach}
+                        </ul>
                     </div>
-                {/foreach}
+                </div>
             </div>
 
             <h6 class="heading">[`Registration`]</h6>
@@ -165,15 +196,17 @@
                     <div class="field">
                         <div class="name">[`Captcha plugin`]</div>
                         <div class="value">
-                            <select name="captcha_plugin">
-                                <option value="" {if !$config.captcha_plugin}selected{/if}>[`(none)`]</option>
-                                {foreach $available_captchas as $id => $c}
-                                    <option value="{$id|escape}"
-                                        {if $config.captcha_plugin == $id}selected{/if}>
-                                        {$c.name|escape}
-                                    </option>
-                                {/foreach}
-                            </select>
+                            <div class="wa-select">
+                                <select name="captcha_plugin">
+                                    <option value="" {if !$config.captcha_plugin}selected{/if}>[`(none)`]</option>
+                                    {foreach $available_captchas as $id => $c}
+                                        <option value="{$id|escape}"
+                                            {if $config.captcha_plugin == $id}selected{/if}>
+                                            {$c.name|escape}
+                                        </option>
+                                    {/foreach}
+                                </select>
+                            </div>
                         </div>
                     </div>
                     {foreach $available_captchas as $id => $c}
@@ -194,33 +227,37 @@
             {if $available_guards}
                 <h6 class="heading">[`Signup and login protection`]</h6>
                 <div class="field-group">
-                    {foreach $available_guards as $id => $g}
-                        <div class="field">
-                            <div class="value">
-                                <label>
-                                    <input type="checkbox" name="guard_plugins[]" value="{$id|escape}"
-                                        {if in_array($id, $config.guard_plugins)}checked{/if}>
-                                    {$g.name|escape}
-                                </label>
-                                {if $g.controls}
-                                    <div class="custom-mt-8 custom-ml-24">
-                                        {foreach $g.controls as $field_id => $c}
-                                            <div class="custom-mb-8">
-                                                {if ($c.type|default:'text') == 'textarea'}
-                                                    <div class="hint custom-mb-4">{$c.label|escape}</div>
-                                                    <textarea name="plugin_settings[{$id|escape}][{$field_id|escape}]" rows="6" style="width:380px;">{$c.value|escape}</textarea>
-                                                {else}
-                                                    <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label|escape}</span>
-                                                    <input type="text" name="plugin_settings[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
-                                                {/if}
-                                                {if !empty($c.hint)}<div class="hint custom-mt-4">{$c.hint|escape}</div>{/if}
-                                            </div>
-                                        {/foreach}
-                                    </div>
-                                {/if}
-                            </div>
+                    <div class="field">
+                        <div class="value">
+                            <ul>
+                            {foreach $available_guards as $id => $g}
+                                <li>
+                                    <label>
+                                        <input type="checkbox" name="guard_plugins[]" value="{$id|escape}"
+                                            {if in_array($id, $config.guard_plugins)}checked{/if}>
+                                        {$g.name|escape}
+                                    </label>
+                                    {if $g.controls}
+                                        <div class="custom-mt-8 custom-ml-24">
+                                            {foreach $g.controls as $field_id => $c}
+                                                <div class="custom-mb-8">
+                                                    {if ($c.type|default:'text') == 'textarea'}
+                                                        <div class="hint custom-mb-4">{$c.label|escape}</div>
+                                                        <textarea name="plugin_settings[{$id|escape}][{$field_id|escape}]" rows="6" style="width:380px;">{$c.value|escape}</textarea>
+                                                    {else}
+                                                        <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label|escape}</span>
+                                                        <input type="text" name="plugin_settings[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
+                                                    {/if}
+                                                    {if !empty($c.hint)}<div class="hint custom-mt-4">{$c.hint|escape}</div>{/if}
+                                                </div>
+                                            {/foreach}
+                                        </div>
+                                    {/if}
+                                </li>
+                            {/foreach}
+                            </ul>
                         </div>
-                    {/foreach}
+                    </div>
                 </div>
             {/if}
 

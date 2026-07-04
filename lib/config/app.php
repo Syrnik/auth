@@ -6,6 +6,9 @@ return [
     'vendor'     => '',
     'frontend'   => true,
     'auth'       => true,
+    'routing_params' => [
+        'private' => true,
+    ],
     'my_account' => true,
     'csrf'       => true,
     'themes'     => true,

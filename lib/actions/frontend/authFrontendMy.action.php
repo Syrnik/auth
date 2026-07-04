@@ -10,4 +10,9 @@ class authFrontendMyAction extends waMyProfileAction
             $this->setLayout(new authFrontendLayout());
         }
     }
+
+    protected function getForm()
+    {
+        return authContactForm::fromForm(parent::getForm());
+    }
 }

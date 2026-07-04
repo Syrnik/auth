@@ -7,3 +7,6 @@ plugins/blackmailguard/
 
 # Separate repository (task 76.19)
 plugins/gcaptcha/
+
+# Separate repository (task 76.23)
+plugins/totp/

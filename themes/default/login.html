@@ -23,6 +23,7 @@
                 <input type="hidden" name="auth_method" value="{$m.id|escape}">
                 {if $goal_url}<input type="hidden" name="goal_url" value="{$goal_url|escape}">{/if}
                 {include file=$m.partial}
+                {$captcha_widget}
                 <button type="submit" class="auth-submit">Войти</button>
             </form>
         {/if}

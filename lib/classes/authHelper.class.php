@@ -176,6 +176,7 @@ class authHelper
             'has_registration' => self::isRegistrationEnabled(),
             'register_url'     => self::getRegisterUrl(),
             'recovery_url'     => self::getRecoveryUrl(),
+            'captcha_widget'   => self::getCaptchaWidget(),
         ];
     }
 

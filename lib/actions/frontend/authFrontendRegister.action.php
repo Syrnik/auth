@@ -26,6 +26,7 @@ class authFrontendRegisterAction extends waViewAction
             'data'          => $data,
             'csrf_token'    => authHelper::getCsrfToken(),
             'login_url'     => authHelper::getLoginUrl(),
+            'captcha_widget' => authHelper::getCaptchaWidget(),
         ]);
         $this->setThemeTemplate('register.html');
     }

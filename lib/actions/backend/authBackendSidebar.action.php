@@ -19,11 +19,15 @@ class authBackendSidebarAction extends waViewAction
             $current = $domains[0];
         }
 
+        // The 'plugins/' route dispatches straight to module 'plugins' with
+        // an empty action, so highlighting must key off module, not action.
+        $module = waRequest::param('module', 'settings', 'string');
+
         $this->view->assign([
             'domains'         => $domains,
             'domains_enabled' => $enabled,
             'current_domain'  => $current,
-            'action'          => waRequest::param('action', 'settings', 'string'),
+            'action'          => $module === 'plugins' ? 'plugins' : waRequest::param('action', 'settings', 'string'),
         ]);
     }
 }

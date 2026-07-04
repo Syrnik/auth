@@ -52,7 +52,7 @@ class authBackendSettingsAction extends waViewAction
     private function save(string $domain): void
     {
         if (!$domain) {
-            wa()->getResponse()->redirect('?module=backend&action=settings');
+            wa()->getResponse()->redirect(wa()->getAppUrl('auth', true) . 'settings/');
             return;
         }
 
@@ -102,7 +102,7 @@ class authBackendSettingsAction extends waViewAction
         authConfig::clearCache();
 
         wa()->getResponse()->redirect(
-            '?module=backend&action=settings&saved=1&domain=' . urlencode($domain)
+            wa()->getAppUrl('auth', true) . 'settings/?saved=1&domain=' . urlencode($domain)
         );
     }
 

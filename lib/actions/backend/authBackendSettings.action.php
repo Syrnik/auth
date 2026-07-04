@@ -41,7 +41,7 @@ class authBackendSettingsAction extends waViewAction
             'domain'             => $domain,
             'no_domains'         => false,
             'available_methods'  => $this->getAvailableMethods($config, $domain),
-            'available_captchas' => $this->getAvailableCaptchas(),
+            'available_captchas' => $this->getAvailableCaptchas($domain),
             'available_guards'   => $this->getAvailableGuards($domain),
             'config'             => $config,
         ]);
@@ -56,10 +56,11 @@ class authBackendSettingsAction extends waViewAction
 
         $post = waRequest::post();
 
-        // Both guard and auth plugins may carry per-domain settings; a plugin
-        // that is both appears once (keys are plugin dir names).
-        $guards  = $this->getGuardPluginInstances();
-        $plugins = $guards + $this->getAuthPluginInstances();
+        // Guard, captcha, and auth plugins may all carry per-domain settings; a
+        // plugin that is more than one of these appears once (keys are plugin dir names).
+        $guards   = $this->getGuardPluginInstances();
+        $captchas = $this->getCaptchaPluginInstances();
+        $plugins  = $guards + $captchas + $this->getAuthPluginInstances();
 
         $new = [
             'login_methods'    => (array)($post['login_methods'] ?? []),
@@ -299,26 +300,27 @@ class authBackendSettingsAction extends waViewAction
         return $result;
     }
 
-    private function getAvailableCaptchas(): array
+    /**
+     * Installed captcha plugins with their per-domain settings controls (site
+     * key/secret, etc.): [plugin_id => ['name' => ..., 'controls' => [...]]]
+     */
+    private function getAvailableCaptchas(string $domain): array
     {
-        $captchas = ['' => '(нет)'];
-
-        $plugins_path = wa()->getAppPath('plugins', 'auth');
-        if (is_dir($plugins_path)) {
-            foreach (scandir($plugins_path) as $dir) {
-                if ($dir[0] === '.' || !is_dir($plugins_path . '/' . $dir)) {
-                    continue;
-                }
-                $info_path = $plugins_path . '/' . $dir . '/lib/config/plugin.php';
-                if (file_exists($info_path)) {
-                    $info = (array)include($info_path);
-                    if (!empty($info['is_captcha'])) {
-                        $captchas[$dir] = $info['name'] ?? $dir;
-                    }
-                }
-            }
+        $captchas = [];
+        foreach ($this->getCaptchaPluginInstances() as $dir => $plugin) {
+            $captchas[$dir] = [
+                'name'     => $plugin->getInfo()['name'] ?? $dir,
+                'controls' => $plugin->getSettingsControls(authConfig::getPluginSettings($dir, $domain)),
+            ];
         }
-
         return $captchas;
+    }
+
+    /**
+     * All installed captcha plugins: [plugin_id => authPlugin&authCaptcha instance]
+     */
+    private function getCaptchaPluginInstances(): array
+    {
+        return $this->getPluginInstancesOf(authCaptcha::class);
     }
 }

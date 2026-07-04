@@ -4,3 +4,6 @@
 
 # Separate repository (task 76.14)
 plugins/blackmailguard/
+
+# Separate repository (task 76.19)
+plugins/gcaptcha/

@@ -37,10 +37,13 @@ class authFrontendRegisterAction extends waViewAction
         $fields = authConfig::get('signup_fields', ['firstname', 'email', 'password']);
         $errors = [];
 
-        // Captcha
+        // Captcha: stop immediately on failure, same as authLoginController —
+        // a bad captcha shouldn't still spend guard checks (rate limits, etc.)
+        // or have its error overwritten by a later guard block.
         $captcha = authPluginManager::getCaptchaPlugin();
         if ($captcha && !$captcha->verifyCaptcha($post)) {
-            $errors['captcha'] = 'Неверный код капчи.';
+            $this->showForm(['captcha' => 'Неверный код капчи.'], $post);
+            return;
         }
 
         // Guards: a guard block is final, so show it alone and stop —

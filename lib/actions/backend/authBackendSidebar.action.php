@@ -23,7 +23,7 @@ class authBackendSidebarAction extends waViewAction
             'domains'         => $domains,
             'domains_enabled' => $enabled,
             'current_domain'  => $current,
-            'action'          => waRequest::get('action', 'settings', 'string'),
+            'action'          => waRequest::param('action', 'settings', 'string'),
         ]);
     }
 }

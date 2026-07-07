@@ -1,5 +1,6 @@
 <?php
 return [
+    ''                      => 'frontend/',
     'login/'                => 'login',
     'register/'             => 'frontend/register',
     'logout/'               => 'frontend/logout',

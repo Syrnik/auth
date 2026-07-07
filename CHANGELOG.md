@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `authPluginManager::getSystemAdapters()` guards the adapters directory with `is_dir()` instead of silencing `scandir()` with `@`
 - Registration now stops immediately on a failed captcha check, matching login — a guard error could otherwise silently overwrite the captcha error before it reached the user
 - Backend Plugins page never got the app header/sidebar (missing `setLayout()`), fixed by replacing the whole screen with the standard plugin page above
+- Frontend app root (`/auth/`) 404'd with "Empty module and/or action" — also broke the Design section's theme preview link, which points at this same URL. Now redirects to `my/` (logged in) or `login/` (guest)
 
 ### Security
 

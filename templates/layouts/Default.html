@@ -14,6 +14,8 @@
     <script src="{$wa_url}wa-content/js/jquery-plugins/jquery.history.js"></script>
     <script src="{$wa_url}wa-content/js/jquery-plugins/jquery.tmpl.min.js"></script>
 
+    <script src="{$wa_url}wa-apps/auth/js/authRouter.js?v={$wa->version(true)}"></script>
+
     {$wa->js(false)}
 </head>
 <body>
@@ -26,5 +28,10 @@
             </main>
         </div>
     </div>
+    <script>
+        authRouter.init({
+            $content: jQuery('.js-main-content')
+        });
+    </script>
 </body>
 </html>

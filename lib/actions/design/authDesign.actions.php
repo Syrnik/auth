@@ -12,11 +12,14 @@ class authDesignActions extends waDesignActions
         if (!$this->getRights('design')) {
             throw new waRightsException(_ws("Access denied"));
         }
+        $this->options['is_ajax'] = true;
     }
 
     public function defaultAction()
     {
-        $this->setLayout(new authDefaultLayout());
+        if (!waRequest::isXMLHttpRequest()) {
+            $this->setLayout(new authDefaultLayout());
+        }
         $this->getResponse()->setTitle(_ws('Design'));
 
         parent::defaultAction();

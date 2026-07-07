@@ -36,6 +36,7 @@
             } else if (data.status === 'error') {
                 errorEl.textContent = data.error || 'Ошибка.';
                 errorEl.style.display = '';
+                resetCaptcha(form);
             } else if (data.status === 'step') {
                 var stepHtml = data.html || '';
                 if (stepHtml) {
@@ -50,6 +51,17 @@
             errorEl.textContent = 'Ошибка соединения. Попробуйте ещё раз.';
             errorEl.style.display = '';
         });
+    }
+
+    /**
+     * reCAPTCHA tokens are single-use: after any failed submit the widget
+     * still shows solved but its token is already spent, so a retry without
+     * resetting fails server-side with invalid-input-response.
+     */
+    function resetCaptcha(form) {
+        if (window.grecaptcha && form.querySelector('.g-recaptcha')) {
+            window.grecaptcha.reset();
+        }
     }
 
     function createErrorEl(form) {

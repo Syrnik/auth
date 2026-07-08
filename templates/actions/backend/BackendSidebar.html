@@ -1,23 +1,82 @@
 <div class="sidebar flexbox width-adaptive-wider hide-scrollbar mobile-friendly b-app-sidebar">
 
+    <div class="sidebar-header custom-p-8">
+        <div class="dropdown width-100">
+            <a href="javascript:void(0)" class="dropdown-toggle box flexbox middle space-8 custom-px-8 custom-py-8">
+                <i class="fas fa-globe"></i>
+                <span class="flexbox-grow custom-ellipsis">{$current_domain|escape}</span>
+                <i class="fas fa-caret-down"></i>
+            </a>
+            <div class="dropdown-body width-100">
+                <ul class="menu">
+                    {foreach $domains as $domain}
+                        {* A real navigation, not js-router: the section list below and this
+                           dropdown's own label are domain-specific, and the sidebar itself
+                           is never re-fetched by js-router (it only swaps the content area),
+                           so an AJAX-only domain switch would leave both stale. *}
+                        <li class="rounded{if $domain == $current_domain} selected{/if}">
+                            <a href="{$wa_app_url}settings/{$domain|escape:'url'}/{if $section}{$section|escape:'url'}/{/if}">
+                                <span>{$domain|escape}</span>
+                                {if !$domains_enabled[$domain]}
+                                    <span class="hint custom-ml-4">[`off`]</span>
+                                {/if}
+                            </a>
+                        </li>
+                    {foreachelse}
+                        <li class="rounded">
+                            <span class="hint">[`No sites use this app`]</span>
+                        </li>
+                    {/foreach}
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <div class="sidebar-body">
         <div class="box custom-py-0">
             <ul class="menu">
-                {foreach $domains as $domain}
-                    <li class="rounded{if $current_domain == $domain} selected{/if}">
-                        <a class="js-router" href="{$wa_app_url}settings/?domain={$domain|escape:'url'}">
-                            <i class="fas fa-globe"></i>
-                            <span>{$domain|escape}</span>
-                            {if !$domains_enabled[$domain]}
-                                <span class="hint custom-ml-4">[`off`]</span>
-                            {/if}
-                        </a>
-                    </li>
-                {foreachelse}
-                    <li class="rounded">
-                        <span class="hint">[`No sites use this app`]</span>
-                    </li>
-                {/foreach}
+                <li class="rounded{if $section == ''} selected{/if}">
+                    <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/">
+                        <i class="fas fa-gauge"></i>
+                        <span>[`Dashboard`]</span>
+                    </a>
+                </li>
+                <li class="rounded{if $section == 'login'} selected{/if}">
+                    <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/login/">
+                        <i class="fas fa-right-to-bracket"></i>
+                        <span>[`Authorization`]</span>
+                    </a>
+                </li>
+                <li class="rounded{if $section == 'signup'} selected{/if}">
+                    <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/signup/">
+                        <i class="fas fa-user-plus"></i>
+                        <span>[`Registration`]</span>
+                    </a>
+                </li>
+                <li class="rounded{if $section == 'recovery'} selected{/if}">
+                    <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/recovery/">
+                        <i class="fas fa-key"></i>
+                        <span>[`Password recovery`]</span>
+                    </a>
+                </li>
+                <li class="rounded{if $section == 'captcha'} selected{/if}">
+                    <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/captcha/">
+                        <i class="fas fa-robot"></i>
+                        <span>[`Captcha`]</span>
+                    </a>
+                </li>
+                <li class="rounded{if $section == 'guards'} selected{/if}">
+                    <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/guards/">
+                        <i class="fas fa-shield-halved"></i>
+                        <span>[`Protection`]</span>
+                    </a>
+                </li>
+                <li class="rounded{if $section == 'challenges'} selected{/if}">
+                    <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/challenges/">
+                        <i class="fas fa-mobile-screen-button"></i>
+                        <span>[`Two-factor authentication`]</span>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
@@ -25,13 +84,13 @@
     <div class="sidebar-footer shadowed">
         <div class="box custom-py-0">
             <ul class="menu">
-                <li class="rounded{if $action == 'plugins'} selected{/if}">
+                <li class="rounded{if $module == 'plugins'} selected{/if}">
                     <a class="js-router" href="{$wa_app_url}plugins/">
                         <i class="fas fa-plug"></i>
                         <span>[`Plugins`]</span>
                     </a>
                 </li>
-                <li class="rounded{if $action == 'design' || $action == 'themes'} selected{/if}">
+                <li class="rounded{if $module == 'design'} selected{/if}">
                     <a class="js-router" href="{$wa_app_url}design/#/design/themes/">
                         <i class="fas fa-palette"></i>
                         <span>[s`Design`]</span>
@@ -46,5 +105,6 @@
 <script>
 (function($) {
     $('.b-app-sidebar').waShowSidebar();
+    $('.b-app-sidebar .dropdown').waDropdown({ hover: false });
 })(jQuery);
 </script>

@@ -27,6 +27,21 @@ var authRouter = (function ($) {
             load(this.href);
         });
 
+        // Forms marked js-ajax-save (the per-domain settings screens) post via
+        // ajax and swap the response fragment in, same as navigation, instead
+        // of a full-page redirect back to the same section.
+        $(document).on('submit', 'form.js-ajax-save', function (event) {
+            event.preventDefault();
+            if (xhr) {
+                xhr.abort();
+            }
+            var $form = $(this);
+            xhr = $.post($form.attr('action') || (location.pathname + location.search), $form.serialize(), function (html) {
+                xhr = false;
+                setContent(html, true);
+            });
+        });
+
         window.addEventListener('popstate', function (event) {
             if (event.state && event.state.content_uri) {
                 load(event.state.content_uri, true);
@@ -74,10 +89,12 @@ var authRouter = (function ($) {
         });
     }
 
-    function setContent(html) {
+    function setContent(html, keep_scroll) {
         current_pathname = location.pathname;
         $content.html(html);
-        window.scrollTo(0, 0);
+        if (!keep_scroll) {
+            window.scrollTo(0, 0);
+        }
         highlightSidebar();
 
         if ($content.find('.js-design-container').length) {

@@ -1,6 +1,6 @@
-{* Settings controls of an app plugin (guard block, single auth plugin block,
-   or one named instance of a multi_instance plugin). $prefix is the POST
-   name prefix, e.g. plugin_settings[oidc][gitlab] *}
+{* Settings controls of an app plugin (single auth plugin block, or one named
+   instance of a multi_instance plugin). $prefix is the POST name prefix,
+   e.g. plugin_settings[oidc][gitlab] *}
 {function name=plugin_controls controls=[] prefix=''}
     {if $controls}
         <div class="fields">
@@ -42,15 +42,14 @@
     {else}
 
         <div class="flexbox middle wrap space-16 custom-mb-32">
-            <h1 class="custom-mb-0">{$domain|escape}</h1>
+            <h1 class="custom-mb-0">{$domain|escape} &mdash; [`Authorization`]</h1>
             <p class="hint custom-mb-0">[`Enable at least one login method, otherwise this site has no login or registration.`]</p>
         </div>
 
-        <form method="post" action="" id="auth-settings-form" class="fields">
+        <form method="post" action="" id="auth-settings-form" class="fields js-ajax-save">
             <input type="hidden" name="domain" value="{$domain|escape}">
             {$wa->csrf()}
 
-            <h6 class="heading custom-mt-0">[`Login methods`]</h6>
             <div class="field-group">
                 <div class="field">
                     <div class="value">
@@ -145,144 +144,6 @@
                     </div>
                 </div>
             </div>
-
-            <h6 class="heading">[`Registration`]</h6>
-            <div class="field-group">
-                <div class="field">
-                    <div class="value">
-                        <label>
-                            <input type="checkbox" name="signup_enabled" value="1"
-                                {if $config.signup_enabled}checked{/if}>
-                            [`Allow registration`]
-                        </label>
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="value">
-                        <label>
-                            <input type="checkbox" name="signup_confirm" value="1"
-                                {if $config.signup_confirm}checked{/if}>
-                            [`Require email confirmation`]
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <h6 class="heading">[`Other`]</h6>
-            <div class="field-group">
-                <div class="field">
-                    <div class="value">
-                        <label>
-                            <input type="checkbox" name="recovery_enabled" value="1"
-                                {if $config.recovery_enabled}checked{/if}>
-                            [`Allow password recovery`]
-                        </label>
-                    </div>
-                </div>
-                <div class="field">
-                    <div class="value">
-                        <label>
-                            <input type="checkbox" name="rememberme" value="1"
-                                {if $config.rememberme}checked{/if}>
-                            [`Show "Remember me" checkbox`]
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            {if $available_captchas}
-                <h6 class="heading">[`Captcha`]</h6>
-                <div class="field-group">
-                    <div class="field">
-                        <div class="name">[`Captcha plugin`]</div>
-                        <div class="value">
-                            <div class="wa-select">
-                                <select name="captcha_plugin">
-                                    <option value="" {if !$config.captcha_plugin}selected{/if}>[`(none)`]</option>
-                                    {foreach $available_captchas as $id => $c}
-                                        <option value="{$id|escape}"
-                                            {if $config.captcha_plugin == $id}selected{/if}>
-                                            {$c.name|escape}
-                                        </option>
-                                    {/foreach}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    {foreach $available_captchas as $id => $c}
-                        {if $c.controls}
-                            <div class="field">
-                                <div class="name">{$c.name|escape}</div>
-                                <div class="value">
-                                    {plugin_controls controls=$c.controls prefix="plugin_settings[{$id}]"}
-                                </div>
-                            </div>
-                        {/if}
-                    {/foreach}
-                </div>
-            {else}
-                <input type="hidden" name="captcha_plugin" value="">
-            {/if}
-
-            {if $available_guards}
-                <h6 class="heading">[`Signup and login protection`]</h6>
-                <div class="field-group">
-                    <div class="field">
-                        <div class="value">
-                            <ul>
-                            {foreach $available_guards as $id => $g}
-                                <li>
-                                    <label>
-                                        <input type="checkbox" name="guard_plugins[]" value="{$id|escape}"
-                                            {if in_array($id, $config.guard_plugins)}checked{/if}>
-                                        {$g.name|escape}
-                                    </label>
-                                    {if $g.controls}
-                                        <div class="custom-mt-8 custom-ml-24">
-                                            {foreach $g.controls as $field_id => $c}
-                                                <div class="custom-mb-8">
-                                                    {if ($c.type|default:'text') == 'textarea'}
-                                                        <div class="hint custom-mb-4">{$c.label|escape}</div>
-                                                        <textarea name="plugin_settings[{$id|escape}][{$field_id|escape}]" rows="6" style="width:380px;">{$c.value|escape}</textarea>
-                                                    {else}
-                                                        <span class="hint custom-mr-8" style="min-width:140px;display:inline-block;">{$c.label|escape}</span>
-                                                        <input type="text" name="plugin_settings[{$id|escape}][{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
-                                                    {/if}
-                                                    {if !empty($c.hint)}<div class="hint custom-mt-4">{$c.hint|escape}</div>{/if}
-                                                </div>
-                                            {/foreach}
-                                        </div>
-                                    {/if}
-                                </li>
-                            {/foreach}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            {/if}
-
-            {if $available_challenges}
-                <h6 class="heading">[`Two-factor authentication`]</h6>
-                <div class="field-group">
-                    {foreach $available_challenges as $id => $c}
-                        <div class="field">
-                            <div class="value">
-                                <label>
-                                    <input type="checkbox" name="challenge_methods[]" value="{$id|escape}"
-                                        {if in_array($id, $config.challenge_methods)}checked{/if}>
-                                    {$c.name|escape}
-                                </label>
-                                {if $c.controls}
-                                    <div class="custom-mt-8 custom-ml-24">
-                                        {plugin_controls controls=$c.controls prefix="plugin_settings[{$c.plugin_id}]"}
-                                    </div>
-                                {/if}
-                            </div>
-                        </div>
-                    {/foreach}
-                </div>
-            {/if}
-
         </form>
 
         <script>
@@ -332,7 +193,7 @@
     <div class="article">
         <div class="article-body custom-py-0">
             <input type="submit" form="auth-settings-form" class="button" value="[`Save`]">
-            {if $wa->get('saved')}
+            {if $saved}
                 <span id="auth-saved-indicator" class="custom-ml-16">
                     <i class="fas fa-check-circle text-green custom-mr-4"></i>[`Saved`]
                 </span>

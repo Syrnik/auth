@@ -15,10 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Two-factor authentication settings** — `challenge_methods` (2FA plugins) can now be enabled per domain from the backend settings screen instead of hand-editing `config.php`
 - **Captcha widget** wired into the login and registration forms, with per-domain settings (site key/secret, etc.) for captcha plugins on the backend settings screen
 - Clean backend routing — `/settings/` and `/plugins/` replace the old `?module=backend&action=...` query URLs
+- Last-visited domain remembered in an `auth_app_domain` cookie, so the bare app entry point returns to it instead of always defaulting to the first domain
 - **Backend Plugins page** rebuilt on the standard Webasyst `waPluginsActions` screen: installed plugins get a real settings UI (`waPlugin::getSettings()`/`saveSettings()`) instead of a static read-only list
 
 ### Changed
 
+- **Backend settings screen split into per-domain sections** — Authorization, Registration, Password recovery, Captcha, Protection, Two-factor authentication each get their own screen and URL (`settings/<domain>/<section>/`) instead of one long form; sidebar now shows a domain switcher on top and a static per-domain section list below it
+- **Backend settings save via ajax** — saving a section swaps the response in place (with a "Saved" indicator) instead of a full-page redirect with `?saved=1`, matching the sidebar's existing ajax navigation
+- Backend settings save now **merges into the domain's stored config** instead of overwriting it wholesale, so saving one section (e.g. Registration) can no longer clobber another section's settings — `plugin_settings` in particular is merged per plugin id, since Login/Captcha/Guards/Challenges all write into it
 - **WAID login** now goes through the auth app's own login pipeline instead of the framework's default redirect
 - Built-in form methods (`email`, `login`, `phone`) are now derived from the method classes themselves rather than a separate, duplicated label list
 - Login form templates decoupled per method, with a `<method>.login_form.html` partial for each

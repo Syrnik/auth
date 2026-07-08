@@ -12,22 +12,19 @@ class authBackendSidebarAction extends waViewAction
             $enabled[$d] = authConfig::isEnabled($d);
         }
 
-        // The settings screen falls back to the first site when none is
-        // requested, so mirror that here to keep the right item highlighted.
-        $current = waRequest::get('domain', '', 'string');
-        if (!$current && $domains) {
-            $current = $domains[0];
+        // Every per-domain page supplies 'domain' via routing.backend.php;
+        // fall back to the first domain only for pages outside that scheme.
+        $current_domain = waRequest::param('domain', '', 'string');
+        if (!$current_domain && $domains) {
+            $current_domain = $domains[0];
         }
-
-        // The 'plugins/' route dispatches straight to module 'plugins' with
-        // an empty action, so highlighting must key off module, not action.
-        $module = waRequest::param('module', 'settings', 'string');
 
         $this->view->assign([
             'domains'         => $domains,
             'domains_enabled' => $enabled,
-            'current_domain'  => $current,
-            'action'          => $module === 'plugins' ? 'plugins' : waRequest::param('action', 'settings', 'string'),
+            'current_domain'  => $current_domain,
+            'section'         => waRequest::param('action', '', 'string'),
+            'module'          => waRequest::param('module', 'backend', 'string'),
         ]);
     }
 }

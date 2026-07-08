@@ -1,0 +1,21 @@
+<div class="article">
+    <div class="article-body">
+
+    {if $no_domains}
+
+        <div class="flexbox middle wrap space-16 custom-mb-32">
+            <h1 class="custom-mb-0">[`Settings`]</h1>
+        </div>
+        <p class="hint">[`This app is not mounted on any site yet. Add a route to the Auth app in Site → Settings, then configure authentication for that site here.`]</p>
+
+    {else}
+
+        <div class="flexbox middle wrap space-16 custom-mb-32">
+            <h1 class="custom-mb-0">{$domain|escape}</h1>
+        </div>
+        <p class="hint">[`Dashboard content is coming in a later update.`]</p>
+
+    {/if}
+
+    </div>
+</div>

@@ -1,8 +1,14 @@
 <?php
 return [
     // <backend_url>/auth/<path> => 'module/action' (пустой action = дефолтный action модуля)
-    'settings/?' => 'backend/settings',
-    'plugins/?'  => 'plugins/',
-    'design/?'   => 'design/',
-    ''           => 'backend/',
+    'settings/<domain:[^/]+>/?'            => 'backend/dashboard',
+    'settings/<domain:[^/]+>/login/?'      => 'backend/login',
+    'settings/<domain:[^/]+>/signup/?'     => 'backend/signup',
+    'settings/<domain:[^/]+>/recovery/?'   => 'backend/recovery',
+    'settings/<domain:[^/]+>/captcha/?'    => 'backend/captcha',
+    'settings/<domain:[^/]+>/guards/?'     => 'backend/guards',
+    'settings/<domain:[^/]+>/challenges/?' => 'backend/challenges',
+    'plugins/?'                      => 'plugins/',
+    'design/?'                       => 'design/',
+    ''                                => 'backend/',
 ];

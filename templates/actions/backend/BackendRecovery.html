@@ -1,0 +1,67 @@
+<div class="article">
+    <div class="article-body">
+
+    {if $no_domains}
+
+        <div class="flexbox middle wrap space-16 custom-mb-32">
+            <h1 class="custom-mb-0">[`Settings`]</h1>
+        </div>
+        <p class="hint">[`This app is not mounted on any site yet. Add a route to the Auth app in Site → Settings, then configure authentication for that site here.`]</p>
+
+    {else}
+
+        <div class="flexbox middle wrap space-16 custom-mb-32">
+            <h1 class="custom-mb-0">{$domain|escape} &mdash; [`Password recovery`]</h1>
+        </div>
+
+        <form method="post" action="" id="auth-settings-form" class="fields js-ajax-save">
+            <input type="hidden" name="domain" value="{$domain|escape}">
+            {$wa->csrf()}
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="value">
+                        <label>
+                            <input type="checkbox" name="recovery_enabled" value="1"
+                                {if $config.recovery_enabled}checked{/if}>
+                            [`Allow password recovery`]
+                        </label>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="value">
+                        <label>
+                            <input type="checkbox" name="rememberme" value="1"
+                                {if $config.rememberme}checked{/if}>
+                            [`Show "Remember me" checkbox`]
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    {/if}
+
+    </div>
+</div>
+
+{if !$no_domains}
+<div class="bottombar sticky box flexbox middle custom-px-48 b-not-blank-bottombar">
+    <div class="article">
+        <div class="article-body custom-py-0">
+            <input type="submit" form="auth-settings-form" class="button" value="[`Save`]">
+            {if $saved}
+                <span id="auth-saved-indicator" class="custom-ml-16">
+                    <i class="fas fa-check-circle text-green custom-mr-4"></i>[`Saved`]
+                </span>
+                <script>
+                    setTimeout(function() {
+                        var el = document.getElementById('auth-saved-indicator');
+                        if (el) { el.style.transition = 'opacity 1s'; el.style.opacity = '0'; }
+                    }, 2000);
+                </script>
+            {/if}
+        </div>
+    </div>
+</div>
+{/if}

@@ -1,0 +1,98 @@
+{* Settings controls of a challenge (2FA) plugin. $prefix is the POST name prefix, e.g. plugin_settings[totp] *}
+{function name=plugin_controls controls=[] prefix=''}
+    {if $controls}
+        <div class="fields">
+        {foreach $controls as $field_id => $c}
+            <div class="field">
+                <div class="name">{$c.label|escape}</div>
+                <div class="value">
+                {if ($c.type|default:'text') == 'textarea'}
+                    <textarea name="{$prefix}[{$field_id|escape}]" rows="6" style="width:380px;">{$c.value|escape}</textarea>
+                {elseif ($c.type|default:'text') == 'select'}
+                    <div class="wa-select">
+                        <select name="{$prefix}[{$field_id|escape}]">
+                            {foreach $c.options as $ovalue => $olabel}
+                                <option value="{$ovalue|escape}" {if $c.value == $ovalue}selected{/if}>{$olabel|escape}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                {else}
+                    <input type="text" name="{$prefix}[{$field_id|escape}]" value="{$c.value|escape}" style="width:280px;">
+                {/if}
+                {if !empty($c.hint)}<div class="hint custom-mt-4">{$c.hint|escape}</div>{/if}
+                </div>
+            </div>
+        {/foreach}
+        </div>
+    {/if}
+{/function}
+
+<div class="article">
+    <div class="article-body">
+
+    {if $no_domains}
+
+        <div class="flexbox middle wrap space-16 custom-mb-32">
+            <h1 class="custom-mb-0">[`Settings`]</h1>
+        </div>
+        <p class="hint">[`This app is not mounted on any site yet. Add a route to the Auth app in Site → Settings, then configure authentication for that site here.`]</p>
+
+    {else}
+
+        <div class="flexbox middle wrap space-16 custom-mb-32">
+            <h1 class="custom-mb-0">{$domain|escape} &mdash; [`Two-factor authentication`]</h1>
+        </div>
+
+        <form method="post" action="" id="auth-settings-form" class="fields js-ajax-save">
+            <input type="hidden" name="domain" value="{$domain|escape}">
+            {$wa->csrf()}
+
+            {if $available_challenges}
+                <div class="field-group">
+                    {foreach $available_challenges as $id => $c}
+                        <div class="field">
+                            <div class="value">
+                                <label>
+                                    <input type="checkbox" name="challenge_methods[]" value="{$id|escape}"
+                                        {if in_array($id, $config.challenge_methods)}checked{/if}>
+                                    {$c.name|escape}
+                                </label>
+                                {if $c.controls}
+                                    <div class="custom-mt-8 custom-ml-24">
+                                        {plugin_controls controls=$c.controls prefix="plugin_settings[{$c.plugin_id}]"}
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+                    {/foreach}
+                </div>
+            {else}
+                <p class="hint">[`No two-factor authentication plugins are installed.`]</p>
+            {/if}
+        </form>
+
+    {/if}
+
+    </div>
+</div>
+
+{if !$no_domains}
+<div class="bottombar sticky box flexbox middle custom-px-48 b-not-blank-bottombar">
+    <div class="article">
+        <div class="article-body custom-py-0">
+            <input type="submit" form="auth-settings-form" class="button" value="[`Save`]">
+            {if $saved}
+                <span id="auth-saved-indicator" class="custom-ml-16">
+                    <i class="fas fa-check-circle text-green custom-mr-4"></i>[`Saved`]
+                </span>
+                <script>
+                    setTimeout(function() {
+                        var el = document.getElementById('auth-saved-indicator');
+                        if (el) { el.style.transition = 'opacity 1s'; el.style.opacity = '0'; }
+                    }, 2000);
+                </script>
+            {/if}
+        </div>
+    </div>
+</div>
+{/if}

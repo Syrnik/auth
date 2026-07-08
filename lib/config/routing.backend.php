@@ -10,5 +10,10 @@ return [
     'settings/<domain:[^/]+>/challenges/?' => 'backend/challenges',
     'plugins/?'                      => 'plugins/',
     'design/?'                       => 'design/',
-    ''                                => 'backend/',
+    // Not a plain '': waAppConfig::getRoutingRules() merges this file with
+    // routing.php whenever env is backend, and routing.php has its own ''
+    // key (frontend app root) — an identical string key would let that
+    // array_merge() silently overwrite this rule. '/?' matches the same
+    // empty remainder without colliding with it.
+    '/?'                              => 'backend/',
 ];

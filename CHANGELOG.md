@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Bare backend entry (`webasyst/auth/` with no domain in the path) redirected to the frontend `my/` page instead of the backend dashboard — `routing.backend.php` and `routing.php` both used the literal `''` array key for their own root rule, and `waAppConfig::getRoutingRules()` always merges `routing.php` on top of `routing.backend.php` in the backend environment, so the frontend rule silently won. `routing.backend.php`'s root rule is now `'/?'` — same effective pattern, no longer a colliding key
 - Backend settings page lost its layout after the post-save redirect
 - Signup guards are now checked before a contact is created, not after
 - Registration link hidden on the login page when signup is disabled

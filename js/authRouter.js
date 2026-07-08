@@ -71,6 +71,8 @@ var authRouter = (function ($) {
         if (typeof window.waDesignLoad === 'function') {
             window.waDesignLoad();
         }
+
+        updateTitle();
     }
 
     function load(url, is_popstate) {
@@ -96,6 +98,7 @@ var authRouter = (function ($) {
             window.scrollTo(0, 0);
         }
         highlightSidebar();
+        updateTitle();
 
         if ($content.find('.js-design-container').length) {
             // pushState navigation onto the design section changes
@@ -110,6 +113,16 @@ var authRouter = (function ($) {
             // Leaving the design section: drop the stale reference so a
             // later hashchange elsewhere can't call into torn-down markup.
             window.waDesignLoad = undefined;
+        }
+    }
+
+    // Every section's content starts with a <h1> (e.g. "syrnik.local — Authorization"),
+    // so the browser tab title can just mirror it instead of each template setting
+    // its own title text — one source of truth, and new sections get it for free.
+    function updateTitle() {
+        var title = $content.find('h1').first().text().trim();
+        if (title) {
+            $.wa.title.set(title);
         }
     }
 

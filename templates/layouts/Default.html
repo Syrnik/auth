@@ -30,6 +30,7 @@
         </div>
     </div>
     <script>
+        jQuery.wa.title.pattern = "%s — {$wa->accountName()|escape:'javascript'}";
         authRouter.init({
             $content: jQuery('.js-main-content')
         });

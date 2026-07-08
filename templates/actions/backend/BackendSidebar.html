@@ -1,12 +1,18 @@
 <div class="sidebar flexbox width-adaptive-wider hide-scrollbar mobile-friendly b-app-sidebar">
 
     <div class="sidebar-header custom-p-8">
-        <div class="dropdown width-100">
-            <a href="javascript:void(0)" class="dropdown-toggle box flexbox middle space-8 custom-px-8 custom-py-8">
-                <i class="fas fa-globe"></i>
-                <span class="flexbox-grow custom-ellipsis">{$current_domain|escape}</span>
-                <i class="fas fa-caret-down"></i>
-            </a>
+        {* Same brick/dropdown markup as APIExplorer's app switcher (AppList.vue):
+           a "brick"-styled toggle card instead of a plain link. *}
+        <div class="bricks dropdown">
+            <div class="brick selected full-width dropdown-toggle">
+                {if !$domains_enabled[$current_domain]}
+                    <span class="count">[`off`]</span>
+                {/if}
+                <div class="flexbox middle space-8">
+                    <i class="icon fas fa-globe"></i>
+                    <span>{$current_domain|escape}</span>
+                </div>
+            </div>
             <div class="dropdown-body width-100">
                 <ul class="menu">
                     {foreach $domains as $domain}
@@ -37,13 +43,13 @@
             <ul class="menu">
                 <li class="rounded{if $section == ''} selected{/if}">
                     <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/">
-                        <i class="fas fa-gauge"></i>
+                        <i class="fas fa-tachometer-alt"></i>
                         <span>[`Dashboard`]</span>
                     </a>
                 </li>
                 <li class="rounded{if $section == 'login'} selected{/if}">
                     <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/login/">
-                        <i class="fas fa-right-to-bracket"></i>
+                        <i class="fas fa-sign-in-alt"></i>
                         <span>[`Authorization`]</span>
                     </a>
                 </li>
@@ -67,13 +73,13 @@
                 </li>
                 <li class="rounded{if $section == 'guards'} selected{/if}">
                     <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/guards/">
-                        <i class="fas fa-shield-halved"></i>
+                        <i class="fas fa-shield-alt"></i>
                         <span>[`Protection`]</span>
                     </a>
                 </li>
                 <li class="rounded{if $section == 'challenges'} selected{/if}">
                     <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/challenges/">
-                        <i class="fas fa-mobile-screen-button"></i>
+                        <i class="fas fa-mobile-alt"></i>
                         <span>[`Two-factor authentication`]</span>
                     </a>
                 </li>

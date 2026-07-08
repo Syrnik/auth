@@ -1,0 +1,17 @@
+/* Domain switcher in the backend sidebar: the .bricks/.brick component
+   (same as APIExplorer's app switcher, see AppList.vue) assumes a wide
+   2-column grid, not a ~250px sidebar — stretch it to the full width and
+   line the dropdown body up with it instead of overflowing/narrowing. */
+.sidebar-header .bricks {
+    width: 100%;
+    display: block;
+}
+.sidebar-header .bricks .dropdown-body {
+    width: calc(100% - 2.5rem);
+    min-width: calc(100% - 2.5rem);
+    left: -1px;
+}
+.sidebar-header .brick .icon {
+    margin-bottom: 0;
+    font-size: 1.125rem;
+}

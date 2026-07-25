@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`login` auth method** — login/password against the `wa_contact.login` field
 - **Dynamic system OAuth adapters** — every framework-level adapter (VK, Google, Facebook, etc.) is now offered in settings automatically, with per-domain credential fields, instead of only Webasyst ID
 - License files (Webasyst EULA) and contribution guidelines (`AGENTS.md`)
+- Architecture decision records in `docs/adr/`, starting with the config boundaries of the user profile page (`my/`)
 - **Two-factor authentication settings** — `challenge_methods` (2FA plugins) can now be enabled per domain from the backend settings screen instead of hand-editing `config.php`
 - **Captcha widget** wired into the login and registration forms, with per-domain settings (site key/secret, etc.) for captcha plugins on the backend settings screen
 - Clean backend routing — `/settings/` and `/plugins/` replace the old `?module=backend&action=...` query URLs

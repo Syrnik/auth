@@ -1,5 +1,15 @@
 # AGENTS.md
 
+## Architecture Decisions
+
+Application-level decisions that constrain the code live in `docs/adr/`. Read the
+relevant record before changing the area it covers — these are the reasons behind
+non-obvious constraints, and they are not re-derivable from the code alone.
+
+- `001-profile-config-boundaries.md` — which config governs which block of the
+  user profile (`my/`): site's `personal_fields` vs auth's `login_methods` vs the
+  contact's actual linked accounts.
+
 ## Commit Messages
 
 All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.

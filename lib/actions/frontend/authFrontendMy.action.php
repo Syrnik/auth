@@ -74,11 +74,6 @@ class authFrontendMyAction extends waMyProfileAction
         return $this->fragment === null ? $html : $this->fragment;
     }
 
-    protected function getForm()
-    {
-        return authContactForm::fromForm(parent::getForm());
-    }
-
     // -------------------------------------------------------------------------
 
     /**

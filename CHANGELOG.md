@@ -47,6 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `login.html` template variables are assembled once in `authHelper::loginViewData()`, used by both the login form action and the OAuth callback error path
 - Backend settings form UI restructured with semantic field/value markup, `wa-checkbox`-styled checkboxes and `wa-select`-wrapped selects
 
+### Removed
+
+- **`authContactForm`** — the class existed to serve one whole-page profile form: `hasField()` let a template ask whether a field was there, `hasOheOfNameFields()` did the same for the three name fields, and `htmlAllExcept()` rendered everything the theme had not laid out by hand. With `my/` assembled from sections none of it has a caller — a section knows its own fields, and the theme gets a ready-made list of sections from the action and asks nothing. What was left, `fromForm()`, only copied a `waContactForm` into a subclass that no longer added anything to it, so the class went with the methods. A theme that still calls any of the three has kept a copy of the app's field logic and belongs on the section list instead
+
 ### Fixed
 
 - Bare backend entry (`webasyst/auth/` with no domain in the path) redirected to the frontend `my/` page instead of the backend dashboard — `routing.backend.php` and `routing.php` both used the literal `''` array key for their own root rule, and `waAppConfig::getRoutingRules()` always merges `routing.php` on top of `routing.backend.php` in the backend environment, so the frontend rule silently won. `routing.backend.php`'s root rule is now `'/?'` — same effective pattern, no longer a colliding key

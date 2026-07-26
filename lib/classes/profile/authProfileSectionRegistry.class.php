@@ -14,9 +14,12 @@
  * accounts) and only the section knows which of them applies to it — see
  * docs/adr/001-profile-config-boundaries.md.
  */
+
+declare(strict_types=1);
+
 class authProfileSectionRegistry
 {
-    const GROUP_PROFILE       = 'profile';
+    const GROUP_PROFILE = 'profile';
     const GROUP_AUTHORIZATION = 'authorization';
 
     /**
@@ -28,27 +31,27 @@ class authProfileSectionRegistry
     public static function getMap(): array
     {
         return [
-            'photo' => [
+            'photo'           => [
                 'class'  => 'authProfileSectionPhoto',
                 'group'  => self::GROUP_PROFILE,
                 'fields' => ['photo'],
             ],
-            'name' => [
+            'name'            => [
                 'class'  => 'authProfileSectionName',
                 'group'  => self::GROUP_PROFILE,
                 'fields' => ['firstname', 'middlename', 'lastname'],
             ],
-            'email' => [
+            'email'           => [
                 'class'  => 'authProfileSectionEmail',
                 'group'  => self::GROUP_PROFILE,
                 'fields' => ['email'],
             ],
-            'phone' => [
+            'phone'           => [
                 'class'  => 'authProfileSectionPhone',
                 'group'  => self::GROUP_PROFILE,
                 'fields' => ['phone'],
             ],
-            'address' => [
+            'address'         => [
                 'class'  => 'authProfileSectionAddress',
                 'group'  => self::GROUP_PROFILE,
                 'fields' => ['address'],
@@ -64,17 +67,17 @@ class authProfileSectionRegistry
             // 'email' / 'login_email' can be available at a time, so the page
             // never shows a field twice. Being credentials, these sit under
             // "Sign-in and security" and never consult personal_fields.
-            'login_email' => [
+            'login_email'     => [
                 'class'  => 'authProfileSectionLoginEmail',
                 'group'  => self::GROUP_AUTHORIZATION,
                 'fields' => ['email'],
             ],
-            'login_phone' => [
+            'login_phone'     => [
                 'class'  => 'authProfileSectionLoginPhone',
                 'group'  => self::GROUP_AUTHORIZATION,
                 'fields' => ['phone'],
             ],
-            'password' => [
+            'password'        => [
                 'class'  => 'authProfileSectionPassword',
                 'group'  => self::GROUP_AUTHORIZATION,
                 'fields' => ['password', 'password_confirm'],
@@ -84,7 +87,7 @@ class authProfileSectionRegistry
                 'group'  => self::GROUP_AUTHORIZATION,
                 'fields' => [],
             ],
-            'delete_account' => [
+            'delete_account'  => [
                 'class'  => 'authProfileSectionDeleteAccount',
                 'group'  => self::GROUP_AUTHORIZATION,
                 'fields' => [],
@@ -124,7 +127,7 @@ class authProfileSectionRegistry
      * A single section by id, or null when it is unknown, not implemented yet
      * or not available for this domain and contact.
      */
-    public static function getSection(string $section_id, waContact $contact = null): ?authProfileSection
+    public static function getSection(string $section_id, ?waContact $contact = null): ?authProfileSection
     {
         $map = self::getMap();
         if (!isset($map[$section_id])) {
@@ -145,7 +148,7 @@ class authProfileSectionRegistry
      * This is the way back: it is looked up rather than mapped by hand, so
      * adding another confirmable section does not mean editing the flow too.
      */
-    public static function getConfirmable(string $field_id, waContact $contact = null): ?authProfileSectionConfirmable
+    public static function getConfirmable(string $field_id, ?waContact $contact = null): ?authProfileSectionConfirmable
     {
         foreach (self::getSections($contact) as $section) {
             if ($section instanceof authProfileSectionConfirmable
@@ -163,7 +166,7 @@ class authProfileSectionRegistry
      *
      * @return authProfileSection[]
      */
-    public static function getSections(waContact $contact = null): array
+    public static function getSections(?waContact $contact = null): array
     {
         $result = [];
         foreach (self::getMap() as $section_id => $declaration) {
@@ -184,9 +187,9 @@ class authProfileSectionRegistry
      *
      * @return array group_id => ['id', 'name', 'sections' => section_id => [...]]
      */
-    public static function getGroups(waContact $contact = null): array
+    public static function getGroups(?waContact $contact = null): array
     {
-        $names  = self::getGroupNames();
+        $names = self::getGroupNames();
         $groups = [];
 
         foreach (self::getSections($contact) as $section_id => $section) {
@@ -228,7 +231,7 @@ class authProfileSectionRegistry
      * Sections land in the codebase stage by stage, so a class named in the map
      * may legitimately not exist yet — an unknown class is a gap, not an error.
      */
-    private static function instantiate(string $class, waContact $contact = null): ?authProfileSection
+    private static function instantiate(string $class, ?waContact $contact = null): ?authProfileSection
     {
         if (!class_exists($class)) {
             return null;

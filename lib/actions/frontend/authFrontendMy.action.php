@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 class authFrontendMyAction extends waMyProfileAction
 {
     /**
@@ -8,7 +10,7 @@ class authFrontendMyAction extends waMyProfileAction
      *
      * @var string|null
      */
-    private $fragment = null;
+    private ?string $fragment = null;
 
     public function execute()
     {

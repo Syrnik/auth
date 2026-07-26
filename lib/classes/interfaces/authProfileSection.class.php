@@ -22,13 +22,16 @@
  * part of the contract from the start because adding it later would have to
  * touch every implementation at once.
  */
+
+declare(strict_types=1);
+
 interface authProfileSection
 {
     /** view mode: the section renders its current value */
-    const MODE_VIEW = 'view';
+    public const MODE_VIEW = 'view';
 
     /** edit mode: the section renders its form */
-    const MODE_EDIT = 'edit';
+    public const MODE_EDIT = 'edit';
 
     /**
      * Section id, unique within the registry: 'name', 'address', 'password'.

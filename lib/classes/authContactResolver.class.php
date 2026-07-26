@@ -8,6 +8,13 @@
 class authContactResolver
 {
     /**
+     * Marks a password hash as unusable, see setUnusablePassword(). No hash
+     * function produces a value starting with it, so the marker cannot collide
+     * with a real password.
+     */
+    const UNUSABLE_PASSWORD_PREFIX = '!';
+
+    /**
      * Find an existing contact for this identity, or run signup guards and
      * create a new one. Guards run against the raw OAuth data BEFORE any
      * contact is created, same as the plain registration form — a blocked
@@ -35,12 +42,22 @@ class authContactResolver
     }
 
     /**
+     * The wa_contact_data field an OAuth identity is stored under. One place,
+     * because both ends of the link need it: this class writes it on login, and
+     * the profile's linked-accounts section reads it back to show and unlink.
+     */
+    public static function getSourceField(string $source): string
+    {
+        return $source . '_id';
+    }
+
+    /**
      * Look up an existing contact by source id or linked email. Returns null
      * if no match — the caller should treat this as a new signup.
      */
     public static function find(array $data): ?int
     {
-        $field              = $data['source'] . '_id';
+        $field              = self::getSourceField($data['source']);
         $contact_data_model = new waContactDataModel();
 
         $row = $contact_data_model->getByField([
@@ -106,7 +123,7 @@ class authContactResolver
      */
     public static function create(array $data): int
     {
-        $field      = $data['source'] . '_id';
+        $field      = self::getSourceField($data['source']);
         $contact    = new waContact();
         $save_data  = $data;
         $save_data[$field]             = $data['source_id'];
@@ -117,13 +134,50 @@ class authContactResolver
             $save_data['email_verified'], $save_data['verified_email']
         );
         // Unusable password so the account cannot be brute-forced via password form.
-        $contact->setPassword(
-            substr(waContact::getPasswordHash(uniqid((string) time(), true)), 0, -1),
-            true
-        );
+        self::setUnusablePassword($contact);
         $contact->save($save_data);
 
         return (int) $contact->getId();
+    }
+
+    /**
+     * Give a contact a password it can never sign in with, while keeping the
+     * hash non-empty: the framework and this app both read `password != ''` as
+     * "this is a login account" (waAuth, authEmailMethod::findByEmail), so an
+     * empty hash would change more than intended.
+     */
+    public static function setUnusablePassword(waContact $contact): void
+    {
+        $contact->setPassword(self::UNUSABLE_PASSWORD_PREFIX . uniqid((string) time(), true), true);
+    }
+
+    /**
+     * Whether this contact could actually sign in with a password.
+     *
+     * `password != ''` is not the same question: an account created from OAuth
+     * data carries the placeholder above, which every such check reads as a
+     * password the user does not have and has no way to use. Counting it as a
+     * login factor is exactly how someone gets to unlink their only real way in
+     * — see decision 3 of docs/adr/001-profile-config-boundaries.md.
+     *
+     * Two placeholder shapes are recognised: the current prefixed one, and the
+     * earlier "a real hash with its last character cut off". The latter is
+     * detected by width — waContact::getPasswordHash() is fixed-width (md5 by
+     * default, whatever wa_password_hash() returns otherwise), so a hash one
+     * character short is never a hash this installation produced.
+     */
+    public static function hasUsablePassword(waContact $contact): bool
+    {
+        static $hash_length = null;
+        if ($hash_length === null) {
+            $hash_length = strlen(waContact::getPasswordHash('x'));
+        }
+
+        $hash = (string) $contact->get('password');
+
+        return $hash !== ''
+            && strncmp($hash, self::UNUSABLE_PASSWORD_PREFIX, strlen(self::UNUSABLE_PASSWORD_PREFIX)) !== 0
+            && strlen($hash) !== $hash_length - 1;
     }
 
     private static function extractEmail(array $data): string

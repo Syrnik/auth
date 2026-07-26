@@ -1,0 +1,49 @@
+{*
+    Section partial: linked accounts, edit mode.
+
+    There is no form here — the section has no waContactForm, its data is not a
+    contact field. Linking is an OAuth round trip started by a link; unlinking is
+    a post to the per-section endpoint of stage 3, my/save/{section}/.
+
+    The unlink button is absent, not merely disabled, when the link is the last
+    way in, and the reason is spelled out next to it: decision 3 of ADR 001.
+*}
+<div class="auth-profile-section{if $errors} auth-profile-section-error{/if}" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h3>{$section->getName()|escape}</h3>
+    </div>
+
+    {foreach $errors as $field_errors}
+        {foreach $field_errors as $message}
+            {if $message}<div class="auth-error">{$message|escape}</div>{/if}
+        {/foreach}
+    {/foreach}
+
+    <ul class="auth-profile-accounts">
+        {foreach $accounts as $account}
+            <li class="auth-profile-account{if !$account.is_linked} auth-profile-account-free{/if}" data-account="{$account.id|escape}">
+                <span class="auth-profile-account-name">{$account.name|escape}</span>
+
+                {if $account.is_linked}
+                    <span class="auth-profile-account-value">{$account.value|escape}</span>
+
+                    {if $account.removal_lock}
+                        <span class="auth-profile-account-locked">{$account.removal_lock|escape}</span>
+                    {else}
+                        <form method="post" action="{$wa_app_url}my/save/{$section->getId()|escape}/" class="auth-profile-account-form">
+                            {$wa->csrf()}
+                            <input type="hidden" name="unlink" value="{$account.id|escape}">
+                            <button type="submit" class="auth-profile-account-unlink">{_w('Unlink')|escape}</button>
+                        </form>
+                    {/if}
+                {elseif $account.link_url}
+                    <a href="{$account.link_url|escape}" class="auth-profile-account-link">{_w('Link')|escape}</a>
+                {else}
+                    <span class="auth-profile-account-hint">{_w('Not configured')|escape}</span>
+                {/if}
+            </li>
+        {/foreach}
+    </ul>
+
+    <a href="#" class="auth-profile-section-cancel" data-section-cancel="{$section->getId()|escape}">{_w('Done')|escape}</a>
+</div>

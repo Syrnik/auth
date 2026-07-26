@@ -124,6 +124,41 @@ class authHelper
         return $result;
     }
 
+    /**
+     * Enabled OAuth methods of the current domain, id => method object.
+     *
+     * Unlike getOAuthProviders() this keeps methods that cannot produce an auth
+     * URL right now (missing credentials): the profile still has to show an
+     * account already linked through such a provider, and still has to count it
+     * as a login factor — an admin clearing credentials for a minute must not
+     * turn into a visitor unlinking their last way in.
+     */
+    public static function getOAuthMethods(): array
+    {
+        $result = [];
+        foreach (authPluginManager::getEnabled() as $id => $method) {
+            if (self::methodIsOAuth($method)) {
+                $result[$id] = $method;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Whether the domain has an enabled login method that authenticates by
+     * password. Phone OTP is form-based but passwordless, so "a form method is
+     * enabled" is not the same question.
+     */
+    public static function hasPasswordLogin(): bool
+    {
+        foreach (authPluginManager::getEnabled() as $method) {
+            if (self::methodUsesPassword($method)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static function getOAuthProviders(): array
     {
         $providers = [];
@@ -213,7 +248,42 @@ class authHelper
         return $fallback;
     }
 
+    public static function methodIsOAuth($method): bool
+    {
+        if ($method instanceof authPlugin) {
+            return ($method->getInfo()['auth_type'] ?? '') === 'oauth';
+        }
+        if ($method instanceof authBuiltinMethod) {
+            return defined(get_class($method).'::AUTH_TYPE')
+                && constant(get_class($method).'::AUTH_TYPE') === 'oauth';
+        }
+        return false;
+    }
+
+    public static function methodName($method): string
+    {
+        if ($method instanceof authPlugin) {
+            return $method->getName();
+        }
+        if ($method instanceof authBuiltinMethod) {
+            return method_exists($method, 'getName') ? $method->getName() : $method->getId();
+        }
+        return '';
+    }
+
     // -------------------------------------------------------------------------
+
+    private static function methodUsesPassword($method): bool
+    {
+        if ($method instanceof authPlugin) {
+            return (bool)($method->getInfo()['uses_password'] ?? false);
+        }
+        if ($method instanceof authBuiltinMethod) {
+            return defined(get_class($method).'::USES_PASSWORD')
+                && (bool)constant(get_class($method).'::USES_PASSWORD');
+        }
+        return false;
+    }
 
     private static function methodHasRecovery($method): bool
     {
@@ -227,28 +297,5 @@ class authHelper
                 : false;
         }
         return false;
-    }
-
-    private static function methodIsOAuth($method): bool
-    {
-        if ($method instanceof authPlugin) {
-            return ($method->getInfo()['auth_type'] ?? '') === 'oauth';
-        }
-        if ($method instanceof authBuiltinMethod) {
-            return defined(get_class($method).'::AUTH_TYPE')
-                && constant(get_class($method).'::AUTH_TYPE') === 'oauth';
-        }
-        return false;
-    }
-
-    private static function methodName($method): string
-    {
-        if ($method instanceof authPlugin) {
-            return $method->getName();
-        }
-        if ($method instanceof authBuiltinMethod) {
-            return method_exists($method, 'getName') ? $method->getName() : $method->getId();
-        }
-        return '';
     }
 }

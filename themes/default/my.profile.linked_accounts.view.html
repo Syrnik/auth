@@ -1,0 +1,34 @@
+{*
+    Section partial: linked accounts, view mode. In addition to the common vars
+    the section assigns $accounts (see authProfileSectionLinkedAccounts::getAccounts())
+    and $login_factors.
+*}
+<div class="auth-profile-section" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h3>{$section->getName()|escape}</h3>
+    </div>
+
+    {if $section->isEmpty()}
+        <div class="auth-profile-section-empty">{_w('No accounts linked yet.')|escape}</div>
+    {/if}
+
+    <ul class="auth-profile-accounts">
+        {foreach $accounts as $account}
+            <li class="auth-profile-account{if !$account.is_linked} auth-profile-account-free{/if}" data-account="{$account.id|escape}">
+                <span class="auth-profile-account-name">{$account.name|escape}</span>
+
+                {if $account.is_linked}
+                    <span class="auth-profile-account-value">{$account.value|escape}</span>
+                {elseif $account.link_url}
+                    <a href="{$account.link_url|escape}" class="auth-profile-account-link">{_w('Link')|escape}</a>
+                {else}
+                    <span class="auth-profile-account-hint">{_w('Not configured')|escape}</span>
+                {/if}
+            </li>
+        {/foreach}
+    </ul>
+
+    {if !$section->isEmpty()}
+        <a href="#" class="auth-profile-section-edit" data-section-edit="{$section->getId()|escape}">{_w('Manage')|escape}</a>
+    {/if}
+</div>

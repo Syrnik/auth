@@ -1,0 +1,31 @@
+{*
+    Section partial: name, edit mode.
+
+    The form posts to my/save/{section}/, the per-section endpoint of stage 3;
+    until that lands the markup is here but the target is not. The block carries
+    the error class as a whole because "at least one of these must be filled in"
+    is a failure of the group, not of any one field — see
+    authProfileSectionName::validateSection().
+*}
+<div class="auth-profile-section{if $errors} auth-profile-section-error{/if}" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h3>{$section->getName()|escape}</h3>
+    </div>
+
+    <form method="post" action="{$wa_app_url}my/save/{$section->getId()|escape}/" class="auth-form" data-section-form="{$section->getId()|escape}">
+        {$wa->csrf()}
+
+        {foreach $errors as $field_errors}
+            {foreach $field_errors as $message}
+                {if $message}<div class="auth-error">{$message|escape}</div>{/if}
+            {/foreach}
+        {/foreach}
+
+        {foreach $form->fields() as $field_id => $field}
+            <div class="auth-field">{$form->html($field_id)}</div>
+        {/foreach}
+
+        <button type="submit" class="auth-submit">{_w('Save')|escape}</button>
+        <a href="#" class="auth-profile-section-cancel" data-section-cancel="{$section->getId()|escape}">{_w('Cancel')|escape}</a>
+    </form>
+</div>

@@ -4,6 +4,7 @@ class authLoginMethod extends authBuiltinMethod implements authMethod
 {
     const AUTH_TYPE    = 'form';
     const HAS_RECOVERY = false;
+    const USES_PASSWORD = true;
 
     public function getId(): string
     {

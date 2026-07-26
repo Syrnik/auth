@@ -28,15 +28,46 @@ abstract class authProfileSectionFields extends authProfileSectionBase
         return (bool)$this->getEnabledFields();
     }
 
+    /**
+     * Values are read through the field objects rather than waContact::get(),
+     * because the latter invents data when there is none: an empty firstname
+     * comes back as the local part of the contact's email (waContact.class.php,
+     * "Contact without name derive firstname from email or phone"). A section
+     * asking whether the user has filled anything in must see the stored value,
+     * or every nameless contact reports a full name section.
+     */
     public function isEmpty(): bool
     {
-        foreach (array_keys($this->getEnabledFields()) as $field_id) {
-            $value = $this->contact->get($field_id);
-            if (!$this->isValueEmpty($value)) {
+        foreach ($this->getEnabledFields() as $field) {
+            if (!$this->isValueEmpty($field->get($this->contact))) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * What view mode shows: the section's enabled fields with their stored
+     * values, field_id => ['name' => label, 'value' => value].
+     *
+     * Values come from the field objects for the reason given on isEmpty(), and
+     * are handed over unformatted — a multi-value field yields a list, and how
+     * to present it is the section's template's business, not this class's.
+     *
+     * @return array
+     */
+    public function getValues(): array
+    {
+        $result = [];
+        foreach ($this->getEnabledFields() as $field_id => $field) {
+            $result[$field_id] = [
+                // Unescaped: the template escapes, and doing it twice shows
+                // entities to the user.
+                'name'  => $field->getName(),
+                'value' => $field->get($this->contact),
+            ];
+        }
+        return $result;
     }
 
     public function getForm(?int $index = null): ?waContactForm
@@ -86,6 +117,11 @@ abstract class authProfileSectionFields extends authProfileSectionBase
         }
         $form->post = $saved_post;
 
+        $this->validateSection($data, $form);
+        if ($this->errors) {
+            return false;
+        }
+
         foreach ($data as $field_id => $value) {
             $this->contact->set($field_id, $value);
         }
@@ -107,6 +143,16 @@ abstract class authProfileSectionFields extends authProfileSectionBase
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * Rules that hold for the section as a whole rather than for any one field,
+     * checked once the individual fields have passed. Record failures with
+     * addError() and on $form, so that both the section state and the rendered
+     * form know about them. No-op by default.
+     */
+    protected function validateSection(array $data, waContactForm $form): void
+    {
+    }
 
     /**
      * This section's fields that the domain actually enables.

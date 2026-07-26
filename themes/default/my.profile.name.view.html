@@ -1,0 +1,25 @@
+{*
+    Section partial: name, view mode. Rendered by authProfileSectionBase::render()
+    with $section, $contact, $mode, $index, $form and $errors assigned.
+    Layout and JS for the whole page are stage 4 — this is the minimum that lets
+    a section show its state.
+*}
+<div class="auth-profile-section" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h3>{$section->getName()|escape}</h3>
+        <a href="#" class="auth-profile-section-edit" data-section-edit="{$section->getId()|escape}">{if $section->isEmpty()}{_w('Add')|escape}{else}{_w('Edit')|escape}{/if}</a>
+    </div>
+
+    {if $section->isEmpty()}
+        <div class="auth-profile-section-empty">{_w('Not specified yet.')|escape}</div>
+    {else}
+        <dl class="auth-profile-values">
+            {foreach $section->getValues() as $field}
+                {if "{$field.value}" !== ''}
+                    <dt>{$field.name|escape}</dt>
+                    <dd>{$field.value|escape}</dd>
+                {/if}
+            {/foreach}
+        </dl>
+    {/if}
+</div>

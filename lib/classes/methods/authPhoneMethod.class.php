@@ -4,6 +4,8 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
 {
     const AUTH_TYPE  = 'form';
     const HAS_RECOVERY = false;
+    // A one-time code sent to the phone, no password involved.
+    const USES_PASSWORD = false;
 
     private const OTP_SESSION_KEY        = 'auth_phone_otp';
     private const OTP_TTL_SECONDS        = 300;

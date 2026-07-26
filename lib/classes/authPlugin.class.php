@@ -50,6 +50,20 @@ abstract class authPlugin extends waPlugin
     }
 
     /**
+     * The 'source' an OAuth plugin reports in the data it hands to
+     * authContactResolver — and therefore the name a link to this provider is
+     * stored and looked up under (authContactResolver::getSourceField()).
+     *
+     * Named instances get their own source by default: two GitLabs are two
+     * different providers, and a user id from one means nothing on the other.
+     * Override only if the identity is genuinely shared between instances.
+     */
+    public function getLinkSource(): string
+    {
+        return $this->id . ($this->instance !== null ? '_' . $this->instance : '');
+    }
+
+    /**
      * Absolute path to a template in the plugin's templates/ directory.
      * Returns null if the template does not exist.
      */

@@ -1,0 +1,142 @@
+<?php
+
+/**
+ * Base for sections made of contact fields (photo, name, email, phone,
+ * address). The field list comes from authProfileSectionRegistry::getFieldIds()
+ * and is filtered by what the domain enables, so a section is available exactly
+ * when at least one of its fields is.
+ *
+ * The form is built here, per section, and never shared with the profile-wide
+ * one: waContactForm::validateFields() (waContactForm.class.php:495) validates
+ * every field it holds, reading values through post($field_id) — which yields
+ * null for fields that were not submitted. A form limited to the section's own
+ * fields therefore validates exactly what arrived, with no framework fighting.
+ */
+abstract class authProfileSectionFields extends authProfileSectionBase
+{
+    /**
+     * waContactForm namespace, kept equal to waMyProfileAction::$namespace so
+     * that a section posts the same profile[field] shape the framework expects.
+     */
+    const FORM_NAMESPACE = 'profile';
+
+    /** @var waContactForm[] built forms, by index key */
+    private $forms = [];
+
+    public function isAvailable(): bool
+    {
+        return (bool)$this->getEnabledFields();
+    }
+
+    public function isEmpty(): bool
+    {
+        foreach (array_keys($this->getEnabledFields()) as $field_id) {
+            $value = $this->contact->get($field_id);
+            if (!$this->isValueEmpty($value)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function getForm(?int $index = null): ?waContactForm
+    {
+        $fields = $this->getEnabledFields();
+        if (!$fields) {
+            return null;
+        }
+
+        $key = $index === null ? '' : (string)$index;
+        if (!isset($this->forms[$key])) {
+            $form = new waContactForm($fields, ['namespace' => static::FORM_NAMESPACE]);
+            $form->setValue($this->contact);
+            $this->forms[$key] = $form;
+        }
+
+        return $this->forms[$key];
+    }
+
+    /**
+     * Validates the submitted slice against the section's own form and writes
+     * it to the contact. Fields with their own storage quirks (photo upload,
+     * phone normalization, address ext preservation) override this.
+     *
+     * Logging of profile changes stays with the caller: the save endpoint knows
+     * the request context and owns the log action name.
+     */
+    public function save(array $data, ?int $index = null): bool
+    {
+        $this->errors = [];
+
+        $form = $this->getForm($index);
+        if (!$form) {
+            return false;
+        }
+
+        // Only this section's fields, whatever else the request carried.
+        $data = array_intersect_key($data, $this->getEnabledFields());
+
+        $saved_post = $form->post;
+        $form->post = $data;
+        $valid = $form->isValid($this->contact);
+        if (!$valid) {
+            $this->errors = $form->errors();
+            $form->post = $saved_post;
+            return false;
+        }
+        $form->post = $saved_post;
+
+        foreach ($data as $field_id => $value) {
+            $this->contact->set($field_id, $value);
+        }
+
+        $errors = $this->contact->save();
+        if ($errors) {
+            foreach ($errors as $field_id => $messages) {
+                foreach ((array)$messages as $message) {
+                    $this->addError($field_id, $message);
+                    $form->errors($field_id, $message);
+                }
+            }
+            return false;
+        }
+
+        $form->setValue($this->contact);
+
+        return true;
+    }
+
+    // -------------------------------------------------------------------------
+
+    /**
+     * This section's fields that the domain actually enables.
+     *
+     * @return array field_id => waContactField
+     */
+    protected function getEnabledFields(): array
+    {
+        return authProfileFields::filter($this->getFieldIds());
+    }
+
+    /**
+     * Field ids this section owns, per the registry map.
+     *
+     * @return string[]
+     */
+    protected function getFieldIds(): array
+    {
+        return authProfileSectionRegistry::getFieldIds($this->getId());
+    }
+
+    /**
+     * A contact value counts as absent when it is null, an empty string or an
+     * empty list — '0' and 0 do not, they are values a user could have entered.
+     */
+    protected function isValueEmpty($value): bool
+    {
+        if (is_array($value)) {
+            return !$value;
+        }
+        return $value === null || $value === '';
+    }
+}

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Profile section contract** (`authProfileSection`) and section registry — the `my/` page is described as a list of independently editable sections, each owning the condition of its own existence and telling "unavailable" from "available but empty"; the action hands the theme a ready-made list grouped for rendering, and a group with no available sections disappears on its own
 - **`login` auth method** — login/password against the `wa_contact.login` field
 - **Dynamic system OAuth adapters** — every framework-level adapter (VK, Google, Facebook, etc.) is now offered in settings automatically, with per-domain credential fields, instead of only Webasyst ID
 - License files (Webasyst EULA) and contribution guidelines (`AGENTS.md`)

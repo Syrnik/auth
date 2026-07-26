@@ -1,0 +1,148 @@
+<?php
+
+/**
+ * Everything a profile section does the same way regardless of where its data
+ * lives: identity, template lookup, error collection. Sections built out of
+ * contact fields extend authProfileSectionFields instead, which adds the form
+ * machinery on top of this.
+ *
+ * Subclasses declare their identity in the static properties and implement the
+ * two questions only they can answer — isAvailable() and isEmpty().
+ */
+abstract class authProfileSectionBase implements authProfileSection
+{
+    /** @var string section id, see authProfileSection::getId() */
+    protected static $id = '';
+
+    /** @var waContact */
+    protected $contact;
+
+    /** @var array field_id => list of error messages, from the last save() */
+    protected $errors = [];
+
+    public function __construct(waContact $contact = null)
+    {
+        $this->contact = $contact ?: wa()->getUser();
+    }
+
+    public function getId(): string
+    {
+        return static::$id;
+    }
+
+    /**
+     * Group placement is declared once, in the registry map, so that reordering
+     * the page does not mean editing eight classes.
+     */
+    public function getGroup(): string
+    {
+        return authProfileSectionRegistry::getGroupId($this->getId())
+            ?: authProfileSectionRegistry::GROUP_PROFILE;
+    }
+
+    public function isMultiple(): bool
+    {
+        return false;
+    }
+
+    public function getForm(?int $index = null): ?waContactForm
+    {
+        return null;
+    }
+
+    public function getRemovalLock(?int $index = null): ?string
+    {
+        return null;
+    }
+
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
+
+    /**
+     * Renders the section's partial for the mode, or an empty string when the
+     * theme has no partial for it. Template vars are set for the duration of
+     * the fetch and then restored, so a section never leaks state into the page
+     * that embeds it.
+     */
+    public function render(string $mode, ?int $index = null): string
+    {
+        $path = $this->getTemplatePath($mode);
+        if (!$path) {
+            return '';
+        }
+
+        $vars = $this->getTemplateVars($mode, $index);
+        $view = wa()->getView();
+
+        $saved = [];
+        foreach (array_keys($vars) as $name) {
+            $saved[$name] = $view->getVars($name);
+        }
+
+        $view->assign($vars);
+        try {
+            $html = $view->fetch('file:'.$path);
+        } finally {
+            foreach ($saved as $name => $value) {
+                if ($value === null) {
+                    $view->clearAssign($name);
+                } else {
+                    $view->assign($name, $value);
+                }
+            }
+        }
+
+        return $html;
+    }
+
+    // -------------------------------------------------------------------------
+
+    /**
+     * Partial of this section for the given mode: my.profile.{id}.{mode}.html,
+     * taken from the active theme and falling back to the theme shipped with
+     * the app, so a custom theme may override one section without copying all
+     * of them.
+     */
+    protected function getTemplatePath(string $mode): ?string
+    {
+        $file = 'my.profile.'.$this->getId().'.'.$mode.'.html';
+
+        $theme_id = waRequest::getTheme();
+        if ($theme_id) {
+            try {
+                $theme = new waTheme($theme_id, 'auth');
+                $path  = $theme->path.'/'.$file;
+                if (file_exists($path)) {
+                    return $path;
+                }
+            } catch (waException $e) {
+                // Broken or missing theme: fall through to the shipped one.
+            }
+        }
+
+        $path = wa()->getAppPath('themes/default/'.$file, 'auth');
+        return file_exists($path) ? $path : null;
+    }
+
+    /**
+     * @return array template var name => value
+     */
+    protected function getTemplateVars(string $mode, ?int $index = null): array
+    {
+        return [
+            'section' => $this,
+            'contact' => $this->contact,
+            'mode'    => $mode,
+            'index'   => $index,
+            'form'    => $this->getForm($index),
+            'errors'  => $this->errors,
+        ];
+    }
+
+    protected function addError(string $field_id, string $message): void
+    {
+        $this->errors[$field_id][] = $message;
+    }
+}

@@ -142,6 +142,36 @@ abstract class authProfileSectionFields extends authProfileSectionBase
         return true;
     }
 
+    /**
+     * Puts the visitor's own values back into the form, so that a save that
+     * failed in an earlier request (the no-JS redirect) is re-rendered as the
+     * failed request left it rather than as the stored contact.
+     *
+     * waContactForm::$post is the property the form renders from, and errors
+     * are pushed through errors() so that each field carries its own message.
+     * Empty messages are skipped: errors() treats an empty string as "give me
+     * the errors of this field" and would run a full validation instead.
+     */
+    public function restoreFailedSave(array $data, array $errors, ?int $index = null): void
+    {
+        parent::restoreFailedSave($data, $errors, $index);
+
+        $form = $this->getForm($index);
+        if (!$form) {
+            return;
+        }
+
+        $form->post = array_intersect_key($data, $this->getEnabledFields());
+
+        foreach ($errors as $field_id => $messages) {
+            foreach ((array)$messages as $message) {
+                if (strlen((string)$message)) {
+                    $form->errors((string)$field_id, $message);
+                }
+            }
+        }
+    }
+
     // -------------------------------------------------------------------------
 
     /**

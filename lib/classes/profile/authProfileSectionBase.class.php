@@ -61,6 +61,17 @@ abstract class authProfileSectionBase implements authProfileSection
     }
 
     /**
+     * Errors are all a form-less section has to restore; the submitted values
+     * of such a section are its own affair (an unlink is not a value the user
+     * retypes). Sections built out of contact fields put the values back into
+     * their form, see authProfileSectionFields.
+     */
+    public function restoreFailedSave(array $data, array $errors, ?int $index = null): void
+    {
+        $this->errors = $errors;
+    }
+
+    /**
      * Renders the section's partial for the mode, or an empty string when the
      * theme has no partial for it. Template vars are set for the duration of
      * the fetch and then restored, so a section never leaks state into the page

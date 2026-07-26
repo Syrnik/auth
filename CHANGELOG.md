@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Per-section profile save endpoint** — `POST my/save/<section>/` writes one section of the `my/` page and answers with that section's rendered partial: view mode when the save went through, edit mode with the submitted values and the errors when it did not. Saving one section no longer touches the fields of the others, and a partial submit no longer fails validation on required fields it never carried. Without JS the same endpoint is an ordinary post/redirect/get, and a failed save is restored on the page it redirects to
+- **`authProfileSectionConfirmable`** — a section whose new value must be proven before it replaces the old one (an email or phone that is a login method, the password) answers the save endpoint with the URL of its confirmation flow instead of being stored, per decision 2 of ADR 001
 - **Profile section contract** (`authProfileSection`) and section registry — the `my/` page is described as a list of independently editable sections, each owning the condition of its own existence and telling "unavailable" from "available but empty"; the action hands the theme a ready-made list grouped for rendering, and a group with no available sections disappears on its own
 - **`login` auth method** — login/password against the `wa_contact.login` field
 - **Dynamic system OAuth adapters** — every framework-level adapter (VK, Google, Facebook, etc.) is now offered in settings automatically, with per-domain credential fields, instead of only Webasyst ID
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `authProfileSection` gained `restoreFailedSave()`: without JS a failed save answers with a redirect, and the request that draws the profile page afterwards has neither the submitted values nor the errors. Sections built out of contact fields put both back into their form; a section without a form inherits a default that restores the errors alone
 - **Backend settings screen split into per-domain sections** — Authorization, Registration, Password recovery, Captcha, Protection, Two-factor authentication each get their own screen and URL (`settings/<domain>/<section>/`) instead of one long form; sidebar now shows a domain switcher on top and a static per-domain section list below it
 - **Backend settings save via ajax** — saving a section swaps the response in place (with a "Saved" indicator) instead of a full-page redirect with `?saved=1`, matching the sidebar's existing ajax navigation
 - Backend settings save now **merges into the domain's stored config** instead of overwriting it wholesale, so saving one section (e.g. Registration) can no longer clobber another section's settings — `plugin_settings` in particular is merged per plugin id, since Login/Captcha/Guards/Challenges all write into it

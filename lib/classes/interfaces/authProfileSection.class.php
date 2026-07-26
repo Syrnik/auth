@@ -97,6 +97,18 @@ interface authProfileSection
     public function getErrors(): array;
 
     /**
+     * Restores the state a failed save left behind in an earlier request:
+     * $data is what the visitor submitted, $errors what save() reported.
+     *
+     * Needed because without JS a failed save answers with a redirect back to
+     * the profile page (authFrontendMySaveController), and the request that
+     * renders that page carries neither the submitted values nor the errors.
+     * The section restores them itself — only it knows where its values live,
+     * and a section without a form has nothing but the errors to restore.
+     */
+    public function restoreFailedSave(array $data, array $errors, ?int $index = null): void;
+
+    /**
      * Rendered HTML of the section in the given mode (MODE_VIEW | MODE_EDIT).
      */
     public function render(string $mode, ?int $index = null): string;

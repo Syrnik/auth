@@ -1,0 +1,56 @@
+{*
+    Confirming a login change (authFrontendMyConfirmAction).
+
+    Two states, one page. An email is confirmed by following the link that was
+    mailed to it, so there is nothing here to fill in — only the value being
+    confirmed, so a typo is visible before the visitor waits for a letter that
+    will never come. A phone is confirmed by typing back the code it received.
+
+    Assigned: $error, $field, $value, $needs_code, $attempts_left, $csrf_token,
+    $my_url. An empty $field means there is nothing pending and $error explains
+    why — an expired token, a spent one, a change that can no longer be applied.
+*}
+<div class="auth-page auth-my-confirm">
+
+    <h2>{_w('Confirm the change')|escape}</h2>
+
+    {if $error}
+        <div class="auth-error">{$error|escape}</div>
+    {/if}
+
+    {if $field}
+        <p class="auth-my-confirm-value">
+            {if $needs_code}
+                {sprintf(_w('We sent a code to %s.'), $value)|escape}
+            {else}
+                {sprintf(_w('We sent a confirmation link to %s. Open it to finish the change.'), $value)|escape}
+            {/if}
+        </p>
+
+        <form method="post" action="" class="auth-form">
+            <input type="hidden" name="_csrf" value="{$csrf_token|escape}">
+
+            {if $needs_code}
+                <div class="auth-field">
+                    <label for="auth-confirm-code">{_w('Code from the message')|escape}</label>
+                    {* inputmode/autocomplete let a phone offer the code it just
+                       received instead of making the visitor switch apps. *}
+                    <input type="text" id="auth-confirm-code" name="code" value=""
+                           inputmode="numeric" autocomplete="one-time-code" autofocus>
+                </div>
+
+                <button type="submit" class="auth-submit">{_w('Confirm')|escape}</button>
+            {/if}
+
+            {* Cancelling drops the pending change rather than just navigating
+               away: the old login keeps working, and the visitor can start over
+               with a corrected value instead of waiting out the old request. *}
+            <button type="submit" name="cancel" value="1" class="auth-cancel">{_w('Cancel the change')|escape}</button>
+        </form>
+    {else}
+        <p class="auth-links">
+            <a href="{$my_url|escape}">{_w('Back to my profile')|escape}</a>
+        </p>
+    {/if}
+
+</div>

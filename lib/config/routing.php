@@ -18,6 +18,20 @@ return [
         'action' => 'mySave',
         'secure' => true,
     ],
+    // Changing a login (email, phone) is proven before it is stored, see
+    // authFrontendMyConfirmAction. Both halves are 'secure' on purpose: a
+    // confirmation link travels by mail, and holding it alone must not be
+    // enough to change an account's way in.
+    'my/confirm/<token>/'   => [
+        'module' => 'frontend',
+        'action' => 'myConfirm',
+        'secure' => true,
+    ],
+    'my/confirm/'           => [
+        'module' => 'frontend',
+        'action' => 'myConfirm',
+        'secure' => true,
+    ],
     'my/'                   => [
         'module' => 'frontend',
         'action' => 'my',

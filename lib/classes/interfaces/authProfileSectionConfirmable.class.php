@@ -26,4 +26,31 @@ interface authProfileSectionConfirmable
      * changing a second, non-login email does not.
      */
     public function getConfirmationUrl(array $data, ?int $index = null): ?string;
+
+    /**
+     * The contact field this section's confirmable value belongs to ('email',
+     * 'phone'), which is what a pending change is filed under in
+     * auth_profile_confirm.
+     *
+     * The flow stores a field and a value and nothing else about the section,
+     * so this is how a confirmed row finds its way back to the code that knows
+     * what the value means.
+     */
+    public function getConfirmableField(): string;
+
+    /**
+     * Writes a value that has now been proven, and reports success; failures
+     * are readable from getErrors() as usual.
+     *
+     * The other half of getConfirmationUrl(): the flow (authFrontendMyConfirm)
+     * owns tokens, codes and expiry, and knows nothing about what an email or a
+     * phone is. Where in the value list the confirmed value goes, and what else
+     * has to hold before it may go there, stays with the section — the same
+     * place that decided the change needed proving.
+     *
+     * Called with time having passed since the change was requested, so a
+     * section must re-check whatever it checked then rather than trust the
+     * pending row.
+     */
+    public function applyConfirmedValue(string $value): bool;
 }

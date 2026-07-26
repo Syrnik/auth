@@ -44,6 +44,13 @@ return [
     // Восстановление пароля
     'recovery_enabled' => true,
 
+    // Разрешить пользователю удалить свой аккаунт из личного кабинета.
+    // Управляется здесь, а не картой сайта: personal_fields описывает, из каких
+    // полей состоит профиль, и не имеет мнения о том, может ли профиль
+    // перестать существовать (решение 1 в docs/adr/001-profile-config-boundaries.md).
+    // Выключено по умолчанию: сайт, который об этом не думал, не должен это предлагать.
+    'delete_account_enabled' => false,
+
     // Редиректы после действий. null = goal_url / HTTP_REFERER
     'redirect_after_login'    => null,
     'redirect_after_register' => null,

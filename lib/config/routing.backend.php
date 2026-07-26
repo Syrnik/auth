@@ -8,6 +8,7 @@ return [
     'settings/<domain:[^/]+>/captcha/?'    => 'backend/captcha',
     'settings/<domain:[^/]+>/guards/?'     => 'backend/guards',
     'settings/<domain:[^/]+>/challenges/?' => 'backend/challenges',
+    'settings/<domain:[^/]+>/profile/?'    => 'backend/profile',
     'plugins/?'                      => 'plugins/',
     'design/?'                       => 'design/',
     // Not a plain '': waAppConfig::getRoutingRules() merges this file with

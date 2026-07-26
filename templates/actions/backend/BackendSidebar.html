@@ -83,6 +83,12 @@
                         <span>[`Two-factor authentication`]</span>
                     </a>
                 </li>
+                <li class="rounded{if $section == 'profile'} selected{/if}">
+                    <a class="js-router" href="{$wa_app_url}settings/{$current_domain|escape:'url'}/profile/">
+                        <i class="fas fa-user"></i>
+                        <span>[`Profile`]</span>
+                    </a>
+                </li>
             </ul>
         </div>
     </div>

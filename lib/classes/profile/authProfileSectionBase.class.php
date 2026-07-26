@@ -143,13 +143,42 @@ abstract class authProfileSectionBase implements authProfileSection
     protected function getTemplateVars(string $mode, ?int $index = null): array
     {
         return [
-            'section' => $this,
-            'contact' => $this->contact,
-            'mode'    => $mode,
-            'index'   => $index,
-            'form'    => $this->getForm($index),
-            'errors'  => $this->errors,
+            'section'   => $this,
+            'contact'   => $this->contact,
+            'mode'      => $mode,
+            'index'     => $index,
+            'form'      => $this->getForm($index),
+            'errors'    => $this->errors,
+            'save_url'  => $this->getSaveUrl(),
+            'edit_url'  => $this->getModeUrl(self::MODE_EDIT, $index),
+            'view_url'  => $this->getModeUrl(self::MODE_VIEW, $index),
         ];
+    }
+
+    /**
+     * Where this section's form posts to, see authFrontendMySaveController.
+     */
+    protected function getSaveUrl(): string
+    {
+        return authHelper::getMySaveUrl($this->getId());
+    }
+
+    /**
+     * The profile page with this section shown in the given mode, which is also
+     * what JS fetches to redraw the section on its own (authFrontendMyAction).
+     *
+     * Built here rather than in Smarty so that the two readers of this address
+     * cannot disagree: a template composing it by hand would have to know about
+     * $index, and every theme would have to know again.
+     */
+    protected function getModeUrl(string $mode, ?int $index = null): string
+    {
+        $params = ['section' => $this->getId(), 'mode' => $mode];
+        if ($index !== null) {
+            $params['index'] = $index;
+        }
+
+        return authHelper::getMyUrl().'?'.http_build_query($params);
     }
 
     protected function addError(string $field_id, string $message): void

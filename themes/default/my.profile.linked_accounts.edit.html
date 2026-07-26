@@ -1,17 +1,24 @@
 {*
     Section partial: linked accounts, edit mode.
 
-    There is no form here — the section has no waContactForm, its data is not a
-    contact field. Linking is an OAuth round trip started by a link; unlinking is
-    a post to the per-section endpoint, my/save/{section}/, which answers with
-    this partial redrawn.
+    There is no form field here — the section has no waContactForm, its data is
+    not a contact field. Linking is an OAuth round trip started by a link, and
+    that link is a real navigation: it must not be intercepted, which is why it
+    carries no data-section-form. Unlinking is a post to the per-section endpoint,
+    my/save/{section}/, which answers with this partial redrawn.
+
+    Each row posts its own little form rather than one form for the section: the
+    request has to name which account it is about, and a button that means "this
+    row" is exactly a form of one hidden field.
 
     The unlink button is absent, not merely disabled, when the link is the last
     way in, and the reason is spelled out next to it: decision 3 of ADR 001.
 *}
 <div class="auth-profile-section{if $errors} auth-profile-section-error{/if}" data-section="{$section->getId()|escape}">
     <div class="auth-profile-section-head">
-        <h3>{$section->getName()|escape}</h3>
+        <h4>{$section->getName()|escape}</h4>
+
+        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_w('Done')|escape}</a>
     </div>
 
     {foreach $errors as $field_errors}
@@ -31,7 +38,7 @@
                     {if $account.removal_lock}
                         <span class="auth-profile-account-locked">{$account.removal_lock|escape}</span>
                     {else}
-                        <form method="post" action="{$wa_app_url}my/save/{$section->getId()|escape}/" class="auth-profile-account-form">
+                        <form method="post" action="{$save_url|escape}" class="auth-profile-account-form" data-section-form>
                             {$wa->csrf()}
                             <input type="hidden" name="unlink" value="{$account.id|escape}">
                             <button type="submit" class="auth-profile-account-unlink">{_w('Unlink')|escape}</button>
@@ -45,6 +52,4 @@
             </li>
         {/foreach}
     </ul>
-
-    <a href="#" class="auth-profile-section-cancel" data-section-cancel="{$section->getId()|escape}">{_w('Done')|escape}</a>
 </div>

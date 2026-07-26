@@ -1,23 +1,39 @@
+{*
+    Profile page: groups of independently editable sections.
+
+    The template only walks what authFrontendMyAction handed over. It asks no
+    questions about what to show — visibility comes from three unrelated sources
+    (the site's personal_fields, auth's login_methods, the contact's linked
+    accounts), and a theme deciding for itself would answer them differently from
+    the app within a release. See docs/adr/001-profile-config-boundaries.md.
+
+    Each section's markup is its own partial, my.profile.<section>.<mode>.html,
+    rendered by the section class. The same partial is what my/save/<section>/
+    answers with, so a section redrawn by JS is byte for byte the section a reload
+    produces.
+*}
 <div class="auth-page auth-my-profile">
 
+    <h2>{_w('My profile')|escape}</h2>
+
     {if $saved}
-        <div class="auth-success">Изменения сохранены.</div>
+        <div class="auth-success">{_w('Your changes have been saved.')|escape}</div>
     {/if}
 
-    <h2>Мой профиль</h2>
+    {foreach $profile_groups as $group}
+        <div class="auth-profile-group" data-group="{$group.id|escape}">
+            <h3 class="auth-profile-group-name">{$group.name|escape}</h3>
 
-    <form method="post" enctype="multipart/form-data" class="auth-form">
-        {$wa->csrf()}
-
-        {if $form}
-            {$form->html()}
-        {/if}
-
-        <button type="submit" class="auth-submit">Сохранить</button>
-    </form>
+            {foreach $group.sections as $section}
+                {$section.html}
+            {/foreach}
+        </div>
+    {/foreach}
 
     <div class="auth-links">
-        <a href="{$wa_app_url}logout/">Выйти</a>
+        <a href="{$wa_app_url}logout/">{_w('Log out')|escape}</a>
     </div>
 
 </div>
+
+<script src="{$wa_active_theme_url}my.profile.js?v={$wa_theme_version}" defer></script>

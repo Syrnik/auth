@@ -1,13 +1,16 @@
 {*
     Section partial: name, view mode. Rendered by authProfileSectionBase::render()
-    with $section, $contact, $mode, $index, $form and $errors assigned.
-    Layout and JS for the whole page are stage 4 — this is the minimum that lets
-    a section show its state.
+    with $section, $contact, $mode, $index, $form, $errors and the section's own
+    URLs ($save_url, $edit_url, $view_url) assigned.
+
+    The root element carries data-section: it is what JS replaces when the section
+    is redrawn, and the only thing the script needs to find. Layout and styling
+    are task «Дизайн и вёрстка my.profile».
 *}
 <div class="auth-profile-section" data-section="{$section->getId()|escape}">
     <div class="auth-profile-section-head">
-        <h3>{$section->getName()|escape}</h3>
-        <a href="#" class="auth-profile-section-edit" data-section-edit="{$section->getId()|escape}">{if $section->isEmpty()}{_w('Add')|escape}{else}{_w('Edit')|escape}{/if}</a>
+        <h4>{$section->getName()|escape}</h4>
+        <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{if $section->isEmpty()}{_w('Add')|escape}{else}{_w('Edit')|escape}{/if}</a>
     </div>
 
     {if $section->isEmpty()}

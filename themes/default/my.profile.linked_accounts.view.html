@@ -5,7 +5,11 @@
 *}
 <div class="auth-profile-section" data-section="{$section->getId()|escape}">
     <div class="auth-profile-section-head">
-        <h3>{$section->getName()|escape}</h3>
+        <h4>{$section->getName()|escape}</h4>
+
+        {if !$section->isEmpty()}
+            <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{_w('Manage')|escape}</a>
+        {/if}
     </div>
 
     {if $section->isEmpty()}
@@ -27,8 +31,4 @@
             </li>
         {/foreach}
     </ul>
-
-    {if !$section->isEmpty()}
-        <a href="#" class="auth-profile-section-edit" data-section-edit="{$section->getId()|escape}">{_w('Manage')|escape}</a>
-    {/if}
 </div>

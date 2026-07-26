@@ -27,6 +27,14 @@ class authHelper
         return wa()->getRouteUrl('auth/frontend/my', [], true);
     }
 
+    /**
+     * Where one profile section is saved, see authFrontendMySaveController.
+     */
+    public static function getMySaveUrl(string $section): string
+    {
+        return wa()->getRouteUrl('auth/frontend/mySave', ['section' => $section], true);
+    }
+
     public static function getChallengeUrl(): string
     {
         return wa()->getRouteUrl('auth/frontend/challenge', [], true);

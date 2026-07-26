@@ -50,5 +50,25 @@
             <description locale="en_US">My profile</description>
             <description locale="ru_RU">Мой профиль</description>
         </file>
+        <file path="my.profile.js">
+            <description locale="en_US">Profile page behavior: section editing without a page reload</description>
+            <description locale="ru_RU">Поведение страницы профиля: редактирование секций без перезагрузки</description>
+        </file>
+        <file path="my.profile.name.view.html">
+            <description locale="en_US">Profile section: name, view mode</description>
+            <description locale="ru_RU">Секция профиля: имя, режим просмотра</description>
+        </file>
+        <file path="my.profile.name.edit.html">
+            <description locale="en_US">Profile section: name, edit mode</description>
+            <description locale="ru_RU">Секция профиля: имя, режим редактирования</description>
+        </file>
+        <file path="my.profile.linked_accounts.view.html">
+            <description locale="en_US">Profile section: linked accounts, view mode</description>
+            <description locale="ru_RU">Секция профиля: связанные аккаунты, режим просмотра</description>
+        </file>
+        <file path="my.profile.linked_accounts.edit.html">
+            <description locale="en_US">Profile section: linked accounts, edit mode</description>
+            <description locale="ru_RU">Секция профиля: связанные аккаунты, режим редактирования</description>
+        </file>
     </files>
 </theme>

@@ -4,11 +4,15 @@
  * A section whose change is not stored on submit but has to be confirmed first.
  *
  * Decision 2 of docs/adr/001-profile-config-boundaries.md: an email or a phone
- * that is an active login method, and the password, have a different life cycle
- * from a contact field — the new value is proven before it replaces the old one,
- * through authFrontendConfirm / authFrontendChallenge. The save endpoint must
+ * that is an active login method has a different life cycle from a contact
+ * field — the new value is proven before it replaces the old one, through
+ * auth_profile_confirm and authFrontendMyConfirmAction. The save endpoint must
  * therefore be able to ask a section "is this yours to store, or does it start a
  * flow?" before it calls save().
+ *
+ * The password is not one of these, though the plan had it here: there is
+ * nothing to send a new password to, and what proves the change is the current
+ * password (authProfileSectionPassword::validateSection()).
  *
  * Kept a separate interface rather than a method on authProfileSection: the
  * majority of sections store their data directly and would carry a permanently

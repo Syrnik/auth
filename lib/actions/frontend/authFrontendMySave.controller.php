@@ -38,12 +38,13 @@ class authFrontendMySaveController extends waJsonController
         $index   = $this->getIndex($section);
         $data    = $this->getData($section, $index);
 
-        // Credentials do not travel this route. Changing an email or a phone
-        // that is a login method, or the password, means proving the new value
-        // first — decision 2 of docs/adr/001-profile-config-boundaries.md — so
-        // such a section answers with the URL of its own flow and is not saved
-        // here. Every other section, and the same section for a value that is
-        // not a login, returns null and is saved normally.
+        // A new login does not travel this route. Changing an email or a phone
+        // that is a login method means proving the new value first — decision 2
+        // of docs/adr/001-profile-config-boundaries.md — so such a section
+        // answers with the URL of its own flow and is not saved here. Every
+        // other section, and the same section for a value that is not a login,
+        // returns null and is saved normally. (The password is proven by the
+        // current password instead, and is stored through this route.)
         if ($section instanceof authProfileSectionConfirmable) {
             $url = $section->getConfirmationUrl($data, $index);
             if ($url !== null) {

@@ -1,0 +1,35 @@
+{*
+    Section partial: address, view mode — a multi-value section.
+
+    An address is a composite: its parts live in $item.data. $item.value is the
+    readable one-liner the field composes out of them
+    (waContactAddressField::format(), waContactAddressField.class.php:44), which
+    is what the list shows.
+
+    This is the section the contract's third state was written for. "Addresses
+    are allowed here" and "this visitor has entered one" are different answers,
+    and only the first is about the config — so an empty section is a heading and
+    an "Add", not an absence.
+*}
+<div class="auth-profile-section" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h4>{$section->getName()|escape}</h4>
+        <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
+    </div>
+
+    {if $section->isEmpty()}
+        <div class="auth-profile-section-empty">{_w('Not specified yet.')|escape}</div>
+    {else}
+        <ul class="auth-profile-values">
+            {foreach $values as $i => $item}
+                <li class="auth-profile-value" data-index="{$i}">
+                    <span class="auth-profile-value-text">{$item.value|escape}</span>
+                    {if !empty($item.ext) && isset($ext_options[$item.ext])}
+                        <span class="auth-profile-value-ext">{$ext_options[$item.ext]|escape}</span>
+                    {/if}
+                    <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_w('Edit')|escape}</a>
+                </li>
+            {/foreach}
+        </ul>
+    {/if}
+</div>

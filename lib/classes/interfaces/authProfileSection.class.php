@@ -109,6 +109,19 @@ interface authProfileSection
     public function restoreFailedSave(array $data, array $errors, ?int $index = null): void;
 
     /**
+     * Where the visitor has to go now that this section saved, or null to stay
+     * on the profile — which is what almost every section wants, and the
+     * default.
+     *
+     * Exists because a save can end the page it was made on. Deleting the
+     * account is the case that forced it: the contact whose profile this is no
+     * longer exists, so redrawing the section afterwards would render it from a
+     * deleted record. "Show the result in place" is not universal, and a section
+     * is the only thing that knows whether it still has a place to show.
+     */
+    public function getRedirectAfterSave(): ?string;
+
+    /**
      * Rendered HTML of the section in the given mode (MODE_VIEW | MODE_EDIT).
      */
     public function render(string $mode, ?int $index = null): string;

@@ -1,0 +1,34 @@
+{*
+    Section partial: email, view mode — a multi-value section.
+
+    In addition to the common vars a multi-value section assigns $values (the
+    stored list, each ['value', 'ext', 'status']), $next_index and $ext_options.
+    Each value has its own edit address, which the section composes
+    ($section->getValueEditUrl($i)) rather than the template — the index travels
+    in the URL, and every theme would otherwise have to know how.
+
+    "Available but empty" is a state of its own, not an absence: the section
+    exists for this domain, the visitor simply has not added an address yet.
+*}
+<div class="auth-profile-section" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h4>{$section->getName()|escape}</h4>
+        <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
+    </div>
+
+    {if $section->isEmpty()}
+        <div class="auth-profile-section-empty">{_w('Not specified yet.')|escape}</div>
+    {else}
+        <ul class="auth-profile-values">
+            {foreach $values as $i => $item}
+                <li class="auth-profile-value" data-index="{$i}">
+                    <span class="auth-profile-value-text">{$item.value|escape}</span>
+                    {if !empty($item.ext) && isset($ext_options[$item.ext])}
+                        <span class="auth-profile-value-ext">{$ext_options[$item.ext]|escape}</span>
+                    {/if}
+                    <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_w('Edit')|escape}</a>
+                </li>
+            {/foreach}
+        </ul>
+    {/if}
+</div>

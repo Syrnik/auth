@@ -1,0 +1,39 @@
+{*
+    Section partial: delete account, edit mode — the confirmation.
+
+    The checkbox is the confirmation, and the section refuses without it: a
+    deletion must never be the result of a request merely reaching the endpoint,
+    whether that request came from a stray click, a prefetch or a page left open.
+    Its name is the section's own constant, so the two ends cannot drift apart.
+
+    On success this section answers with a redirect rather than with itself —
+    there is no profile left to draw, and no one left to draw it for. See
+    authProfileSection::getRedirectAfterSave().
+*}
+<div class="auth-profile-section auth-profile-section-danger{if $errors} auth-profile-section-error{/if}" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h4>{$section->getName()|escape}</h4>
+    </div>
+
+    {foreach $errors as $field_errors}
+        {foreach $field_errors as $message}
+            {if $message}<div class="auth-error">{$message|escape}</div>{/if}
+        {/foreach}
+    {/foreach}
+
+    <form method="post" action="{$save_url|escape}" class="auth-form" data-section-form>
+        {$wa->csrf()}
+
+        <p>{_w('Your account and everything stored with it will be removed permanently. This cannot be undone.')|escape}</p>
+
+        <div class="auth-field">
+            <label>
+                <input type="checkbox" name="{$confirm_field|escape}" value="1">
+                {_w('Yes, delete my account')|escape}
+            </label>
+        </div>
+
+        <button type="submit" class="auth-submit auth-submit-danger">{_w('Delete account')|escape}</button>
+        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_w('Cancel')|escape}</a>
+    </form>
+</div>

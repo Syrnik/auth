@@ -79,14 +79,14 @@ class authProfileSectionLinkedAccounts extends authProfileSectionBase
 
     /**
      * Ways this contact could currently sign in: a usable password (when the
-     * domain offers a password-based method at all) plus every linked account
-     * whose provider the domain still offers.
+     * domain offers a password-based method at all), every linked account whose
+     * provider the domain still offers, and every passwordless login field the
+     * domain accepts and the contact has filled in — phone OTP, in practice.
      *
-     * Phone OTP is deliberately not counted. It is a real factor, but it depends
-     * on the contact's phone and on an SMS channel being configured, and the
-     * phone section (stage 5) faces the same question from the other side —
-     * counting it here on a guess would make the lock weaker, and this lock only
-     * has value while it is the pessimistic one.
+     * The password counts here, unlike in authProfileSectionLogin, because the
+     * two sections take different things away. Unlinking an account leaves the
+     * email and the password where they are, so the password is still a way in;
+     * removing the email that the password is checked against is not.
      */
     public function countLoginFactors(): int
     {
@@ -161,6 +161,22 @@ class authProfileSectionLinkedAccounts extends authProfileSectionBase
 
         foreach ($accounts as $account) {
             if ($account['is_linked']) {
+                $factors++;
+            }
+        }
+
+        // Passwordless login fields the domain accepts — phone OTP. Counted
+        // since the phone section exists (stage 5): the question is now "does
+        // this contact have a number the domain signs people in with", which
+        // has an exact answer, and a lock that refuses a legitimate unlink is
+        // not a safer lock.
+        foreach (authHelper::getLoginFields() as $field_id) {
+            if (!authHelper::isPasswordlessLoginField($field_id)) {
+                // A field checked against a password is already counted above,
+                // and counting it twice would unlock the last factor.
+                continue;
+            }
+            if ($this->contact->get($field_id)) {
                 $factors++;
             }
         }

@@ -104,8 +104,12 @@ abstract class authProfileSectionFields extends authProfileSectionBase
             return false;
         }
 
-        // Only this section's fields, whatever else the request carried.
-        $data = array_intersect_key($data, $this->getEnabledFields());
+        $data = $this->prepareData($data, $index);
+        if ($data === null) {
+            // prepareData() recorded why; a section that refuses to shape its
+            // input has nothing to validate.
+            return false;
+        }
 
         $saved_post = $form->post;
         $form->post = $data;
@@ -122,7 +126,7 @@ abstract class authProfileSectionFields extends authProfileSectionBase
             return false;
         }
 
-        foreach ($data as $field_id => $value) {
+        foreach ($this->prepareForStorage($data) as $field_id => $value) {
             $this->contact->set($field_id, $value);
         }
 
@@ -182,6 +186,40 @@ abstract class authProfileSectionFields extends authProfileSectionBase
      */
     protected function validateSection(array $data, waContactForm $form): void
     {
+    }
+
+    /**
+     * The submitted slice turned into the field_id => value map this save is
+     * actually about, or null to refuse the save outright (record why with
+     * addError() first).
+     *
+     * Runs before validation, which is where the framework normalizes phone
+     * numbers too (waMyProfileAction::saveFromPost(), waMyProfileAction.class.php:91)
+     * — a number has to be in its final form before it is checked, or the check
+     * is about a value that will never be stored.
+     *
+     * By default: the section's own fields and nothing else, whatever else the
+     * request carried. A multi-value section merges the submitted value into the
+     * stored list here, which is why $index is passed through.
+     */
+    protected function prepareData(array $data, ?int $index = null): ?array
+    {
+        return array_intersect_key($data, $this->getEnabledFields());
+    }
+
+    /**
+     * Last shaping before the values are written to the contact, after they have
+     * passed validation.
+     *
+     * The counterpart of prepareData(), and separate from it because the
+     * framework's own order is not one step but two: addresses are reshaped
+     * after validation (waMyProfileAction.class.php:125), since the storage
+     * shape ['value' => ..., 'ext' => ...] is not the shape the validator reads.
+     * Doing it earlier would validate the wrapper instead of the address.
+     */
+    protected function prepareForStorage(array $data): array
+    {
+        return $data;
     }
 
     /**

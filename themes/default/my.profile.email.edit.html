@@ -1,0 +1,55 @@
+{*
+    Section partial: email, edit mode — one value of the list.
+
+    $field_html is that value's inputs, rendered by the field object itself
+    (authProfileSectionMultiField::fieldHtml()), so the name it posts under is
+    the name it would have had inside the whole-list form: profile[email][2].
+    The section merges it back into the stored list before anything is written.
+
+    Submitting it empty removes the value; $removal_lock is set when this
+    particular one may not go, and then there is nothing to press.
+*}
+<div class="auth-profile-section{if $errors} auth-profile-section-error{/if}" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h4>{$section->getName()|escape}</h4>
+    </div>
+
+    <form method="post" action="{$save_url|escape}" class="auth-form" data-section-form>
+        {$wa->csrf()}
+        <input type="hidden" name="index" value="{$index|default:0}">
+
+        {if !empty($errors[''])}
+            {foreach $errors[''] as $message}
+                {if $message}<div class="auth-error">{$message|escape}</div>{/if}
+            {/foreach}
+        {/if}
+
+        <div class="auth-field">{$field_html}</div>
+
+        {if $ext_options}
+            <div class="auth-field">
+                <label for="auth-{$section->getId()|escape}-ext">{_ws('Type')|escape}</label>
+                {* The framework draws the type as a hidden input carrying
+                   whatever was already there (waContactField::getHtmlOne(), with
+                   a "!!! add a proper <select>?" note), so the real control is
+                   drawn here. Same input name — $section->extInputName() — and
+                   it comes after the hidden one, so this is the value that
+                   lands. The type is optional: the empty option is a real
+                   choice, not a prompt. *}
+                <select id="auth-{$section->getId()|escape}-ext" name="{$section->extInputName($index)|escape}">
+                    <option value="">{_w('Not specified')|escape}</option>
+                    {foreach $ext_options as $ext_value => $ext_name}
+                        <option value="{$ext_value|escape}"{if !empty($value.ext) && $value.ext == $ext_value} selected{/if}>{$ext_name|escape}</option>
+                    {/foreach}
+                </select>
+            </div>
+        {/if}
+
+        <button type="submit" class="auth-submit">{_w('Save')|escape}</button>
+        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_w('Cancel')|escape}</a>
+
+        {if $removal_lock}
+            <p class="auth-hint auth-profile-removal-lock">{$removal_lock|escape}</p>
+        {/if}
+    </form>
+</div>

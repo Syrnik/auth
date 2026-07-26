@@ -53,6 +53,27 @@ class authProfileSectionRegistry
                 'group'  => self::GROUP_PROFILE,
                 'fields' => ['address'],
             ],
+            // The credential twins of 'email' and 'phone' above. Decision 2 of
+            // docs/adr/001-profile-config-boundaries.md: a value that is a login
+            // method is served by its own class, not by the contact-field
+            // section with a flag on it — it is proven before it is stored, it
+            // cannot be given up while it is the only way in, and it has states
+            // ("a code is on its way") the plain field has no idea about.
+            //
+            // Each pair is mutually exclusive by availability: exactly one of
+            // 'email' / 'login_email' can be available at a time, so the page
+            // never shows a field twice. Being credentials, these sit under
+            // "Sign-in and security" and never consult personal_fields.
+            'login_email' => [
+                'class'  => 'authProfileSectionLoginEmail',
+                'group'  => self::GROUP_AUTHORIZATION,
+                'fields' => ['email'],
+            ],
+            'login_phone' => [
+                'class'  => 'authProfileSectionLoginPhone',
+                'group'  => self::GROUP_AUTHORIZATION,
+                'fields' => ['phone'],
+            ],
             'password' => [
                 'class'  => 'authProfileSectionPassword',
                 'group'  => self::GROUP_AUTHORIZATION,
@@ -113,6 +134,28 @@ class authProfileSectionRegistry
         $section = self::instantiate($map[$section_id]['class'], $contact);
 
         return ($section && $section->isAvailable()) ? $section : null;
+    }
+
+    /**
+     * The available section that owns confirmable changes to a contact field
+     * ('email', 'phone'), or null when this domain has none.
+     *
+     * A pending change (auth_profile_confirm) records a field and a value, not
+     * a section id — the flow that confirms it knows nothing about sections.
+     * This is the way back: it is looked up rather than mapped by hand, so
+     * adding another confirmable section does not mean editing the flow too.
+     */
+    public static function getConfirmable(string $field_id, waContact $contact = null): ?authProfileSectionConfirmable
+    {
+        foreach (self::getSections($contact) as $section) {
+            if ($section instanceof authProfileSectionConfirmable
+                && $section->getConfirmableField() === $field_id
+            ) {
+                return $section;
+            }
+        }
+
+        return null;
     }
 
     /**

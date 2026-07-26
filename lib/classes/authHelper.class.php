@@ -167,6 +167,69 @@ class authHelper
         return false;
     }
 
+    /**
+     * Whether this domain signs people in with a given contact field — 'email'
+     * or 'phone'.
+     *
+     * The answer is read off login_methods and nothing else, because that is
+     * where the two coincide: a built-in method's id IS the field it
+     * authenticates by ('email', 'phone'), which is how config.php declares
+     * them. This is what tells authProfileSectionEmail from
+     * authProfileSectionLoginEmail — decision 2 of
+     * docs/adr/001-profile-config-boundaries.md.
+     *
+     * Deliberately not asking plugins. A plugin authenticating by email does so
+     * against its own provider, and the visitor's contact field is not the
+     * credential it checks — treating it as one would take the field away from
+     * the plain profile for a method that never reads it.
+     */
+    public static function isLoginField(string $field_id): bool
+    {
+        foreach (authPluginManager::getEnabled() as $id => $method) {
+            if ($id === $field_id && $method instanceof authBuiltinMethod) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether the method behind a login field authenticates without a password
+     * — phone OTP is the one that does.
+     *
+     * Asked when counting how many ways in a contact has left: a field checked
+     * against a password is the same factor as that password, and counting both
+     * would report two ways in where there is one.
+     */
+    public static function isPasswordlessLoginField(string $field_id): bool
+    {
+        foreach (authPluginManager::getEnabled() as $id => $method) {
+            if ($id === $field_id && $method instanceof authBuiltinMethod) {
+                return !self::methodUsesPassword($method);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Contact fields this domain signs people in with, in login_methods order.
+     *
+     * @return string[]
+     */
+    public static function getLoginFields(): array
+    {
+        $result = [];
+        foreach (['email', 'phone'] as $field_id) {
+            if (self::isLoginField($field_id)) {
+                $result[] = $field_id;
+            }
+        }
+
+        return $result;
+    }
+
     public static function getOAuthProviders(): array
     {
         $providers = [];

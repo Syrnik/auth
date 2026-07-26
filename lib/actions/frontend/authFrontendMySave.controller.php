@@ -54,12 +54,26 @@ class authFrontendMySaveController extends waJsonController
 
         $before = $this->readOwnFields($section);
 
+        // Resolved before the save, because the save may be the one that takes
+        // the contact away — deleting the account leaves wa()->getUser() an
+        // empty contact, and the log entry belongs to whoever made the change.
+        $contact_id = $this->getContact()->getId();
+
         if (!$section->save($data, $index)) {
             $this->respondFailure($section, $index, $data);
             return;
         }
 
-        $this->logSave($section, $before);
+        $this->logSave($section, $before, $contact_id);
+
+        // A save can end the page it was made on, and only the section knows
+        // whether it still has one — see authProfileSection::getRedirectAfterSave().
+        $redirect = $section->getRedirectAfterSave();
+        if ($redirect !== null) {
+            $this->respondRedirect($section, $index, $redirect);
+            return;
+        }
+
         $this->respondSuccess($section, $index);
     }
 
@@ -248,7 +262,7 @@ class authFrontendMySaveController extends waJsonController
      * contact fields: sections outside that set include account deletion and
      * password changes, whose payload has no business in wa_log.
      */
-    private function logSave(authProfileSection $section, array $before): void
+    private function logSave(authProfileSection $section, array $before, $contact_id): void
     {
         $params = ['section' => $section->getId()];
 
@@ -262,7 +276,7 @@ class authFrontendMySaveController extends waJsonController
             $params['diff'] = $diff;
         }
 
-        $this->logAction('my_profile_edit', $params, null, $this->getContact()->getId());
+        $this->logAction('my_profile_edit', $params, null, $contact_id);
     }
 
     private function getContact(): waContact

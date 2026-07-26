@@ -1,0 +1,15 @@
+{*
+    Section partial: photo, view mode. In addition to the common vars the
+    section offers getPhotoUrl() — the contact's avatar, or the framework's
+    default silhouette when there is none, so the block never collapses.
+*}
+<div class="auth-profile-section" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h4>{$section->getName()|escape}</h4>
+        <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{if $section->isEmpty()}{_w('Add')|escape}{else}{_w('Edit')|escape}{/if}</a>
+    </div>
+
+    <div class="auth-profile-photo">
+        <img src="{$section->getPhotoUrl(96)|escape}" width="96" height="96" alt="{$section->getName()|escape}">
+    </div>
+</div>

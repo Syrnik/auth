@@ -61,6 +61,15 @@ abstract class authProfileSectionBase implements authProfileSection
     }
 
     /**
+     * Stay on the profile. Only a section whose save leaves nothing to redraw
+     * answers otherwise — see authProfileSection::getRedirectAfterSave().
+     */
+    public function getRedirectAfterSave(): ?string
+    {
+        return null;
+    }
+
+    /**
      * Errors are all a form-less section has to restore; the submitted values
      * of such a section are its own affair (an unlink is not a value the user
      * retypes). Sections built out of contact fields put the values back into

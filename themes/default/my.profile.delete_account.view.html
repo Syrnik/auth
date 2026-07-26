@@ -1,0 +1,28 @@
+{*
+    Section partial: delete account, view mode.
+
+    A section with no form at all — getForm() is null, so $form is too, and
+    there is nothing here but a way into the edit mode that asks for
+    confirmation. The section exists only when the admin turned it on
+    (delete_account_enabled); this template does not check, and must not: the
+    setting belongs to the app, not to the theme.
+
+    $removal_lock is set when this particular account may not be
+    deleted from here at all — a backend user's contact is tied to rights and
+    history the frontend profile knows nothing about.
+*}
+<div class="auth-profile-section auth-profile-section-danger" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h4>{$section->getName()|escape}</h4>
+
+        {if !$removal_lock}
+            <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{_w('Delete')|escape}</a>
+        {/if}
+    </div>
+
+    {if $removal_lock}
+        <div class="auth-hint">{$removal_lock|escape}</div>
+    {else}
+        <div class="auth-profile-section-value">{_w('Deleting your account removes it permanently. This cannot be undone.')|escape}</div>
+    {/if}
+</div>

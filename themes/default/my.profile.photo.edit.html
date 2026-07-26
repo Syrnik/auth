@@ -1,0 +1,56 @@
+{*
+    Section partial: photo, edit mode.
+
+    enctype is the one thing this form cannot do without: without it the browser
+    posts the file name instead of the file, and the section would see an empty
+    upload every time. my.profile.js posts it as FormData, which carries the file
+    the same way.
+
+    photo_file sits outside the profile[] namespace on purpose — a file is not a
+    waContactField value, and the framework reads it from the same place
+    (waMyProfileAction.class.php:56). The hidden profile[photo] next to it is the
+    current value, which the section reads to tell an upload from a removal.
+
+    Removing is a second form rather than a second button on the first, because
+    a button is not part of what gets posted: my.profile.js sends new FormData(form),
+    which carries the fields and never the control that was pressed, so a remove
+    button would post the photo it was asked to remove. A form of its own says
+    the same thing in fields, and works identically with and without the script.
+*}
+<div class="auth-profile-section{if $errors} auth-profile-section-error{/if}" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h4>{$section->getName()|escape}</h4>
+    </div>
+
+    {foreach $errors as $field_errors}
+        {foreach $field_errors as $message}
+            {if $message}<div class="auth-error">{$message|escape}</div>{/if}
+        {/foreach}
+    {/foreach}
+
+    <div class="auth-profile-photo">
+        <img src="{$section->getPhotoUrl(96)|escape}" width="96" height="96" alt="{$section->getName()|escape}">
+    </div>
+
+    <form method="post" action="{$save_url|escape}" enctype="multipart/form-data" class="auth-form" data-section-form>
+        {$wa->csrf()}
+
+        <div class="auth-field">
+            <label for="auth-photo-file">{_w('Choose a file')|escape}</label>
+            <input type="file" id="auth-photo-file" name="photo_file" accept="image/*">
+        </div>
+
+        {$form->html('photo')}
+
+        <button type="submit" class="auth-submit">{_w('Save')|escape}</button>
+        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_w('Cancel')|escape}</a>
+    </form>
+
+    {if !$section->isEmpty()}
+        <form method="post" action="{$save_url|escape}" class="auth-form auth-profile-photo-remove" data-section-form>
+            {$wa->csrf()}
+            <input type="hidden" name="profile[photo]" value="">
+            <button type="submit">{_w('Remove photo')|escape}</button>
+        </form>
+    {/if}
+</div>

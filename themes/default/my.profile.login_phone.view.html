@@ -1,0 +1,47 @@
+{*
+    Section partial: sign-in phone, view mode. Laid out exactly like
+    my.profile.login_email.view.html.
+
+    Same list as the plain phone section, with one thing added and one taken
+    away. Added: the first value is marked as the one that signs the visitor in,
+    and a change already awaiting confirmation ($pending) is shown instead of
+    silence — the old number keeps working until the new one is confirmed, and a
+    page that says nothing about it looks like the change was lost. Here the
+    link back matters more than for an email: the code arrived by SMS and this
+    is the only way back to the form that takes it.
+
+    Taken away: nothing here decides visibility. The section exists only while
+    the domain signs people in by email, which is login_methods' answer and not
+    this template's — decision 1 of docs/adr/001-profile-config-boundaries.md.
+*}
+<div class="auth-profile-section auth-profile-section-login" data-section="{$section->getId()|escape}">
+    <div class="auth-profile-section-head">
+        <h4>{$section->getName()|escape}</h4>
+        <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
+    </div>
+
+    {if $pending}
+        <div class="auth-notice auth-profile-pending">
+            {sprintf(_w('Waiting for %s to be confirmed.'), $pending.value)|escape}
+            <a href="{$wa_app_url}my/confirm/?field={$section->getConfirmableField()|escape:'url'}">{_w('Finish the change')|escape}</a>
+        </div>
+    {/if}
+
+    <ul class="auth-profile-values">
+        {foreach $values as $i => $item}
+            <li class="auth-profile-value{if $i == 0} auth-profile-value-login{/if}" data-index="{$i}">
+                <span class="auth-profile-value-text">{$item.value|escape}</span>
+
+                {if $i == 0}
+                    <span class="auth-profile-value-badge">{_w('Used to sign in')|escape}</span>
+                {elseif !empty($item.ext) && isset($ext_options[$item.ext])}
+                    <span class="auth-profile-value-ext">{$ext_options[$item.ext]|escape}</span>
+                {/if}
+
+                <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_w('Edit')|escape}</a>
+            </li>
+        {foreachelse}
+            <li class="auth-profile-section-empty">{_w('Not specified yet.')|escape}</li>
+        {/foreach}
+    </ul>
+</div>

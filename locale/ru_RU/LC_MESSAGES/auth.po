@@ -1,0 +1,346 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: auth\n"
+"POT-Creation-Date: 2026-08-11 02:05+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: auth\n"
+"Language-Team: auth\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-Language: ru_RU\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: utf-8\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "Settings"
+msgstr "Настройки"
+
+msgid "This app is not mounted on any site yet. Add a route to the Auth app in Site → Settings, then configure authentication for that site here."
+msgstr "Приложение ещё не подключено ни к одному сайту. Добавьте маршрут к приложению Auth в разделе «Сайт → Настройки», а затем настройте авторизацию для этого сайта здесь."
+
+msgid "Captcha"
+msgstr "Капча"
+
+msgid "Captcha plugin"
+msgstr "Плагин капчи"
+
+msgid "(none)"
+msgstr "(нет)"
+
+msgid "No captcha plugins are installed."
+msgstr "Плагины капчи не установлены."
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Saved"
+msgstr "Сохранено"
+
+msgid "Two-factor authentication"
+msgstr "Двухфакторная аутентификация"
+
+msgid "No two-factor authentication plugins are installed."
+msgstr "Плагины двухфакторной аутентификации не установлены."
+
+msgid "Dashboard content is coming in a later update."
+msgstr "Содержимое панели появится в одном из следующих обновлений."
+
+msgid "Signup and login protection"
+msgstr "Защита регистрации и входа"
+
+msgid "No guard plugins are installed."
+msgstr "Плагины защиты не установлены."
+
+msgid "Authorization"
+msgstr "Авторизация"
+
+msgid "Enable at least one login method, otherwise this site has no login or registration."
+msgstr "Включите хотя бы один способ входа, иначе на этом сайте не будет ни входа, ни регистрации."
+
+msgid "several named connections can be added"
+msgstr "можно добавить несколько именованных подключений"
+
+msgid "delete"
+msgstr "удалить"
+
+msgid "Add connection"
+msgstr "Добавить подключение"
+
+msgid "Connection ID: Latin letters, digits, hyphen, underscore"
+msgstr "ID подключения: латинские буквы, цифры, дефис, подчёркивание"
+
+msgid "Invalid ID. Allowed: Latin letters, digits, hyphen, underscore; starts with a letter or digit."
+msgstr "Некорректный ID. Разрешены латинские буквы, цифры, дефис, подчёркивание; должен начинаться с буквы или цифры."
+
+msgid "A connection with this ID already exists."
+msgstr "Подключение с таким ID уже существует."
+
+msgid "Profile"
+msgstr "Профиль"
+
+msgid "Which contact fields the profile page shows is part of the site map, in Site → Settings. This screen covers what only this app can decide."
+msgstr "Какие поля контакта показывать на странице профиля — это часть карты сайта, в разделе «Сайт → Настройки». Здесь собрано только то, что может решать само приложение."
+
+msgid "Let users delete their own account"
+msgstr "Разрешить пользователям удалять свой аккаунт"
+
+msgid "The account is removed permanently, together with what other apps stored about it. There is no undo and no grace period."
+msgstr "Аккаунт удаляется безвозвратно вместе со всем, что о нём хранят другие приложения. Отменить удаление или восстановить аккаунт нельзя."
+
+msgid "Password recovery"
+msgstr "Восстановление пароля"
+
+msgid "Allow password recovery"
+msgstr "Разрешить восстановление пароля"
+
+msgid "Show \"Remember me\" checkbox"
+msgstr "Показывать флажок «Запомнить меня»"
+
+msgid "off"
+msgstr "выкл"
+
+msgid "No sites use this app"
+msgstr "Ни один сайт не использует это приложение"
+
+msgid "Dashboard"
+msgstr "Панель"
+
+msgid "Registration"
+msgstr "Регистрация"
+
+msgid "Protection"
+msgstr "Защита"
+
+msgid "Plugins"
+msgstr "Плагины"
+
+msgid "Allow registration"
+msgstr "Разрешить регистрацию"
+
+msgid "Require email confirmation"
+msgstr "Требовать подтверждение email"
+
+msgid "This address does not accept form submissions. Use my/save/<section>/ instead."
+msgstr "Этот адрес не принимает отправку форм. Используйте my/save/<section>/."
+
+msgid "Profile section not found."
+msgstr "Раздел профиля не найден."
+
+msgid "This confirmation link is no longer valid. Please start the change again."
+msgstr "Эта ссылка подтверждения больше не действительна. Начните изменение заново."
+
+msgid "Enter the code from the message."
+msgstr "Введите код из сообщения."
+
+msgid "Too many incorrect codes. Please start the change again."
+msgstr "Слишком много неверных попыток ввода кода. Начните изменение заново."
+
+msgid "Incorrect code. Attempts left: %d."
+msgstr "Неверный код. Осталось попыток: %d."
+
+msgid "This change can no longer be applied."
+msgstr "Это изменение больше нельзя применить."
+
+msgid "This change could not be applied."
+msgstr "Не удалось применить это изменение."
+
+msgid "This address only accepts a form submission."
+msgstr "Этот адрес принимает только отправку формы."
+
+msgid "This profile section holds a single value."
+msgstr "Этот раздел профиля содержит только одно значение."
+
+msgid "Malformed value number."
+msgstr "Некорректный номер значения."
+
+msgid "No section data submitted."
+msgstr "Не переданы данные раздела."
+
+msgid "The changes could not be saved."
+msgstr "Не удалось сохранить изменения."
+
+msgid "Access denied"
+msgstr "Доступ запрещён"
+
+msgid "Delete account"
+msgstr "Удалить аккаунт"
+
+msgid "Accounts with access to the backend cannot be deleted here. Ask an administrator."
+msgstr "Аккаунты с доступом в бэкенд нельзя удалить здесь. Обратитесь к администратору."
+
+msgid "Deleting the account is not available."
+msgstr "Удаление аккаунта недоступно."
+
+msgid "Confirm that you want to delete your account."
+msgstr "Подтвердите, что хотите удалить свой аккаунт."
+
+msgid "The account could not be deleted."
+msgstr "Не удалось удалить аккаунт."
+
+msgid "Linked accounts"
+msgstr "Связанные аккаунты"
+
+msgid "Nothing to unlink."
+msgstr "Нечего отвязывать."
+
+msgid "This account is not linked."
+msgstr "Этот аккаунт не привязан."
+
+msgid "This is the only way you can sign in. Add another one before unlinking this account."
+msgstr "Это единственный способ входа. Добавьте ещё один, прежде чем отвязывать этот аккаунт."
+
+msgid "This value is already used by another account."
+msgstr "Это значение уже используется другим аккаунтом."
+
+msgid "The confirmation could not be sent. Please try again later."
+msgstr "Не удалось отправить подтверждение. Попробуйте позже."
+
+msgid "This is what you sign in with. Remove the other values first, or the next one would take its place without being confirmed."
+msgstr "Это то, чем вы входите. Сначала удалите остальные значения — иначе следующее займёт его место без подтверждения."
+
+msgid "This is the only way you can sign in. Add another one before removing it."
+msgstr "Это единственный способ входа. Добавьте ещё один, прежде чем удалять этот."
+
+msgid "Sign-in email"
+msgstr "Email для входа"
+
+msgid "Confirm your new sign-in email"
+msgstr "Подтвердите новый email для входа"
+
+msgid "Open the link below to start signing in with this address."
+msgstr "Перейдите по ссылке ниже, чтобы начать входить с этого адреса."
+
+msgid "Sign-in phone"
+msgstr "Телефон для входа"
+
+msgid "Your confirmation code: %s"
+msgstr "Код подтверждения: %s"
+
+msgid "Enter your current password."
+msgstr "Введите текущий пароль."
+
+msgid "The current password is not correct."
+msgstr "Текущий пароль указан неверно."
+
+msgid "Changing the photo is not available."
+msgstr "Изменение фото недоступно."
+
+msgid "Sign-in and security"
+msgstr "Вход и безопасность"
+
+msgid "A password is set."
+msgstr "Пароль установлен."
+
+msgid "Add"
+msgstr "Добавить"
+
+msgid "Back to my profile"
+msgstr "Назад в профиль"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Cancel the change"
+msgstr "Отменить изменение"
+
+msgid "Change"
+msgstr "Изменить"
+
+msgid "Choose a file"
+msgstr "Выбрать файл"
+
+msgid "Code from the message"
+msgstr "Код из сообщения"
+
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgid "Confirm the change"
+msgstr "Подтверждение изменения"
+
+msgid "Current password"
+msgstr "Текущий пароль"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Deleting your account removes it permanently. This cannot be undone."
+msgstr "Удаление аккаунта необратимо."
+
+msgid "Done"
+msgstr "Готово"
+
+msgid "Edit"
+msgstr "Редактировать"
+
+msgid "Finish the change"
+msgstr "Завершить изменение"
+
+msgid "Link"
+msgstr "Привязать"
+
+msgid "Log out"
+msgstr "Выйти"
+
+msgid "Manage"
+msgstr "Управление"
+
+msgid "My profile"
+msgstr "Мой профиль"
+
+msgid "No accounts linked yet."
+msgstr "Пока нет привязанных аккаунтов."
+
+msgid "No password set. You sign in another way."
+msgstr "Пароль не задан. Вы входите другим способом."
+
+msgid "Not configured"
+msgstr "Не настроено"
+
+msgid "Not specified"
+msgstr "Не указано"
+
+msgid "Not specified yet."
+msgstr "Пока не указано."
+
+msgid "Remove photo"
+msgstr "Удалить фото"
+
+msgid "Send confirmation"
+msgstr "Отправить подтверждение"
+
+msgid "Set password"
+msgstr "Задать пароль"
+
+msgid "Unlink"
+msgstr "Отвязать"
+
+msgid "Used to sign in"
+msgstr "Используется для входа"
+
+msgid "Waiting for %s to be confirmed."
+msgstr "Ожидает подтверждения: %s."
+
+msgid "We sent a code to %s."
+msgstr "Мы отправили код на %s."
+
+msgid "We sent a confirmation link to %s. Open it to finish the change."
+msgstr "Мы отправили ссылку для подтверждения на %s. Перейдите по ней, чтобы завершить изменение."
+
+msgid "We will send a confirmation link to the new address. Until you open it, you keep signing in with the current one."
+msgstr "Мы отправим ссылку для подтверждения на новый адрес. Пока вы её не откроете, вход останется по текущему адресу."
+
+msgid "We will text a code to the new number. Until you enter it, you keep signing in with the current one."
+msgstr "Мы отправим код на новый номер по SMS. Пока вы его не введёте, вход останется по текущему номеру."
+
+msgid "Yes, delete my account"
+msgstr "Да, удалить мой аккаунт"
+
+msgid "Your account and everything stored with it will be removed permanently. This cannot be undone."
+msgstr "Аккаунт и всё, что с ним связано, будут удалены безвозвратно. Отменить это нельзя."
+
+msgid "Your changes have been saved."
+msgstr "Изменения сохранены."

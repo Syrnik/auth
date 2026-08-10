@@ -1,0 +1,346 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: auth\n"
+"POT-Creation-Date: 2026-08-11 02:05+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: auth\n"
+"Language-Team: auth\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: en_US\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: utf-8\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "Settings"
+msgstr ""
+
+msgid "This app is not mounted on any site yet. Add a route to the Auth app in Site → Settings, then configure authentication for that site here."
+msgstr ""
+
+msgid "Captcha"
+msgstr ""
+
+msgid "Captcha plugin"
+msgstr ""
+
+msgid "(none)"
+msgstr ""
+
+msgid "No captcha plugins are installed."
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Saved"
+msgstr ""
+
+msgid "Two-factor authentication"
+msgstr ""
+
+msgid "No two-factor authentication plugins are installed."
+msgstr ""
+
+msgid "Dashboard content is coming in a later update."
+msgstr ""
+
+msgid "Signup and login protection"
+msgstr ""
+
+msgid "No guard plugins are installed."
+msgstr ""
+
+msgid "Authorization"
+msgstr ""
+
+msgid "Enable at least one login method, otherwise this site has no login or registration."
+msgstr ""
+
+msgid "several named connections can be added"
+msgstr ""
+
+msgid "delete"
+msgstr ""
+
+msgid "Add connection"
+msgstr ""
+
+msgid "Connection ID: Latin letters, digits, hyphen, underscore"
+msgstr ""
+
+msgid "Invalid ID. Allowed: Latin letters, digits, hyphen, underscore; starts with a letter or digit."
+msgstr ""
+
+msgid "A connection with this ID already exists."
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Which contact fields the profile page shows is part of the site map, in Site → Settings. This screen covers what only this app can decide."
+msgstr ""
+
+msgid "Let users delete their own account"
+msgstr ""
+
+msgid "The account is removed permanently, together with what other apps stored about it. There is no undo and no grace period."
+msgstr ""
+
+msgid "Password recovery"
+msgstr ""
+
+msgid "Allow password recovery"
+msgstr ""
+
+msgid "Show \"Remember me\" checkbox"
+msgstr ""
+
+msgid "off"
+msgstr ""
+
+msgid "No sites use this app"
+msgstr ""
+
+msgid "Dashboard"
+msgstr ""
+
+msgid "Registration"
+msgstr ""
+
+msgid "Protection"
+msgstr ""
+
+msgid "Plugins"
+msgstr ""
+
+msgid "Allow registration"
+msgstr ""
+
+msgid "Require email confirmation"
+msgstr ""
+
+msgid "This address does not accept form submissions. Use my/save/<section>/ instead."
+msgstr ""
+
+msgid "Profile section not found."
+msgstr ""
+
+msgid "This confirmation link is no longer valid. Please start the change again."
+msgstr ""
+
+msgid "Enter the code from the message."
+msgstr ""
+
+msgid "Too many incorrect codes. Please start the change again."
+msgstr ""
+
+msgid "Incorrect code. Attempts left: %d."
+msgstr ""
+
+msgid "This change can no longer be applied."
+msgstr ""
+
+msgid "This change could not be applied."
+msgstr ""
+
+msgid "This address only accepts a form submission."
+msgstr ""
+
+msgid "This profile section holds a single value."
+msgstr ""
+
+msgid "Malformed value number."
+msgstr ""
+
+msgid "No section data submitted."
+msgstr ""
+
+msgid "The changes could not be saved."
+msgstr ""
+
+msgid "Access denied"
+msgstr ""
+
+msgid "Delete account"
+msgstr ""
+
+msgid "Accounts with access to the backend cannot be deleted here. Ask an administrator."
+msgstr ""
+
+msgid "Deleting the account is not available."
+msgstr ""
+
+msgid "Confirm that you want to delete your account."
+msgstr ""
+
+msgid "The account could not be deleted."
+msgstr ""
+
+msgid "Linked accounts"
+msgstr ""
+
+msgid "Nothing to unlink."
+msgstr ""
+
+msgid "This account is not linked."
+msgstr ""
+
+msgid "This is the only way you can sign in. Add another one before unlinking this account."
+msgstr ""
+
+msgid "This value is already used by another account."
+msgstr ""
+
+msgid "The confirmation could not be sent. Please try again later."
+msgstr ""
+
+msgid "This is what you sign in with. Remove the other values first, or the next one would take its place without being confirmed."
+msgstr ""
+
+msgid "This is the only way you can sign in. Add another one before removing it."
+msgstr ""
+
+msgid "Sign-in email"
+msgstr ""
+
+msgid "Confirm your new sign-in email"
+msgstr ""
+
+msgid "Open the link below to start signing in with this address."
+msgstr ""
+
+msgid "Sign-in phone"
+msgstr ""
+
+msgid "Your confirmation code: %s"
+msgstr ""
+
+msgid "Enter your current password."
+msgstr ""
+
+msgid "The current password is not correct."
+msgstr ""
+
+msgid "Changing the photo is not available."
+msgstr ""
+
+msgid "Sign-in and security"
+msgstr ""
+
+msgid "A password is set."
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Back to my profile"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Cancel the change"
+msgstr ""
+
+msgid "Change"
+msgstr ""
+
+msgid "Choose a file"
+msgstr ""
+
+msgid "Code from the message"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+msgid "Confirm the change"
+msgstr ""
+
+msgid "Current password"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Deleting your account removes it permanently. This cannot be undone."
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Finish the change"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
+msgid "Log out"
+msgstr ""
+
+msgid "Manage"
+msgstr ""
+
+msgid "My profile"
+msgstr ""
+
+msgid "No accounts linked yet."
+msgstr ""
+
+msgid "No password set. You sign in another way."
+msgstr ""
+
+msgid "Not configured"
+msgstr ""
+
+msgid "Not specified"
+msgstr ""
+
+msgid "Not specified yet."
+msgstr ""
+
+msgid "Remove photo"
+msgstr ""
+
+msgid "Send confirmation"
+msgstr ""
+
+msgid "Set password"
+msgstr ""
+
+msgid "Unlink"
+msgstr ""
+
+msgid "Used to sign in"
+msgstr ""
+
+msgid "Waiting for %s to be confirmed."
+msgstr ""
+
+msgid "We sent a code to %s."
+msgstr ""
+
+msgid "We sent a confirmation link to %s. Open it to finish the change."
+msgstr ""
+
+msgid "We will send a confirmation link to the new address. Until you open it, you keep signing in with the current one."
+msgstr ""
+
+msgid "We will text a code to the new number. Until you enter it, you keep signing in with the current one."
+msgstr ""
+
+msgid "Yes, delete my account"
+msgstr ""
+
+msgid "Your account and everything stored with it will be removed permanently. This cannot be undone."
+msgstr ""
+
+msgid "Your changes have been saved."
+msgstr ""

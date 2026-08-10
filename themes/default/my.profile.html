@@ -20,8 +20,6 @@
         <div class="auth-success">{_w('Your changes have been saved.')|escape}</div>
     {/if}
 
-    {debug}
-
     {foreach $profile_groups as $group}
         <div class="auth-profile-group" data-group="{$group.id|escape}">
             <h3 class="auth-profile-group-name">{$group.name|escape}</h3>

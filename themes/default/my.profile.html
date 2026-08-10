@@ -26,6 +26,7 @@
         <div class="auth-profile-group" data-group="{$group.id|escape}">
             <h3 class="auth-profile-group-name">{$group.name|escape}</h3>
             {if $group.id == 'profile'}
+                {$_sections = []}
                 {$_photo_section = null}
                 {$_name_section = null}
                 {$_phone_section = null}
@@ -55,10 +56,33 @@
                         {if $_address_section}{$_address_section.html}{/if}
                     </div>
                 {/if}
+            {elseif $group.id == 'authorization'}
+                {$_sections = []}
+                {$_login_email_section = null}
+                {$_password_section = null}
+                {$_linked_accounts_section = null}
+                {$_delete_account_section = null}
+                {foreach $group.sections as $section}
+                    {if $section.id === 'login_email'}
+                        {$_login_email_section = $section}
+                    {elseif $section.id === 'password'}
+                        {$_password_section = $section}
+                    {elseif $section.id === 'linked_accounts'}
+                        {$_linked_accounts_section = $section}
+                    {else}
+                        {$_sections[$section.id] = $section}
+                    {/if}
+                {/foreach}
+                {if $_login_email_section || $_password_section || $_linked_accounts_section}
+                    <div class="auth-authorization-sections-auths">
+                        {if $_login_email_section}{$_login_email_section.html}{/if}
+                        {if $_password_section}{$_password_section.html}{/if}
+                        {if $_linked_accounts_section}{$_linked_accounts_section.html}{/if}
+                    </div>
+                {/if}
             {else}
                 {$_sections = $group.sections}
             {/if}
-
 
             {foreach $_sections as $section}
                 {$section.html}

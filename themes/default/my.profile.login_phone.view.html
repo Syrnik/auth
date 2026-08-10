@@ -17,7 +17,6 @@
 <div class="auth-profile-section auth-profile-section-login" data-section="{$section->getId()|escape}">
     <div class="auth-profile-section-head">
         <h4>{$section->getName()|escape}</h4>
-        <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
     </div>
 
     {if $pending}
@@ -44,4 +43,5 @@
             <li class="auth-profile-section-empty">{_w('Not specified yet.')|escape}</li>
         {/foreach}
     </ul>
+    <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
 </div>

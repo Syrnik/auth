@@ -91,3 +91,20 @@
 .auth-profile-section-username {
     flex: 0 0 calc(100% - 100px - var(--auth-gap));
 }
+
+.auth-authorization-sections-auths {
+    padding: var(--auth-gap);
+    margin: 1.5rem 0;
+    gap: var(--auth-gap);
+    width: 100%;
+    border: 1px solid var(--theme-editor-tabs-border);
+    border-radius: var(--element-border-radius);
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+    .auth-authorization-sections-auths {
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    }
+}

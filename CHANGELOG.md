@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Registration now stops immediately on a failed captcha check, matching login — a guard error could otherwise silently overwrite the captcha error before it reached the user
 - Backend Plugins page never got the app header/sidebar (missing `setLayout()`), fixed by replacing the whole screen with the standard plugin page above
 - Frontend app root (`/auth/`) 404'd with "Empty module and/or action" — also broke the Design section's theme preview link, which points at this same URL. Now redirects to `my/` (logged in) or `login/` (guest)
+- `my/` accepted a `POST` and wrote the contact through `waMyProfileAction::saveFromPost()` — a second, live write path bypassing every rule that `my/save/<section>/` enforces (login-change confirmation, current-password check, sections' `prepareData()`/`prepareForStorage()`, save logging). `authFrontendMyAction` no longer extends `waMyProfileAction`; `POST my/` now answers `405`, and it no longer assembles a whole-page `waContactForm` on every view or hands the theme `form`/`user_info`/`contact`, none of which it read
 
 ### Security
 

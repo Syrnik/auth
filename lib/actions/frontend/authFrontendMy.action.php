@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class authFrontendMyAction extends waMyProfileAction
+class authFrontendMyAction extends waViewAction
 {
     /**
      * Rendered partial an XHR asked for, or null when this request is an
@@ -12,9 +12,23 @@ class authFrontendMyAction extends waMyProfileAction
      */
     private ?string $fragment = null;
 
+    /** @var waContact whose profile is being shown. */
+    private waContact $contact;
+
     public function execute()
     {
-        parent::execute();
+        // The only address this page writes through is my/save/<section>/ —
+        // see docs/adr/001-profile-config-boundaries.md, decision 5. A POST here
+        // used to fall through to waMyProfileAction::saveFromPost(), a second
+        // write path bypassing every section rule (confirmation, current-password
+        // check, prepareData()/prepareForStorage(), logging). Closed by AUTH-85.
+        if (waRequest::method() === 'post') {
+            throw new waException(_w('This address does not accept form submissions. Use my/save/<section>/ instead.'), 405);
+        }
+
+        $this->contact = wa()->getUser();
+
+        $this->view->assign('saved', boolval(wa()->getStorage()->getOnce('my/profile/updated')));
 
         $this->setThemeTemplate('my.profile.html');
         if (!waRequest::isXMLHttpRequest()) {
@@ -71,7 +85,7 @@ class authFrontendMyAction extends waMyProfileAction
      */
     public function display($clear_assign = true)
     {
-        $html = parent::display($clear_assign);
+        $html = parent::display(false);
 
         return $this->fragment === null ? $html : $this->fragment;
     }

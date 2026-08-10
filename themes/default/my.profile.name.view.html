@@ -7,22 +7,13 @@
     is redrawn, and the only thing the script needs to find. Layout and styling
     are task «Дизайн и вёрстка my.profile».
 *}
-<div class="auth-profile-section" data-section="{$section->getId()|escape}">
-    <div class="auth-profile-section-head">
-        <h4>{$section->getName()|escape}</h4>
-        <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{if $section->isEmpty()}{_w('Add')|escape}{else}{_w('Edit')|escape}{/if}</a>
-    </div>
-
+<div class="auth-profile-section auth-profile-section-username" data-section="{$section->getId()|escape}">
     {if $section->isEmpty()}
         <div class="auth-profile-section-empty">{_w('Not specified yet.')|escape}</div>
     {else}
-        <dl class="auth-profile-values">
-            {foreach $section->getValues() as $field}
-                {if "{$field.value}" !== ''}
-                    <dt>{$field.name|escape}</dt>
-                    <dd>{$field.value|escape}</dd>
-                {/if}
-            {/foreach}
-        </dl>
+        <div>
+            {$wa->user('name')|escape}
+        </div>
     {/if}
+    <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{if $section->isEmpty()}{_w('Add')|escape}{else}{_w('Edit')|escape}{/if}</a>
 </div>

@@ -13,10 +13,6 @@
     authProfileSectionName::validateSection().
 *}
 <div class="auth-profile-section{if $errors} auth-profile-section-error{/if}" data-section="{$section->getId()|escape}">
-    <div class="auth-profile-section-head">
-        <h4>{$section->getName()|escape}</h4>
-    </div>
-
     <form method="post" action="{$save_url|escape}" class="auth-form" data-section-form>
         {$wa->csrf()}
 
@@ -30,7 +26,11 @@
         {/if}
 
         {foreach $form->fields() as $field_id => $field}
-            <div class="auth-field">{$form->html($field_id)}</div>
+            <div class="auth-field">
+                <label class="auth-field-label">{$field->getName()|escape}
+                    {$form->html($field_id)}
+                </label>
+            </div>
         {/foreach}
 
         <button type="submit" class="auth-submit">{_w('Save')|escape}</button>

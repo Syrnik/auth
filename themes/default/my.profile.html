@@ -20,11 +20,35 @@
         <div class="auth-success">{_w('Your changes have been saved.')|escape}</div>
     {/if}
 
+    {debug}
+
     {foreach $profile_groups as $group}
         <div class="auth-profile-group" data-group="{$group.id|escape}">
             <h3 class="auth-profile-group-name">{$group.name|escape}</h3>
+            {if $group.id == 'profile'}
+                {$_photo_section = null}
+                {$_name_section = null}
+                {foreach $group.sections as $section}
+                    {if $section.id === 'photo'}
+                        {$_photo_section = $section}
+                    {elseif $section.id === 'name'}
+                        {$_name_section = $section}
+                    {else}
+                        {$_sections[$section.id] = $section}
+                    {/if}
+                {/foreach}
+                {if $_photo_section || $_name_section}
+                    <div class="auth-profile-sections-name">
+                        {if $_photo_section}{$_photo_section.html}{/if}
+                        {if $_name_section}{$_name_section.html}{/if}
+                    </div>
+                {/if}
+            {else}
+                {$_sections = $group.sections}
+            {/if}
 
-            {foreach $group.sections as $section}
+
+            {foreach $_sections as $section}
                 {$section.html}
             {/foreach}
         </div>

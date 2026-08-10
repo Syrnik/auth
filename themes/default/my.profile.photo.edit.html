@@ -18,10 +18,6 @@
     the same thing in fields, and works identically with and without the script.
 *}
 <div class="auth-profile-section{if $errors} auth-profile-section-error{/if}" data-section="{$section->getId()|escape}">
-    <div class="auth-profile-section-head">
-        <h4>{$section->getName()|escape}</h4>
-    </div>
-
     {foreach $errors as $field_errors}
         {foreach $field_errors as $message}
             {if $message}<div class="auth-error">{$message|escape}</div>{/if}

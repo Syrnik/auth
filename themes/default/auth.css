@@ -1,6 +1,10 @@
+:root {
+    --auth-gap: 0.5rem
+}
+
 .auth-container {
-    max-width: 480px;
-    margin: 2rem auto;
+    /*max-width: 480px;*/
+    /*margin: 2rem auto;*/
 }
 
 .auth-error {
@@ -54,4 +58,21 @@
     padding: 8px 16px;
     border: 1px solid #999;
     text-decoration: none;
+}
+
+.auth-profile-sections-name {
+    display: flex;
+    gap: var(--auth-gap);
+    padding: 1em;
+    border: 1px solid var(--theme-editor-tabs-border);
+    border-radius: var(--element-border-radius);
+    margin-bottom: 1.5rem;
+}
+
+.auth-profile-section-photo {
+    flex: 0 0 100px;
+}
+
+.auth-profile-section-username {
+    flex: 0 0 calc(100% - 100px - var(--auth-gap));
 }

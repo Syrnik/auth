@@ -15,7 +15,6 @@
 <div class="auth-profile-section" data-section="{$section->getId()|escape}">
     <div class="auth-profile-section-head">
         <h4>{$section->getName()|escape}</h4>
-        <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
     </div>
 
     {if $section->isEmpty()}
@@ -33,4 +32,5 @@
             {/foreach}
         </ul>
     {/if}
+    <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
 </div>

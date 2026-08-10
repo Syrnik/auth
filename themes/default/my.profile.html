@@ -28,11 +28,17 @@
             {if $group.id == 'profile'}
                 {$_photo_section = null}
                 {$_name_section = null}
+                {$_phone_section = null}
+                {$_address_section = null}
                 {foreach $group.sections as $section}
                     {if $section.id === 'photo'}
                         {$_photo_section = $section}
                     {elseif $section.id === 'name'}
                         {$_name_section = $section}
+                    {elseif $section.id === 'phone'}
+                        {$_phone_section = $section}
+                    {elseif $section.id === 'address'}
+                        {$_address_section = $section}
                     {else}
                         {$_sections[$section.id] = $section}
                     {/if}
@@ -41,6 +47,12 @@
                     <div class="auth-profile-sections-name">
                         {if $_photo_section}{$_photo_section.html}{/if}
                         {if $_name_section}{$_name_section.html}{/if}
+                    </div>
+                {/if}
+                {if $_phone_section || $_address_section}
+                    <div class="auth-profile-sections-contacts">
+                        {if $_phone_section}{$_phone_section.html}{/if}
+                        {if $_address_section}{$_address_section.html}{/if}
                     </div>
                 {/if}
             {else}

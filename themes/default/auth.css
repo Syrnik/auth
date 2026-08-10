@@ -63,10 +63,25 @@
 .auth-profile-sections-name {
     display: flex;
     gap: var(--auth-gap);
-    padding: 1em;
+    padding: var(--auth-gap);
     border: 1px solid var(--theme-editor-tabs-border);
     border-radius: var(--element-border-radius);
-    margin-bottom: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.auth-profile-sections-contacts {
+    padding: var(--auth-gap);
+    margin: 1.5rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--auth-gap);
+    width: 100%;
+    border: 1px solid var(--theme-editor-tabs-border);
+    border-radius: var(--element-border-radius);
+}
+
+.auth-profile-sections-contacts .auth-profile-section {
+    flex: 1 1 200px;
 }
 
 .auth-profile-section-photo {

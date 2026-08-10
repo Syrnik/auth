@@ -54,6 +54,14 @@
             <description locale="en_US">Profile page behavior: section editing without a page reload</description>
             <description locale="ru_RU">Поведение страницы профиля: редактирование секций без перезагрузки</description>
         </file>
+        <file path="my.profile.photo.view.html">
+            <description locale="en_US">Profile section: photo, view mode</description>
+            <description locale="ru_RU">Секция профиля: фото, режим просмотра</description>
+        </file>
+        <file path="my.profile.photo.edit.html">
+            <description locale="en_US">Profile section: photo, edit mode</description>
+            <description locale="ru_RU">Секция профиля: фото, режим редактирования</description>
+        </file>
         <file path="my.profile.name.view.html">
             <description locale="en_US">Profile section: name, view mode</description>
             <description locale="ru_RU">Секция профиля: имя, режим просмотра</description>
@@ -62,6 +70,54 @@
             <description locale="en_US">Profile section: name, edit mode</description>
             <description locale="ru_RU">Секция профиля: имя, режим редактирования</description>
         </file>
+        <file path="my.profile.email.view.html">
+            <description locale="en_US">Profile section: email, view mode</description>
+            <description locale="ru_RU">Секция профиля: email, режим просмотра</description>
+        </file>
+        <file path="my.profile.email.edit.html">
+            <description locale="en_US">Profile section: email, edit mode</description>
+            <description locale="ru_RU">Секция профиля: email, режим редактирования</description>
+        </file>
+        <file path="my.profile.phone.view.html">
+            <description locale="en_US">Profile section: phone, view mode</description>
+            <description locale="ru_RU">Секция профиля: телефон, режим просмотра</description>
+        </file>
+        <file path="my.profile.phone.edit.html">
+            <description locale="en_US">Profile section: phone, edit mode</description>
+            <description locale="ru_RU">Секция профиля: телефон, режим редактирования</description>
+        </file>
+        <file path="my.profile.address.view.html">
+            <description locale="en_US">Profile section: address, view mode</description>
+            <description locale="ru_RU">Секция профиля: адрес, режим просмотра</description>
+        </file>
+        <file path="my.profile.address.edit.html">
+            <description locale="en_US">Profile section: address, edit mode</description>
+            <description locale="ru_RU">Секция профиля: адрес, режим редактирования</description>
+        </file>
+        <file path="my.profile.login_email.view.html">
+            <description locale="en_US">Profile section: sign-in email, view mode</description>
+            <description locale="ru_RU">Секция профиля: email для входа, режим просмотра</description>
+        </file>
+        <file path="my.profile.login_email.edit.html">
+            <description locale="en_US">Profile section: sign-in email, edit mode</description>
+            <description locale="ru_RU">Секция профиля: email для входа, режим редактирования</description>
+        </file>
+        <file path="my.profile.login_phone.view.html">
+            <description locale="en_US">Profile section: sign-in phone, view mode</description>
+            <description locale="ru_RU">Секция профиля: телефон для входа, режим просмотра</description>
+        </file>
+        <file path="my.profile.login_phone.edit.html">
+            <description locale="en_US">Profile section: sign-in phone, edit mode</description>
+            <description locale="ru_RU">Секция профиля: телефон для входа, режим редактирования</description>
+        </file>
+        <file path="my.profile.password.view.html">
+            <description locale="en_US">Profile section: password, view mode</description>
+            <description locale="ru_RU">Секция профиля: пароль, режим просмотра</description>
+        </file>
+        <file path="my.profile.password.edit.html">
+            <description locale="en_US">Profile section: password, edit mode</description>
+            <description locale="ru_RU">Секция профиля: пароль, режим редактирования</description>
+        </file>
         <file path="my.profile.linked_accounts.view.html">
             <description locale="en_US">Profile section: linked accounts, view mode</description>
             <description locale="ru_RU">Секция профиля: связанные аккаунты, режим просмотра</description>
@@ -69,6 +125,18 @@
         <file path="my.profile.linked_accounts.edit.html">
             <description locale="en_US">Profile section: linked accounts, edit mode</description>
             <description locale="ru_RU">Секция профиля: связанные аккаунты, режим редактирования</description>
+        </file>
+        <file path="my.profile.delete_account.view.html">
+            <description locale="en_US">Profile section: delete account, view mode</description>
+            <description locale="ru_RU">Секция профиля: удаление аккаунта, режим просмотра</description>
+        </file>
+        <file path="my.profile.delete_account.edit.html">
+            <description locale="en_US">Profile section: delete account, edit mode</description>
+            <description locale="ru_RU">Секция профиля: удаление аккаунта, режим редактирования</description>
+        </file>
+        <file path="my.confirm.html">
+            <description locale="en_US">Confirmation page for a pending sign-in change</description>
+            <description locale="ru_RU">Страница подтверждения изменения логина</description>
         </file>
     </files>
 </theme>

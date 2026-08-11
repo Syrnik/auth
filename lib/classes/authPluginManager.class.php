@@ -107,6 +107,53 @@ class authPluginManager
         return self::loadPlugin($plugin_id, $instance, 'is_captcha');
     }
 
+    /**
+     * Plugins offering a profile section (my/) for the current domain, keyed
+     * by the config id they are enabled under — 'github_plugin',
+     * 'oidc_plugin:gitlab'. That key, not anything the plugin returns, is what
+     * authProfileSectionRegistry uses as the section id: see
+     * authProfileSectionProvider for why.
+     *
+     * Discovery follows is_guard/is_captcha: the flag (has_profile_section) is
+     * read from plugin.php without instantiating the class. Checked against
+     * the domain's own enabled-plugin lists — login_methods, challenge_methods,
+     * guard_plugins, captcha_plugin — and nothing wider, or a plugin installed
+     * but not enabled anywhere for this domain would show a block anyway
+     * (decision 7 of docs/adr/001-profile-config-boundaries.md).
+     *
+     * Loaded through self::get(), the same entry point and the same cache as
+     * every other role: loadPlugin() keys its cache on the required flag too,
+     * and asking for 'has_profile_section' there would mint a second instance
+     * of a plugin already loaded as a challenge/guard/etc — the section would
+     * then hold state (e.g. a pending secret) the other half never sees.
+     *
+     * @return array config_id => authPlugin
+     */
+    public static function getProfileSectionPlugins(): array
+    {
+        $ids = array_unique(array_merge(
+            authConfig::getLoginMethods(),
+            authConfig::getChallengeMethods(),
+            authConfig::getGuardPlugins(),
+            array_filter([authConfig::get('captcha_plugin')])
+        ));
+
+        $result = [];
+        foreach ($ids as $id) {
+            [$base_id, ] = self::splitInstance($id);
+            $plugin_id = str_ends_with($base_id, '_plugin') ? substr($base_id, 0, -7) : $base_id;
+            $info = self::readPluginInfo($plugin_id);
+            if (!$info || empty($info['has_profile_section'])) {
+                continue;
+            }
+            $plugin = self::get($id);
+            if ($plugin instanceof authProfileSectionProvider) {
+                $result[$id] = $plugin;
+            }
+        }
+        return $result;
+    }
+
     public static function clearCache(): void
     {
         self::$cache = [];
@@ -231,6 +278,9 @@ class authPluginManager
         }
         if (!empty($info['is_captcha']) && !($plugin instanceof authCaptcha)) {
             throw new waException("Plugin {$plugin_id} declared is_captcha but does not implement authCaptcha");
+        }
+        if (!empty($info['has_profile_section']) && !($plugin instanceof authProfileSectionProvider)) {
+            throw new waException("Plugin {$plugin_id} declared has_profile_section but does not implement authProfileSectionProvider");
         }
 
         self::$cache[$cache_key] = $plugin;

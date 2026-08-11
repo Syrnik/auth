@@ -211,7 +211,41 @@ default-теме и в пользовательских. Обратная сто
 
 **Партиалы.** `authProfileSectionBase::getTemplatePath()` (решение 6) ищет партиал в активной теме, затем в `themes/default/` самого приложения — у плагина такой директории нет. Метод не `final`: плагинная секция переопределяет `getTemplatePath()`, сначала проверяя тему (чтобы тема могла переопределить и плагинный партиал), затем — папку плагина. Изменений в `authProfileSectionBase` не требует.
 
-**Статус.** Направление принято, конкретика реализации (сигнатура обнаружения плагинных секций в реестре, базовый класс для них) остаётся в AUTH-52.
+**Статус.** Реализовано в AUTH-52. Конкретные сигнатуры:
+
+- `authProfileSectionProvider::getProfileSection(string $section_id, ?waContact $contact = null): ?authProfileSection` —
+  интерфейс на стороне плагина. `$section_id` плагину не выбирать: его передаёт
+  реестр, и это тот же config id, под которым плагин найден в доменных списках
+  (`login_methods`/`challenge_methods`/`guard_plugins`/`captcha_plugin`), а не
+  что-либо, вычисленное самим плагином (`getMethodId()` переопределяем и для
+  ключа карты не используется нигде);
+- `authPluginManager::getProfileSectionPlugins(): array` (config_id => authPlugin) —
+  обнаружение, по аналогии с `getGuardsEnabled()`/`getChallengeEnabled()`: флаг
+  `has_profile_section` в `plugin.php`, доменные списки, загрузка через общий
+  `self::get($id)` (не через отдельный `loadPlugin($id, ..., 'has_profile_section')` —
+  у кеша `loadPlugin()` флаг часть ключа, второй вызов породил бы второй экземпляр
+  плагина, разошедшийся состоянием с тем, что уже используется как challenge/guard/etc);
+- `authProfileSectionPlugin extends authProfileSectionBase` — базовый класс для
+  плагинных секций: id и `getGroup()` по умолчанию `GROUP_AUTHORIZATION`
+  задаются конструктором/переопределением, а не статическим свойством, как у
+  секций ядра; `getTemplatePath()` — сначала активная тема
+  (`my.profile.<id>.<mode>.html`, `:` в id заменяется на `-` для имени файла),
+  затем `authPlugin::getTemplatePath('my.profile.'.$mode)` (папка `templates/`
+  плагина);
+- `authProfileSectionRegistry::getSections()` сплайсит плагинные секции **в
+  хвост** результата `getMap()`, не сливая с приоритетами: коллизия id
+  структурно невозможна (см. ниже), поэтому вопрос «кто побеждает» не встаёт.
+  Хвостовое размещение — не только простота: `getConfirmable()` возвращает
+  первую подходящую секцию, и плагинная секция впереди ядровой могла бы
+  перехватить флоу смены логина. Это же определяет порядок отображения:
+  плагинные секции идут в конце своей группы, в порядке доменного конфига,
+  отдельного ключа сортировки не вводится;
+- `getSection($id)` ищет сперва в карте ядра, затем в карте плагинных секций —
+  без разбора id по суффиксу `_plugin`.
+
+Пример-эталон: `plugins/totp/` — `authTotpPlugin implements authChallenge,
+authProfileSectionProvider`, секция `authTotpProfileSection` (подключить / код
+подтверждения / отключить).
 
 ---
 

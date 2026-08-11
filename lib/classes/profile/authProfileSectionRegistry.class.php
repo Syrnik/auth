@@ -126,17 +126,22 @@ class authProfileSectionRegistry
     /**
      * A single section by id, or null when it is unknown, not implemented yet
      * or not available for this domain and contact.
+     *
+     * A plugin id is looked up the same way as a core one — through the map
+     * built by getPluginSections() — rather than by pattern-matching the id
+     * (e.g. a trailing '_plugin'): the map already did the one check that
+     * matters, that this id is not one a plugin could have hijacked from core.
      */
     public static function getSection(string $section_id, ?waContact $contact = null): ?authProfileSection
     {
         $map = self::getMap();
-        if (!isset($map[$section_id])) {
-            return null;
+        if (isset($map[$section_id])) {
+            $section = self::instantiate($map[$section_id]['class'], $contact);
+            return ($section && $section->isAvailable()) ? $section : null;
         }
 
-        $section = self::instantiate($map[$section_id]['class'], $contact);
-
-        return ($section && $section->isAvailable()) ? $section : null;
+        $plugin_sections = self::getPluginSections($contact);
+        return $plugin_sections[$section_id] ?? null;
     }
 
     /**
@@ -162,7 +167,17 @@ class authProfileSectionRegistry
     }
 
     /**
-     * Available sections for this contact, keyed by id, in map order.
+     * Available sections for this contact, keyed by id: core sections in map
+     * order, then plugin sections.
+     *
+     * Plugin sections are appended, never merged in ahead of core ones. This
+     * is not cosmetic: getConfirmable() below returns the *first* matching
+     * section, and a plugin section implementing authProfileSectionConfirmable
+     * for the 'email' field placed ahead of the core one would hijack the
+     * login-change flow. It is also the answer to where a plugin section lands
+     * among its siblings — at the tail of its group, in the order the domain's
+     * own config lists the plugin (login_methods / challenge_methods / ...) —
+     * no separate sort key is introduced for this.
      *
      * @return authProfileSection[]
      */
@@ -173,6 +188,37 @@ class authProfileSectionRegistry
             $section = self::instantiate($declaration['class'], $contact);
             if ($section && $section->isAvailable()) {
                 $result[$section_id] = $section;
+            }
+        }
+        return $result + self::getPluginSections($contact);
+    }
+
+    /**
+     * Plugin-contributed sections for this contact, keyed by the config id the
+     * plugin is enabled under — see authPluginManager::getProfileSectionPlugins()
+     * and authProfileSectionProvider.
+     *
+     * Anything already present in getMap() is skipped outright. Collision with
+     * a core id ('password', 'photo', ...) cannot actually happen — plugin
+     * config ids always end in '_plugin' or carry an instance suffix — but the
+     * guarantee decision 7 of the ADR makes (a plugin cannot take over a core
+     * section's save route) is meant to hold by construction, not by naming
+     * convention, so it is checked here too.
+     *
+     * @return authProfileSection[]
+     */
+    private static function getPluginSections(?waContact $contact = null): array
+    {
+        $map = self::getMap();
+
+        $result = [];
+        foreach (authPluginManager::getProfileSectionPlugins() as $id => $plugin) {
+            if (isset($map[$id])) {
+                continue;
+            }
+            $section = $plugin->getProfileSection($id, $contact);
+            if ($section && $section->isAvailable()) {
+                $result[$id] = $section;
             }
         }
         return $result;

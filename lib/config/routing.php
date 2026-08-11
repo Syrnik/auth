@@ -11,9 +11,11 @@ return [
     'challenge/'            => 'frontend/challenge',
     // Section id pattern kept to the ids the registry can hold, so an address
     // that cannot name a section is a routing 404 and never reaches the app.
+    // Widened to cover plugin section ids ('foo_plugin', 'oidc_plugin:gitlab' —
+    // same shape as callback/<method_id>/ above) alongside core ids.
     // 'secure' buys both halves of the endpoint's protection: an unauthenticated
     // POST gets the login form, and the framework checks _csrf before dispatch.
-    'my/save/<section:[a-z_]+>/' => [
+    'my/save/<section:[a-z0-9_:-]+>/' => [
         'module' => 'frontend',
         'action' => 'mySave',
         'secure' => true,

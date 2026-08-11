@@ -111,20 +111,65 @@ class myPluginAuthCaptcha implements authCaptcha {
 
 ```php
 return [
-    'name'           => 'My Plugin',
-    'version'        => '1.0.0',
-    'is_auth'        => true,   // реализует authMethod
-    'is_challenge'   => true,   // реализует authChallenge
-    'is_guard'       => true,   // реализует authGuard
-    'guard_login'    => true,   // применять guard при входе (только для is_guard)
-    'guard_signup'   => true,   // применять guard при регистрации (только для is_guard)
-    'is_captcha'     => true,   // реализует authCaptcha
-    'auth_type'      => 'oauth', // OAuth-метод: кнопка вместо формы (только для is_auth)
-    'multi_instance' => true,   // поддержка именованных инстансов (см. ниже)
+    'name'                 => 'My Plugin',
+    'version'              => '1.0.0',
+    'is_auth'              => true,   // реализует authMethod
+    'is_challenge'         => true,   // реализует authChallenge
+    'is_guard'             => true,   // реализует authGuard
+    'guard_login'          => true,   // применять guard при входе (только для is_guard)
+    'guard_signup'         => true,   // применять guard при регистрации (только для is_guard)
+    'is_captcha'           => true,   // реализует authCaptcha
+    'auth_type'            => 'oauth', // OAuth-метод: кнопка вместо формы (только для is_auth)
+    'multi_instance'       => true,   // поддержка именованных инстансов (см. ниже)
+    'has_profile_section'  => true,   // реализует authProfileSectionProvider (блок в my/, см. ниже)
 ];
 ```
 
 Пример guard-плагина, блокирующего только регистрацию, — `plugins/testguard/`. Пример guard-плагина с per-domain настройками — blackmailguard (чёрный список email; живёт в отдельном репозитории, устанавливается в `plugins/blackmailguard/`).
+
+### Блок плагина в профиле (`my/`)
+
+Плагину, которому нужен свой блок в личном кабинете (экран подключения 2FA и т. п.), не
+нужен ни новый интерфейс, ни новый route — см. `docs/adr/001-profile-config-boundaries.md`,
+решение 7. Плагин реализует `authProfileSectionProvider`:
+
+```php
+class authMyPlugin extends authPlugin implements authProfileSectionProvider
+{
+    public function getProfileSection(string $section_id, ?waContact $contact = null): ?authProfileSection
+    {
+        return new authMyPluginProfileSection($this, $section_id, $contact);
+    }
+}
+```
+
+`$section_id` — не то, что плагин выбирает: это config id, под которым `authPluginManager`
+нашёл плагин в доменных списках (`login_methods`/`challenge_methods`/`guard_plugins`/
+`captcha_plugin`) — так исключается перехват чужого id (`password` и т. п.) и, как
+следствие, чужого адреса сохранения.
+
+Сама секция — обычный `authProfileSection`, тот же контракт, что у секций ядра; удобнее
+всего наследовать `authProfileSectionPlugin`
+(`lib/classes/profile/authProfileSectionPlugin.class.php`), которая уже знает, как искать
+партиал и в какую группу падать по умолчанию (`authorization`). Партиал ищется по имени
+`my.profile.<section_id>.<mode>.html` — сперва в активной теме (тема может переопределить
+и плагинный партиал так же, как ядровой), затем в `templates/` самого плагина; `:` в
+`section_id` (именованный инстанс, `oidc_plugin:gitlab`) в имени файла заменяется на `-`.
+
+Флаг `has_profile_section` проверяется по тем же доменным спискам, что обнаружение
+`is_guard`/`is_challenge`/`is_captcha`, а не по всем установленным плагинам — иначе
+секция появлялась бы независимо от того, включён ли плагин на этом домене. Отсюда
+следствие: **плагин без роли `is_auth`/`is_challenge`/`is_guard`/`is_captcha` ни в одном
+доменном списке не значится и свой блок в `my/` показать не может**, даже с
+`has_profile_section => true`, — своего списка на «просто есть блок в профиле» не заводится.
+
+Ещё одна тихая особенность: `getGroups()` пропускает секцию, чья `getGroup()` возвращает id
+не из `authProfileSectionRegistry::getGroupNames()` — опечатка в имени группы даёт не
+ошибку, а невидимый блок.
+
+Эталон — `plugins/totp/`: `authTotpPlugin implements authChallenge,
+authProfileSectionProvider`, секция `authTotpProfileSection` (подключить / подтвердить
+кодом / отключить), партиалы `plugins/totp/templates/my.profile.{view,edit}.html`.
 
 ### Настройки плагина на домен
 
@@ -209,7 +254,7 @@ class authMypluginPlugin extends authPlugin implements authGuard
 | `recovery.html` | Форма восстановления пароля и форма нового пароля |
 | `challenge.html` | Форма двухфакторной аутентификации |
 | `my.profile.html` | Страница профиля |
-| `my.profile.<секция>.<режим>.html` | Партиал одной секции профиля в одном режиме (`view` / `edit`) |
+| `my.profile.<секция>.<режим>.html` | Партиал одной секции профиля в одном режиме (`view` / `edit`); для секции плагина `<секция>` — её id с `:` (именованный инстанс) заменённым на `-`, и тема переопределяет этот файл точно так же, как ядровой |
 | `my.profile.js` | Поведение страницы профиля: редактирование секций без перезагрузки |
 | `my.confirm.html` | Подтверждение смены логина: ввод кода либо «письмо отправлено» |
 

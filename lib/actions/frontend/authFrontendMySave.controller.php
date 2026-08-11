@@ -60,7 +60,16 @@ class authFrontendMySaveController extends waJsonController
         // empty contact, and the log entry belongs to whoever made the change.
         $contact_id = $this->getContact()->getId();
 
-        if (!$section->save($data, $index)) {
+        // A plugin section's save() may call _wp() directly (addError()
+        // messages, for instance) — run it under the plugin's locale domain
+        // so those resolve against the plugin's own catalog. Core sections
+        // are unaffected: withPluginLocale() only wraps when instanceof
+        // authProfileSectionPlugin.
+        $saved = $section instanceof authProfileSectionPlugin
+            ? authPluginManager::withPluginLocale($section->getPlugin(), fn() => $section->save($data, $index))
+            : $section->save($data, $index);
+
+        if (!$saved) {
             $this->respondFailure($section, $index, $data);
             return;
         }

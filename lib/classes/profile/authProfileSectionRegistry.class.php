@@ -250,14 +250,24 @@ class authProfileSectionRegistry
                     'sections' => [],
                 ];
             }
-            $groups[$group_id]['sections'][$section_id] = [
-                'id'          => $section_id,
-                'name'        => $section->getName(),
-                'is_empty'    => $section->isEmpty(),
-                'is_multiple' => $section->isMultiple(),
-                'section'     => $section,
-                'html'        => $section->render(authProfileSection::MODE_VIEW),
-            ];
+            // A plugin section's getName()/isEmpty() may call _wp() directly
+            // (not just through render(), which already wraps itself — see
+            // authProfileSectionPlugin::render()), so the whole read is done
+            // under the plugin's locale domain rather than piecing it back
+            // together per call.
+            $build_entry = function () use ($section_id, $section) {
+                return [
+                    'id'          => $section_id,
+                    'name'        => $section->getName(),
+                    'is_empty'    => $section->isEmpty(),
+                    'is_multiple' => $section->isMultiple(),
+                    'section'     => $section,
+                    'html'        => $section->render(authProfileSection::MODE_VIEW),
+                ];
+            };
+            $groups[$group_id]['sections'][$section_id] = $section instanceof authProfileSectionPlugin
+                ? authPluginManager::withPluginLocale($section->getPlugin(), $build_entry)
+                : $build_entry();
         }
 
         // Keep the declared group order regardless of section order.

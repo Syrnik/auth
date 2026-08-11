@@ -39,6 +39,31 @@ abstract class authProfileSectionPlugin extends authProfileSectionBase
     }
 
     /**
+     * The plugin this section belongs to — callers that need to run their own
+     * code (not just render()) under this plugin's locale domain need the
+     * plugin object to pass to authPluginManager::withPluginLocale(); see
+     * authProfileSectionRegistry::getGroups().
+     */
+    public function getPlugin(): authPlugin
+    {
+        return $this->plugin;
+    }
+
+    /**
+     * Wraps authProfileSectionBase::render() with the plugin's locale domain
+     * active — the partial (and getName() called from inside it) is _wp()
+     * throughout, and _wp() only finds the plugin's own catalog while that
+     * domain is active. See authPluginManager::withPluginLocale().
+     */
+    public function render(string $mode, ?int $index = null): string
+    {
+        return authPluginManager::withPluginLocale(
+            $this->plugin,
+            fn() => parent::render($mode, $index)
+        );
+    }
+
+    /**
      * authProfileSectionBase::getGroup() looks the id up in the core map and
      * falls back to GROUP_PROFILE, which is the wrong default for a plugin
      * section (a plugin id is never in that map) — most plugin sections are

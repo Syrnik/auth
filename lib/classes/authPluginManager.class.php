@@ -160,6 +160,39 @@ class authPluginManager
     }
 
     /**
+     * Runs $fn with $plugin's locale domain active, so any _wp() called
+     * inside (directly, or from a template it renders) resolves against the
+     * plugin's own catalog before falling back to the app's. Pairs with the
+     * locale load in loadPlugin() above — that makes the catalog available,
+     * this makes _wp() look at it.
+     *
+     * Unlike waSystem::getPlugin($id, true), which pushes and never pops, the
+     * plugin is popped in finally: several plugins load in one auth request
+     * (login methods, guards, captcha), getActiveLocaleDomain() reads the top
+     * of that stack, and a permanent push would leave shared msgids ('Cancel',
+     * 'Disable') resolving against whichever plugin happened to load last.
+     *
+     * The domain is $plugin->getInfo()['id'] — the plugin's directory id, set
+     * by readPluginInfo() — not $plugin->getId(): getId() is an authChallenge
+     * interface method the plugin author implements for its own purposes
+     * (totp's happens to equal the directory id, but nothing guarantees
+     * that), while the locale directory is always keyed by the directory id.
+     */
+    public static function withPluginLocale(authPlugin $plugin, callable $fn)
+    {
+        $id = $plugin->getInfo()['id'] ?? null;
+        if (!$id) {
+            return $fn();
+        }
+        waSystem::pushActivePlugin($id, 'auth');
+        try {
+            return $fn();
+        } finally {
+            waSystem::popActivePlugin();
+        }
+    }
+
+    /**
      * This app's own built-in form-based methods (not framework adapters, not
      * plugins) — id => class name. Single source of truth for both runtime
      * loading (loadBuiltin()) and the backend settings screen, so a new method
@@ -262,6 +295,19 @@ class authPluginManager
         if (!class_exists($class)) {
             self::$cache[$cache_key] = null;
             return null;
+        }
+
+        // Load the plugin's own locale catalog (locale/<lang>/LC_MESSAGES/auth_<id>.po),
+        // same as waSystem::getPlugin() does for plugins loaded the framework's
+        // way. This manager instantiates plugins directly instead — for the
+        // role flags and multi-instance support getPlugin() doesn't have —
+        // so it has to do this step itself, or _wp() inside the plugin never
+        // finds the catalog to begin with. Domain is always 'auth_<directory
+        // id>', regardless of instance, so every named instance of a
+        // multi-instance plugin shares one catalog.
+        $locale_path = wa()->getAppPath("plugins/{$plugin_id}/locale", 'auth');
+        if (is_dir($locale_path)) {
+            waLocale::load(wa()->getLocale(), $locale_path, 'auth_' . $plugin_id, false);
         }
 
         $plugin = new $class($info);

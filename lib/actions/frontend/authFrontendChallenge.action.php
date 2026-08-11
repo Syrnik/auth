@@ -38,13 +38,13 @@ class authFrontendChallengeAction extends waViewAction
                 // totp. A challenge needing a fresh form per attempt should
                 // use {status: 'step', html: ...} instead (see auth.js).
                 if (waRequest::isXMLHttpRequest()) {
-                    $this->sendJson(['status' => 'error', 'error' => 'Неверный код.']);
+                    $this->sendJson(['status' => 'error', 'error' => _w('Incorrect code.')]);
                     return;
                 }
                 $this->setLayout(new authFrontendLayout());
                 $this->view->assign([
-                    'error'              => 'Неверный код.',
-                    'challenge_form_html' => method_exists($challenge, 'getFormHtml') ? $challenge->getFormHtml() : '',
+                    'error'              => _w('Incorrect code.'),
+                    'challenge_form_html' => $this->getChallengeFormHtml($challenge),
                 ]);
                 $this->setThemeTemplate('challenge.html');
                 return;
@@ -71,9 +71,29 @@ class authFrontendChallengeAction extends waViewAction
         $this->setLayout(new authFrontendLayout());
         $this->view->assign([
             'error'              => '',
-            'challenge_form_html' => method_exists($challenge, 'getFormHtml') ? $challenge->getFormHtml() : '',
+            'challenge_form_html' => $this->getChallengeFormHtml($challenge),
         ]);
         $this->setThemeTemplate('challenge.html');
+    }
+
+    /**
+     * $challenge->getFormHtml() renders the plugin's own template, typically
+     * full of _wp() calls (see plugins/totp/templates/challenge_form.html) —
+     * run it under the plugin's locale domain so those resolve against its
+     * own catalog rather than falling back to the app's. Every challenge
+     * plugin is an authPlugin (authChallenge is implemented by plugins, not
+     * built-in methods), so this only "does nothing extra" if getFormHtml()
+     * itself is absent.
+     */
+    private function getChallengeFormHtml(object $challenge): string
+    {
+        if (!method_exists($challenge, 'getFormHtml')) {
+            return '';
+        }
+        if ($challenge instanceof authPlugin) {
+            return authPluginManager::withPluginLocale($challenge, fn() => $challenge->getFormHtml());
+        }
+        return $challenge->getFormHtml();
     }
 
     /**

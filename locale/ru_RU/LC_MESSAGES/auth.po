@@ -344,3 +344,6 @@ msgstr "Аккаунт и всё, что с ним связано, будут у
 
 msgid "Your changes have been saved."
 msgstr "Изменения сохранены."
+
+msgid "Incorrect code."
+msgstr "Неверный код."

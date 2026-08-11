@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Challenge (2FA) step showed «Ошибка соединения» instead of logging in, even on a correct code.** `authFrontendChallengeAction` never checked `waRequest::isXMLHttpRequest()`, so it kept answering `js/auth.js`'s `fetch()` requests with a redirect or a re-rendered HTML page instead of the JSON envelope the script expects; `response.json()` failed to parse either, and the resulting error hid a login that had, in fact, already succeeded server-side. Brought in line with `authLoginController`'s XHR handling — success, wrong code and an expired/missing pending session now all answer XHR with `{status: 'ok'|'error', ...}`; post/redirect/get for non-JS clients is unchanged
 - Bare backend entry (`webasyst/auth/` with no domain in the path) redirected to the frontend `my/` page instead of the backend dashboard — `routing.backend.php` and `routing.php` both used the literal `''` array key for their own root rule, and `waAppConfig::getRoutingRules()` always merges `routing.php` on top of `routing.backend.php` in the backend environment, so the frontend rule silently won. `routing.backend.php`'s root rule is now `'/?'` — same effective pattern, no longer a colliding key
 - Backend settings page lost its layout after the post-save redirect
 - Signup guards are now checked before a contact is created, not after

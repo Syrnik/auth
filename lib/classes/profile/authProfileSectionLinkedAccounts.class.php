@@ -15,7 +15,9 @@
  */
 class authProfileSectionLinkedAccounts extends authProfileSectionBase
 {
-    protected static $id = 'linked_accounts';
+    const ID = 'linked_accounts';
+
+    protected static $id = self::ID;
 
     /** @var array|null accounts by method id, see getAccounts() */
     private $accounts = null;
@@ -197,7 +199,7 @@ class authProfileSectionLinkedAccounts extends authProfileSectionBase
         $accounts = [];
 
         foreach (authHelper::getOAuthMethods() as $id => $method) {
-            $source = $this->getSource($id, $method);
+            $source = self::sourceOf($id, $method);
             $value  = (string)$this->contact->get(authContactResolver::getSourceField($source));
 
             $accounts[$id] = [
@@ -206,7 +208,7 @@ class authProfileSectionLinkedAccounts extends authProfileSectionBase
                 'source'       => $source,
                 'is_linked'    => $value !== '',
                 'value'        => $value,
-                'link_url'     => $this->getLinkUrl($method),
+                'link_url'     => $this->getLinkUrl($id, $method),
                 'removal_lock' => null,
             ];
         }
@@ -230,7 +232,7 @@ class authProfileSectionLinkedAccounts extends authProfileSectionBase
      * case ('waid' is Webasyst ID's short alias for 'webasystID'), and the
      * adapter reports the provider id. Plugins answer for themselves.
      */
-    private function getSource(string $id, $method): string
+    public static function sourceOf(string $id, $method): string
     {
         if ($method instanceof authPlugin) {
             return $method->getLinkSource();
@@ -241,13 +243,33 @@ class authProfileSectionLinkedAccounts extends authProfileSectionBase
         return $adapters[$id] ?? $id;
     }
 
-    private function getLinkUrl($method): ?string
+    /**
+     * The address the "Link" button in the profile points to. Deliberately
+     * not $method->getCallbackUrl(): following that starts a plain OAuth
+     * *login* round, which either creates a second contact for the visitor
+     * or, worse, silently logs them into whichever contact the identity
+     * already belongs to (AUTH-50). getCallbackUrl() is still probed here —
+     * it is the only way to tell "not configured" apart from "configured" for
+     * a framework adapter (authSocialMethod throws BadMethodCallException).
+     *
+     * authWaidMethod::getCallbackUrl() never throws — it always returns our
+     * own callback route, whether or not Webasyst ID credentials are set — so
+     * a missing waid configuration is checked separately here, or every
+     * install without WAID credentials would show it as linkable.
+     */
+    private function getLinkUrl(string $id, $method): ?string
     {
-        try {
-            return $method->getCallbackUrl() ?: null;
-        } catch (BadMethodCallException $e) {
-            // Provider enabled but not configured: nothing to link to yet.
+        if ($method instanceof authWaidMethod && empty(authWaidMethod::getCredentials()['app_id'])) {
             return null;
         }
+
+        try {
+            $configured = (bool)$method->getCallbackUrl();
+        } catch (BadMethodCallException $e) {
+            // Provider enabled but not configured: nothing to link to yet.
+            $configured = false;
+        }
+
+        return $configured ? authHelper::getMyLinkUrl($id) : null;
     }
 }

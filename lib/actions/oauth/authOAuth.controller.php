@@ -37,12 +37,40 @@ class authOAuthController extends waOAuthController
         // displayError() ends the request (echo + exit); the explicit return
         // keeps $contact_id/$is_new from being read uninitialized if a future
         // refactor ever makes displayError() fall through instead of exiting.
+        //
+        // A visitor who started this round from the profile's "Linked
+        // accounts" section (my/link/<method_id>/) is caught by authLinkIntent
+        // inside resolve() itself, which routes to authContactResolver::link()
+        // instead of find-or-create. authLinkException is caught ahead of
+        // authGuardException — displayError() is the wrong response to a
+        // failed link attempt, and cleanup() has to run before the redirect
+        // since waOAuthController::execute() only calls it after afterAuth()
+        // returns, and redirect() exits before that happens.
         try {
             [$contact_id, $is_new] = authContactResolver::resolve($data);
+        } catch (authLinkException $e) {
+            authLinkIntent::clear();
+            $this->cleanup();
+            wa()->getResponse()->redirect(authHelper::flashLinkResult($e->getMessage()));
+            return null;
         } catch (authGuardException $e) {
+            authLinkIntent::clear();
             $this->displayError($e->getMessage());
             return null;
         }
+
+        // Link round trip: attach the identity and go back to the profile.
+        // Never creates a contact, never runs guards/challenges, never
+        // changes who is signed in. Checked by outcome, not by the marker's
+        // mere presence — an intent resolve() ignored (wrong source, expired,
+        // foreign session) must fall through to the plain login below.
+        if (authLinkIntent::getOutcome() !== null) {
+            authLinkIntent::clear();
+            $this->cleanup();
+            wa()->getResponse()->redirect(authHelper::flashLinkResult());
+            return null;
+        }
+        authLinkIntent::clear();
 
         if ($is_new) {
             wa()->event('signup', new waContact($contact_id));

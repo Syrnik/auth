@@ -25,6 +25,11 @@ class authContactResolver
      */
     public static function resolve(array $data): array
     {
+        $intent = authLinkIntent::match((string)($data['source'] ?? ''));
+        if ($intent !== null) {
+            return [self::link($data, (int)$intent['contact_id'], (string)$intent['method_id']), false];
+        }
+
         $contact_id = self::find($data);
         if ($contact_id !== null) {
             return [$contact_id, false];
@@ -39,6 +44,58 @@ class authContactResolver
         }
 
         return [self::create($data), true];
+    }
+
+    /**
+     * Attach an OAuth identity to a contact that is already signed in
+     * (AUTH-50) — the profile's "Linked accounts" section starts this via
+     * my/link/<method_id>/, which records an authLinkIntent that resolve()
+     * detects and routes here instead of the normal find-or-create.
+     *
+     * Never returns a contact other than $contact_id — that is what makes
+     * this safe to call from a callback route reachable while logged in:
+     * a conflict throws instead of silently reassigning the identity, unlike
+     * waOAuthController::afterAuth(), which steals the wa_contact_data row
+     * from whoever held it. No signup guards run here; nothing is created.
+     *
+     * $data['source'] is used rather than re-deriving the source from
+     * $method_id — it was already matched against the intent by
+     * authLinkIntent::match(), and asking two places for the same fact is
+     * how they end up disagreeing.
+     */
+    public static function link(array $data, int $contact_id, string $method_id): int
+    {
+        if (!in_array($method_id, authConfig::getLoginMethods(), true)) {
+            throw new authLinkException(_w('This sign-in method is no longer available.'));
+        }
+
+        $field              = self::getSourceField($data['source']);
+        $contact_data_model = new waContactDataModel();
+
+        $row = $contact_data_model->getByField([
+            'field' => $field,
+            'value' => $data['source_id'],
+            'sort'  => 0,
+        ]);
+
+        if ($row) {
+            if ((int)$row['contact_id'] === $contact_id) {
+                authLinkIntent::setOutcome('already_linked');
+                return $contact_id;
+            }
+            // Deliberately not naming the other contact — the visitor proved
+            // control of this session and of the provider account, but not
+            // of the account that already holds the link.
+            throw new authLinkException(_w('This account is already linked to another profile.'));
+        }
+
+        $errors = (new waContact($contact_id))->save([$field => $data['source_id']]);
+        if ($errors) {
+            throw new authLinkException(_w('The account could not be linked.'));
+        }
+
+        authLinkIntent::setOutcome('linked');
+        return $contact_id;
     }
 
     /**

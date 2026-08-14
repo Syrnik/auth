@@ -45,6 +45,52 @@ class authHelper
         return wa()->getRouteUrl('auth/frontend/callback', ['method_id' => $plugin_id], true);
     }
 
+    /**
+     * Where the profile's "Link" button starts an account-linking round trip
+     * (my/link/<method_id>/, see authFrontendMyLinkAction). Carries the _csrf
+     * cookie as a query token: the route is a plain GET navigation — it must
+     * stay an <a href>, not a form, so a copied theme partial keeps working —
+     * and framework-level CSRF checking only runs on POST
+     * (waDispatch::dispatch()/dispatchFrontend()), so this app enforces it
+     * itself in the action.
+     *
+     * The cookie can be empty on the very request that mints it
+     * (waAuthUser::__construct() sets it on the response, not before), in
+     * which case the link degrades the same way any {$wa->csrf()} form would
+     * on that same request: the action rejects the empty token and the
+     * visitor is asked to retry.
+     */
+    public static function getMyLinkUrl(string $method_id): string
+    {
+        return wa()->getRouteUrl('auth/frontend/myLink', ['method_id' => $method_id], true)
+            . '?_csrf=' . rawurlencode(waRequest::cookie('_csrf', ''));
+    }
+
+    /**
+     * Route the visitor back to the "Linked accounts" section after an
+     * account-linking round trip, reusing the two flash channels the profile
+     * page already reads: the plain "saved" banner on success, and the
+     * restore-failed-save channel (authFrontendMySaveController::FAILED_SAVE)
+     * on error, which authFrontendMyAction::restoreFailedSave() re-opens in
+     * edit mode with the message attached. Error redirects to the bare my/
+     * URL on purpose — a restored failure outranks ?section= there.
+     */
+    public static function flashLinkResult(?string $error = null): string
+    {
+        if ($error === null) {
+            wa()->getStorage()->set('my/profile/updated', true);
+            return self::getMyUrl() . '?section=' . authProfileSectionLinkedAccounts::ID . '&mode=edit';
+        }
+
+        wa()->getStorage()->set(authFrontendMySaveController::FAILED_SAVE, [
+            'section' => authProfileSectionLinkedAccounts::ID,
+            'index'   => null,
+            'data'    => [],
+            'errors'  => ['' => [$error]],
+        ]);
+        return self::getMyUrl();
+    }
+
     public static function isLoggedIn(): bool
     {
         return wa()->getUser()->isAuth();

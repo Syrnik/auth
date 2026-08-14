@@ -19,12 +19,40 @@ class authFrontendCallbackAction extends waViewAction
         // Handle OAuth callback. handleCallback() runs signup guards (via
         // authContactResolver) before creating any contact, so a blocked
         // signup surfaces here as a plain waException — nothing to roll back.
+        //
+        // A visitor who started this round from the profile's "Linked
+        // accounts" section (my/link/<method_id>/) is inside authLinkIntent
+        // by the time handleCallback() reaches authContactResolver::resolve()
+        // — resolve() itself detects it and routes to authContactResolver::
+        // link() instead of the normal find-or-create. authLinkException is
+        // caught ahead of the plain waException below because renderError()
+        // (login.html) is the wrong response to a failed link attempt.
         try {
             $result = $method->handleCallback(waRequest::get());
+        } catch (authLinkException $e) {
+            authLinkIntent::clear();
+            wa()->getResponse()->redirect(authHelper::flashLinkResult($e->getMessage()));
+            return;
         } catch (waException $e) {
+            authLinkIntent::clear();
             $this->renderError($e->getMessage());
             return;
         }
+
+        // A link round trip never creates a contact, never touches guards or
+        // challenges, and never changes who is signed in — it only attaches
+        // the identity that just came back to the contact that started it.
+        // Checked by outcome, not by the marker's mere presence: an intent
+        // that resolve() ignored (wrong source, expired, foreign session)
+        // must fall through to the plain login below, not be reported as a
+        // link that never happened.
+        if (authLinkIntent::getOutcome() !== null) {
+            authLinkIntent::clear();
+            wa()->getStorage()->del('auth_goal_url');
+            wa()->getResponse()->redirect(authHelper::flashLinkResult());
+            return;
+        }
+        authLinkIntent::clear();
 
         $contact = new waContact($result->contact_id);
 

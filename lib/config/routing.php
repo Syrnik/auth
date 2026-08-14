@@ -20,6 +20,15 @@ return [
         'action' => 'mySave',
         'secure' => true,
     ],
+    // Starts an account-linking OAuth round trip for the "Linked accounts"
+    // section — see authFrontendMyLinkAction. A GET, not a POST, because it
+    // is a real navigation to the provider; CSRF is enforced by the action
+    // itself via a query token, not by the framework's POST-only check.
+    'my/link/<method_id:[a-z0-9_:-]+>/' => [
+        'module' => 'frontend',
+        'action' => 'myLink',
+        'secure' => true,
+    ],
     // Changing a login (email, phone) is proven before it is stored, see
     // authFrontendMyConfirmAction. Both halves are 'secure' on purpose: a
     // confirmation link travels by mail, and holding it alone must not be

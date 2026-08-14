@@ -127,6 +127,12 @@ return [
 
 Пример guard-плагина, блокирующего только регистрацию, — `plugins/testguard/`. Пример guard-плагина с per-domain настройками — blackmailguard (чёрный список email; живёт в отдельном репозитории, устанавливается в `plugins/blackmailguard/`).
 
+`authPluginManager` обогащает это описание так же, как `waSystem::getPlugin()` — для плагинов, загруженных фреймворком обычным способом:
+
+- `name`, `title`, `description` прогоняются через `_wd('auth_<plugin_id>', …)` — каталог плагина (`plugins/<plugin_id>/locale/<lang>/LC_MESSAGES/auth_<plugin_id>.po`) загружается автоматически перед переводом. Исходные строки в `plugin.php` — по конвенции ядра: английский msgid с маркером `/*_wp*/('…')`, чтобы `php wa.php locale auth/plugins/<plugin_id>` находил их при генерации `.po` (пример — `wa-apps/blog/plugins/akismet`); переводы под остальные языки — забота самого плагина;
+- `img` (если задан) приходит в `getInfo()` уже web-путём относительно корня — `wa-apps/auth/plugins/<plugin_id>/<img>`;
+- `build` берётся из `lib/config/build.php`, если файла нет — `time()` в debug-режиме и `0` в проде.
+
 ### Блок плагина в профиле (`my/`)
 
 Плагину, которому нужен свой блок в личном кабинете (экран подключения 2FA и т. п.), не

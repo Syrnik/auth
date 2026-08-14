@@ -64,9 +64,21 @@ class authOAuthController extends waOAuthController
         // changes who is signed in. Checked by outcome, not by the marker's
         // mere presence — an intent resolve() ignored (wrong source, expired,
         // foreign session) must fall through to the plain login below.
-        if (authLinkIntent::getOutcome() !== null) {
+        $outcome = authLinkIntent::getOutcome();
+        if ($outcome !== null) {
             authLinkIntent::clear();
             $this->cleanup();
+            // 'already_linked' is a no-op re-link (back button, double click) —
+            // nothing changed, so it earns no entry, same as unlink logs only
+            // on an actual write (authFrontendMySaveController::logSave()).
+            if ($outcome === 'linked') {
+                $this->logAction(
+                    'my_profile_edit',
+                    ['section' => authProfileSectionLinkedAccounts::ID],
+                    null,
+                    $contact_id
+                );
+            }
             wa()->getResponse()->redirect(authHelper::flashLinkResult());
             return null;
         }

@@ -20,6 +20,28 @@ class authWaidAdapter extends waWebasystIDSiteAuth
     }
 
     /**
+     * The base adapter accepts a callback with no state at all
+     * (waWebasystIDAuthAdapter::verifyState(): `return !$state || ...`), which
+     * makes a callback forgeable by anyone who can hand a visitor a crafted
+     * auth/callback/waid/ URL carrying an attacker-controlled code. That was a
+     * pre-existing way to get logged in as someone else; AUTH-50 turns the
+     * same route into one that can also *link* an identity onto whichever
+     * contact is signed in, which raises the stakes from "attacker session"
+     * to "permanent write to the victim's account" — so this override closes
+     * it: a callback is accepted only when its state matches the one this
+     * class generated and stored for this exact class (getHealthyRedirectUri()
+     * → generateState() both run through this subclass, so the key lines up
+     * on both legs).
+     */
+    protected function verifyState()
+    {
+        $state    = (string)waRequest::get('state', '', waRequest::TYPE_STRING_TRIM);
+        $expected = (string)wa()->getStorage()->get(get_class($this) . '/state');
+
+        return $state !== '' && $expected !== '' && hash_equals($expected, $state);
+    }
+
+    /**
      * Exchange OAuth code for access token and return normalized user data.
      * Combines processAuthResponse() + getUserData() + WAID contact ID extraction.
      * Returns same format as waWebasystIDSiteAuth::auth() (callback branch only).

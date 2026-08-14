@@ -75,6 +75,8 @@ class myPluginAuthMethod implements authMethod {
 }
 ```
 
+Если метод OAuth-подобный (`getInfo()['auth_type'] === 'oauth'`), проводите identity через `authContactResolver::resolve($data)`, а не ищите контакт самостоятельно. Именно через `resolve()` секция «Linked accounts» профиля привязывает identity к уже залогиненному контакту (AUTH-50) — плагин, вызывающий `resolve()`, получает раунд привязки бесплатно; плагин, который его обходит, умеет только логинить/регистрировать, и его identity нельзя привязать из профиля.
+
 ### `authGuard` — блокировка входа/регистрации
 
 ```php

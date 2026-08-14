@@ -74,6 +74,8 @@ class myPluginAuthMethod implements authMethod {
 }
 ```
 
+If the method is OAuth-style (`getInfo()['auth_type'] === 'oauth'`), route the identity it resolves through `authContactResolver::resolve($data)` rather than looking the contact up yourself. `resolve()` is also where the profile's "Linked accounts" section attaches an identity to the contact that is already signed in (AUTH-50) — a plugin that calls it gets that "Link" round trip for free; one that bypasses it only ever logs in or signs up, and its identities can never be linked to an existing account from the profile.
+
 ### `authGuard` — Block login or signup
 
 ```php

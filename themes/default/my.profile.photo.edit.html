@@ -32,21 +32,21 @@
         {$wa->csrf()}
 
         <div class="auth-field">
-            <label for="auth-photo-file">{_w('Choose a file')|escape}</label>
+            <label for="auth-photo-file">{_wp('Choose a file')|escape}</label>
             <input type="file" id="auth-photo-file" name="photo_file" accept="image/*">
         </div>
 
         {$form->html('photo')}
 
-        <button type="submit" class="auth-submit">{_w('Save')|escape}</button>
-        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_w('Cancel')|escape}</a>
+        <button type="submit" class="auth-submit">{_wp('Save')|escape}</button>
+        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_wp('Cancel')|escape}</a>
     </form>
 
     {if !$section->isEmpty()}
         <form method="post" action="{$save_url|escape}" class="auth-form auth-profile-photo-remove" data-section-form>
             {$wa->csrf()}
             <input type="hidden" name="profile[photo]" value="">
-            <button type="submit">{_w('Remove photo')|escape}</button>
+            <button type="submit">{_wp('Remove photo')|escape}</button>
         </form>
     {/if}
 </div>

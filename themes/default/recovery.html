@@ -6,37 +6,37 @@
 
     {if $sent}
         <div class="auth-success">
-            Если аккаунт с таким email существует, мы отправили письмо со ссылкой для восстановления пароля.
+            {_wp('If an account with that email exists, we sent a link to reset the password.')|escape}
         </div>
         <div class="auth-links">
-            <a href="{$wa_app_url}login/">Вернуться к входу</a>
+            <a href="{$wa_app_url}login/">{_wp('Back to sign-in')|escape}</a>
         </div>
     {elseif $token}
-        <h2>Новый пароль</h2>
+        <h2>{_wp('New password')|escape}</h2>
         <form method="post" class="auth-form">
             {$wa->csrf()}
             <div class="auth-field">
-                <label>Новый пароль</label>
+                <label>{_wp('New password')|escape}</label>
                 <input type="password" name="password" autocomplete="new-password" autofocus>
             </div>
             <div class="auth-field">
-                <label>Повтор пароля</label>
+                <label>{_wp('Repeat password')|escape}</label>
                 <input type="password" name="password_confirm" autocomplete="new-password">
             </div>
-            <button type="submit" class="auth-submit">Сохранить пароль</button>
+            <button type="submit" class="auth-submit">{_wp('Save password')|escape}</button>
         </form>
     {else}
-        <h2>Восстановление пароля</h2>
+        <h2>{_wp('Password recovery')|escape}</h2>
         <form method="post" class="auth-form">
             {$wa->csrf()}
             <div class="auth-field">
-                <label>Email</label>
+                <label>{_wp('E-mail')|escape}</label>
                 <input type="email" name="email" autocomplete="email" autofocus>
             </div>
-            <button type="submit" class="auth-submit">Восстановить</button>
+            <button type="submit" class="auth-submit">{_wp('Recover')|escape}</button>
         </form>
         <div class="auth-links">
-            <a href="{$wa_app_url}login/">Вернуться к входу</a>
+            <a href="{$wa_app_url}login/">{_wp('Back to sign-in')|escape}</a>
         </div>
     {/if}
 

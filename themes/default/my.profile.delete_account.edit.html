@@ -24,16 +24,16 @@
     <form method="post" action="{$save_url|escape}" class="auth-form" data-section-form>
         {$wa->csrf()}
 
-        <p>{_w('Your account and everything stored with it will be removed permanently. This cannot be undone.')|escape}</p>
+        <p>{_wp('Your account and everything stored with it will be removed permanently. This cannot be undone.')|escape}</p>
 
         <div class="auth-field">
             <label>
                 <input type="checkbox" name="{$confirm_field|escape}" value="1">
-                {_w('Yes, delete my account')|escape}
+                {_wp('Yes, delete my account')|escape}
             </label>
         </div>
 
-        <button type="submit" class="auth-submit auth-submit-danger">{_w('Delete account')|escape}</button>
-        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_w('Cancel')|escape}</a>
+        <button type="submit" class="auth-submit auth-submit-danger">{_wp('Delete account')|escape}</button>
+        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_wp('Cancel')|escape}</a>
     </form>
 </div>

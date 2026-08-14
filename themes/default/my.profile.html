@@ -14,10 +14,10 @@
 *}
 <div class="auth-page auth-my-profile">
 
-    <h2>{_w('My profile')|escape}</h2>
+    <h2>{_wp('My profile')|escape}</h2>
 
     {if $saved}
-        <div class="auth-success">{_w('Your changes have been saved.')|escape}</div>
+        <div class="auth-success">{_wp('Your changes have been saved.')|escape}</div>
     {/if}
 
     {foreach $profile_groups as $group}
@@ -89,7 +89,7 @@
     {/foreach}
 
     <div class="auth-links">
-        <a href="{$wa_app_url}logout/">{_w('Log out')|escape}</a>
+        <a href="{$wa_app_url}logout/">{_wp('Log out')|escape}</a>
     </div>
 
 </div>

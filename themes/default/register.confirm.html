@@ -2,11 +2,12 @@
 
     {if $error}
         <div class="auth-error">{$error|escape}</div>
-        <p><a href="{$wa_app_url}register/">Вернуться к регистрации</a></p>
+        <p><a href="{$wa_app_url}register/">{_wp('Back to sign-up')|escape}</a></p>
     {else}
         <div class="auth-success">
-            <p>Мы отправили письмо с подтверждением на адрес <strong>{$email|default:''|escape}</strong>.</p>
-            <p>Перейдите по ссылке в письме, чтобы завершить регистрацию.</p>
+            {capture assign="_email"}<strong>{$email|default:''|escape}</strong>{/capture}
+            <p>{sprintf(_wp('We sent a confirmation email to %s.'), $_email)}</p>
+            <p>{_wp('Open the link in the email to finish signing up.')|escape}</p>
         </div>
     {/if}
 

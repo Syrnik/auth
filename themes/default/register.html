@@ -4,45 +4,45 @@
         <div class="auth-error">{$msg|escape}</div>
     {/foreach}
 
-    <h2>Регистрация</h2>
+    <h2>{_wp('Sign up')|escape}</h2>
 
     <form method="post" class="auth-form">
         <input type="hidden" name="_csrf" value="{$csrf_token|escape}">
 
         {if in_array('firstname', $signup_fields)}
             <div class="auth-field">
-                <label>Имя</label>
+                <label>{_wp('First name')|escape}</label>
                 <input type="text" name="firstname" value="{$data.firstname|default:''|escape}" autocomplete="given-name">
             </div>
         {/if}
 
         {if in_array('lastname', $signup_fields)}
             <div class="auth-field">
-                <label>Фамилия</label>
+                <label>{_wp('Last name')|escape}</label>
                 <input type="text" name="lastname" value="{$data.lastname|default:''|escape}" autocomplete="family-name">
             </div>
         {/if}
 
         {if in_array('email', $signup_fields)}
             <div class="auth-field">
-                <label>Email</label>
+                <label>{_wp('E-mail')|escape}</label>
                 <input type="email" name="email" value="{$data.email|default:''|escape}" autocomplete="email">
             </div>
         {/if}
 
         {if in_array('password', $signup_fields)}
             <div class="auth-field">
-                <label>Пароль</label>
+                <label>{_wp('Password')|escape}</label>
                 <input type="password" name="password" autocomplete="new-password">
             </div>
         {/if}
 
         {$captcha_widget}
-        <button type="submit" class="auth-submit">Зарегистрироваться</button>
+        <button type="submit" class="auth-submit">{_wp('Create account')|escape}</button>
     </form>
 
     <div class="auth-links">
-        <a href="{$login_url|escape}">Уже есть аккаунт? Войти</a>
+        <a href="{$login_url|escape}">{_wp('Already have an account? Sign in')|escape}</a>
     </div>
 
 </div>

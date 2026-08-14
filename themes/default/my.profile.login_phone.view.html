@@ -21,8 +21,8 @@
 
     {if $pending}
         <div class="auth-notice auth-profile-pending">
-            {sprintf(_w('Waiting for %s to be confirmed.'), $pending.value)|escape}
-            <a href="{$wa_app_url}my/confirm/?field={$section->getConfirmableField()|escape:'url'}">{_w('Finish the change')|escape}</a>
+            {sprintf(_wp('Waiting for %s to be confirmed.'), $pending.value)|escape}
+            <a href="{$wa_app_url}my/confirm/?field={$section->getConfirmableField()|escape:'url'}">{_wp('Finish the change')|escape}</a>
         </div>
     {/if}
 
@@ -32,16 +32,16 @@
                 <span class="auth-profile-value-text">{$item.value|escape}</span>
 
                 {if $i == 0}
-                    <span class="auth-profile-value-badge">{_w('Used to sign in')|escape}</span>
+                    <span class="auth-profile-value-badge">{_wp('Used to sign in')|escape}</span>
                 {elseif !empty($item.ext) && isset($ext_options[$item.ext])}
                     <span class="auth-profile-value-ext">{$ext_options[$item.ext]|escape}</span>
                 {/if}
 
-                <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_w('Edit')|escape}</a>
+                <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_wp('Edit')|escape}</a>
             </li>
         {foreachelse}
-            <li class="auth-profile-section-empty">{_w('Not specified yet.')|escape}</li>
+            <li class="auth-profile-section-empty">{_wp('Not specified yet.')|escape}</li>
         {/foreach}
     </ul>
-    <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
+    <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_wp('Add')|escape}</a>
 </div>

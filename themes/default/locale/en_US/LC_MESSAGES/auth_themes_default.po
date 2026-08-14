@@ -1,0 +1,208 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: auth/themes/default\n"
+"POT-Creation-Date: 2026-08-14 20:34+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: auth/themes/default\n"
+"Language-Team: auth/themes/default\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: en_US\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: utf-8\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "Sign-in confirmation"
+msgstr ""
+
+msgid "Verification code"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+msgid "Code from the message"
+msgstr ""
+
+msgid "E-mail"
+msgstr "Email"
+
+msgid "Password"
+msgstr ""
+
+msgid "Remember me"
+msgstr ""
+
+msgid "Sign in with %s"
+msgstr ""
+
+msgid "Sign in"
+msgstr ""
+
+msgid "Forgot your password?"
+msgstr ""
+
+msgid "Sign up"
+msgstr ""
+
+msgid "Login"
+msgstr ""
+
+msgid "Confirm the change"
+msgstr ""
+
+msgid "We sent a code to %s."
+msgstr ""
+
+msgid "We sent a confirmation link to %s. Open it to finish the change."
+msgstr ""
+
+msgid "Cancel the change"
+msgstr ""
+
+msgid "Back to my profile"
+msgstr ""
+
+msgid "Not specified"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Not specified yet."
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Your account and everything stored with it will be removed permanently. This cannot be undone."
+msgstr ""
+
+msgid "Yes, delete my account"
+msgstr ""
+
+msgid "Delete account"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Deleting your account removes it permanently. This cannot be undone."
+msgstr ""
+
+msgid "My profile"
+msgstr ""
+
+msgid "Your changes have been saved."
+msgstr ""
+
+msgid "Log out"
+msgstr ""
+
+msgid "Done"
+msgstr ""
+
+msgid "Unlink"
+msgstr ""
+
+msgid "Link"
+msgstr ""
+
+msgid "Not configured"
+msgstr ""
+
+msgid "Manage"
+msgstr ""
+
+msgid "No accounts linked yet."
+msgstr ""
+
+msgid "We will send a confirmation link to the new address. Until you open it, you keep signing in with the current one."
+msgstr ""
+
+msgid "Send confirmation"
+msgstr ""
+
+msgid "Waiting for %s to be confirmed."
+msgstr ""
+
+msgid "Finish the change"
+msgstr ""
+
+msgid "Used to sign in"
+msgstr ""
+
+msgid "We will text a code to the new number. Until you enter it, you keep signing in with the current one."
+msgstr ""
+
+msgid "Current password"
+msgstr ""
+
+msgid "Set password"
+msgstr ""
+
+msgid "Change"
+msgstr ""
+
+msgid "No password set. You sign in another way."
+msgstr ""
+
+msgid "A password is set."
+msgstr ""
+
+msgid "Choose a file"
+msgstr ""
+
+msgid "Remove photo"
+msgstr ""
+
+msgid "If an account with that email exists, we sent a link to reset the password."
+msgstr ""
+
+msgid "Back to sign-in"
+msgstr ""
+
+msgid "New password"
+msgstr ""
+
+msgid "Repeat password"
+msgstr ""
+
+msgid "Save password"
+msgstr ""
+
+msgid "Password recovery"
+msgstr ""
+
+msgid "Recover"
+msgstr ""
+
+msgid "Back to sign-up"
+msgstr ""
+
+msgid "We sent a confirmation email to %s."
+msgstr ""
+
+msgid "Open the link in the email to finish signing up."
+msgstr ""
+
+msgid "First name"
+msgstr ""
+
+msgid "Last name"
+msgstr ""
+
+msgid "Create account"
+msgstr ""
+
+msgid "Already have an account? Sign in"
+msgstr ""

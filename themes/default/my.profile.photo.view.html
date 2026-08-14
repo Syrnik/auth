@@ -7,5 +7,5 @@
     <div class="auth-profile-photo">
         <img src="{$section->getPhotoUrl(96)|escape}" width="96" height="96" alt="{$section->getName()|escape}">
     </div>
-    <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{if $section->isEmpty()}{_w('Add')|escape}{else}{_w('Edit')|escape}{/if}</a>
+    <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{if $section->isEmpty()}{_wp('Add')|escape}{else}{_wp('Edit')|escape}{/if}</a>
 </div>

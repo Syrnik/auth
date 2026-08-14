@@ -85,6 +85,14 @@ abstract class authProfileSectionBase implements authProfileSection
      * theme has no partial for it. Template vars are set for the duration of
      * the fetch and then restored, so a section never leaks state into the page
      * that embeds it.
+     *
+     * Rendered from two places: the page itself (authFrontendMyAction, already
+     * past setThemeTemplate(), so the theme's locale domain is already active)
+     * and the JSON save endpoint (authFrontendMySaveController), which renders
+     * a section in isolation without ever calling setThemeTemplate(). Without
+     * withThemeLocale() below, a _wp() msgid in the partial would resolve
+     * against whatever domain (if any) happens to be active on that second
+     * path — silently different from what the same partial shows on reload.
      */
     public function render(string $mode, ?int $index = null): string
     {
@@ -103,7 +111,9 @@ abstract class authProfileSectionBase implements authProfileSection
 
         $view->assign($vars);
         try {
-            $html = $view->fetch('file:'.$path);
+            $html = $this->withThemeLocale(function () use ($view, $path) {
+                return $view->fetch('file:'.$path);
+            });
         } finally {
             foreach ($saved as $name => $value) {
                 if ($value === null) {
@@ -129,21 +139,74 @@ abstract class authProfileSectionBase implements authProfileSection
     {
         $file = 'my.profile.'.$this->getId().'.'.$mode.'.html';
 
-        $theme_id = waRequest::getTheme();
-        if ($theme_id) {
-            try {
-                $theme = new waTheme($theme_id, 'auth');
-                $path  = $theme->path.'/'.$file;
-                if (file_exists($path)) {
-                    return $path;
-                }
-            } catch (waException $e) {
-                // Broken or missing theme: fall through to the shipped one.
+        $theme = $this->resolveTheme();
+        if ($theme) {
+            $path = $theme->path.'/'.$file;
+            if (file_exists($path)) {
+                return $path;
             }
         }
 
         $path = wa()->getAppPath('themes/default/'.$file, 'auth');
         return file_exists($path) ? $path : null;
+    }
+
+    /**
+     * The active theme (from the request), or null when there isn't one /
+     * it's broken. Shared by getTemplatePath() and withThemeLocale() so both
+     * agree on which theme is in play — see authProfileSectionPlugin's
+     * override, which needs the same instance for the same reason.
+     */
+    protected function resolveTheme(): ?waTheme
+    {
+        $theme_id = waRequest::getTheme();
+        if (!$theme_id) {
+            return null;
+        }
+
+        try {
+            return new waTheme($theme_id, 'auth');
+        } catch (waException $e) {
+            // Broken or missing theme: caller falls back to the shipped one.
+            return null;
+        }
+    }
+
+    /**
+     * Runs $fn with the active theme's locale domain(s) pushed, mirroring what
+     * waView::setThemeTemplate() -> setLocales() does for a page rendered the
+     * ordinary way (wa-system/view/waView.class.php). A no-op when a domain is
+     * already active — the page path already did this once via
+     * setThemeTemplate(), and pushing again would just duplicate the same
+     * domain in the lookup chain.
+     */
+    protected function withThemeLocale(callable $fn)
+    {
+        if (wa()->getActiveThemes()) {
+            return $fn();
+        }
+
+        $theme = $this->resolveTheme();
+        if (!$theme) {
+            return $fn();
+        }
+
+        $locale = wa()->getLocale();
+        $domains = [$theme->locale_domain];
+        waLocale::load($locale, $theme->locale_path, $theme->locale_domain, false);
+
+        $parent_theme = $theme->parent_theme;
+        if ($parent_theme instanceof waTheme) {
+            $domains[] = $parent_theme->locale_domain;
+            waLocale::load($locale, $parent_theme->locale_path, $parent_theme->locale_domain, false);
+        }
+
+        wa()->pushActiveTheme($domains);
+        try {
+            return $fn();
+        } finally {
+            wa()->popActiveTheme($domains);
+        }
     }
 
     /**

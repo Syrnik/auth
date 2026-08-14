@@ -8,12 +8,12 @@
         <h4>{$section->getName()|escape}</h4>
 
         {if !$section->isEmpty()}
-            <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{_w('Manage')|escape}</a>
+            <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{_wp('Manage')|escape}</a>
         {/if}
     </div>
 
     {if $section->isEmpty()}
-        <div class="auth-profile-section-empty">{_w('No accounts linked yet.')|escape}</div>
+        <div class="auth-profile-section-empty">{_wp('No accounts linked yet.')|escape}</div>
     {/if}
 
     <ul class="auth-profile-accounts">
@@ -24,9 +24,9 @@
                 {if $account.is_linked}
                     <span class="auth-profile-account-value">{$account.value|escape}</span>
                 {elseif $account.link_url}
-                    <a href="{$account.link_url|escape}" class="auth-profile-account-link">{_w('Link')|escape}</a>
+                    <a href="{$account.link_url|escape}" class="auth-profile-account-link">{_wp('Link')|escape}</a>
                 {else}
-                    <span class="auth-profile-account-hint">{_w('Not configured')|escape}</span>
+                    <span class="auth-profile-account-hint">{_wp('Not configured')|escape}</span>
                 {/if}
             </li>
         {/foreach}

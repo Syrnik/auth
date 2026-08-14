@@ -16,13 +16,13 @@
         <h4>{$section->getName()|escape}</h4>
 
         {if !$removal_lock}
-            <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{_w('Delete')|escape}</a>
+            <a href="{$edit_url|escape}" class="auth-profile-section-edit" data-section-link>{_wp('Delete')|escape}</a>
         {/if}
     </div>
 
     {if $removal_lock}
         <div class="auth-hint">{$removal_lock|escape}</div>
     {else}
-        <div class="auth-profile-section-value">{_w('Deleting your account removes it permanently. This cannot be undone.')|escape}</div>
+        <div class="auth-profile-section-value">{_wp('Deleting your account removes it permanently. This cannot be undone.')|escape}</div>
     {/if}
 </div>

@@ -1,0 +1,208 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: auth/themes/default\n"
+"POT-Creation-Date: 2026-08-14 20:34+0300\n"
+"PO-Revision-Date: \n"
+"Last-Translator: auth/themes/default\n"
+"Language-Team: auth/themes/default\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
+"X-Poedit-Language: ru_RU\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: utf-8\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPath-1: .\n"
+
+msgid "Sign-in confirmation"
+msgstr "Подтверждение входа"
+
+msgid "Verification code"
+msgstr "Код подтверждения"
+
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgid "Code from the message"
+msgstr "Код из сообщения"
+
+msgid "E-mail"
+msgstr "Email"
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid "Remember me"
+msgstr "Запомнить меня"
+
+msgid "Sign in with %s"
+msgstr "Войти через %s"
+
+msgid "Sign in"
+msgstr "Войти"
+
+msgid "Forgot your password?"
+msgstr "Забыли пароль?"
+
+msgid "Sign up"
+msgstr "Регистрация"
+
+msgid "Login"
+msgstr "Логин"
+
+msgid "Confirm the change"
+msgstr "Подтверждение изменения"
+
+msgid "We sent a code to %s."
+msgstr "Мы отправили код на %s."
+
+msgid "We sent a confirmation link to %s. Open it to finish the change."
+msgstr "Мы отправили ссылку для подтверждения на %s. Перейдите по ней, чтобы завершить изменение."
+
+msgid "Cancel the change"
+msgstr "Отменить изменение"
+
+msgid "Back to my profile"
+msgstr "Назад в профиль"
+
+msgid "Not specified"
+msgstr "Не указано"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Not specified yet."
+msgstr "Пока не указано."
+
+msgid "Edit"
+msgstr "Редактировать"
+
+msgid "Add"
+msgstr "Добавить"
+
+msgid "Your account and everything stored with it will be removed permanently. This cannot be undone."
+msgstr "Аккаунт и всё, что с ним связано, будут удалены безвозвратно. Отменить это нельзя."
+
+msgid "Yes, delete my account"
+msgstr "Да, удалить мой аккаунт"
+
+msgid "Delete account"
+msgstr "Удалить аккаунт"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Deleting your account removes it permanently. This cannot be undone."
+msgstr "Удаление аккаунта необратимо."
+
+msgid "My profile"
+msgstr "Мой профиль"
+
+msgid "Your changes have been saved."
+msgstr "Изменения сохранены."
+
+msgid "Log out"
+msgstr "Выйти"
+
+msgid "Done"
+msgstr "Готово"
+
+msgid "Unlink"
+msgstr "Отвязать"
+
+msgid "Link"
+msgstr "Привязать"
+
+msgid "Not configured"
+msgstr "Не настроено"
+
+msgid "Manage"
+msgstr "Управление"
+
+msgid "No accounts linked yet."
+msgstr "Пока нет привязанных аккаунтов."
+
+msgid "We will send a confirmation link to the new address. Until you open it, you keep signing in with the current one."
+msgstr "Мы отправим ссылку для подтверждения на новый адрес. Пока вы её не откроете, вход останется по текущему адресу."
+
+msgid "Send confirmation"
+msgstr "Отправить подтверждение"
+
+msgid "Waiting for %s to be confirmed."
+msgstr "Ожидает подтверждения: %s."
+
+msgid "Finish the change"
+msgstr "Завершить изменение"
+
+msgid "Used to sign in"
+msgstr "Используется для входа"
+
+msgid "We will text a code to the new number. Until you enter it, you keep signing in with the current one."
+msgstr "Мы отправим код на новый номер по SMS. Пока вы его не введёте, вход останется по текущему номеру."
+
+msgid "Current password"
+msgstr "Текущий пароль"
+
+msgid "Set password"
+msgstr "Задать пароль"
+
+msgid "Change"
+msgstr "Изменить"
+
+msgid "No password set. You sign in another way."
+msgstr "Пароль не задан. Вы входите другим способом."
+
+msgid "A password is set."
+msgstr "Пароль установлен."
+
+msgid "Choose a file"
+msgstr "Выбрать файл"
+
+msgid "Remove photo"
+msgstr "Удалить фото"
+
+msgid "If an account with that email exists, we sent a link to reset the password."
+msgstr "Если аккаунт с таким email существует, мы отправили письмо со ссылкой для восстановления пароля."
+
+msgid "Back to sign-in"
+msgstr "Вернуться к входу"
+
+msgid "New password"
+msgstr "Новый пароль"
+
+msgid "Repeat password"
+msgstr "Повтор пароля"
+
+msgid "Save password"
+msgstr "Сохранить пароль"
+
+msgid "Password recovery"
+msgstr "Восстановление пароля"
+
+msgid "Recover"
+msgstr "Восстановить"
+
+msgid "Back to sign-up"
+msgstr "Вернуться к регистрации"
+
+msgid "We sent a confirmation email to %s."
+msgstr "Мы отправили письмо с подтверждением на адрес %s."
+
+msgid "Open the link in the email to finish signing up."
+msgstr "Перейдите по ссылке в письме, чтобы завершить регистрацию."
+
+msgid "First name"
+msgstr "Имя"
+
+msgid "Last name"
+msgstr "Фамилия"
+
+msgid "Create account"
+msgstr "Зарегистрироваться"
+
+msgid "Already have an account? Sign in"
+msgstr "Уже есть аккаунт? Войти"

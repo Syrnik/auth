@@ -9,7 +9,7 @@
         <div class="auth-oauth">
             {foreach $oauth_providers as $provider}
                 <a href="{$provider.auth_url|escape}" class="auth-oauth-btn" data-provider="{$provider.id|escape}">
-                    Войти через {$provider.name|escape}
+                    {sprintf(_wp('Sign in with %s'), $provider.name)|escape}
                 </a>
             {/foreach}
         </div>
@@ -24,17 +24,17 @@
                 {if $goal_url}<input type="hidden" name="goal_url" value="{$goal_url|escape}">{/if}
                 {include file=$m.partial}
                 {$captcha_widget}
-                <button type="submit" class="auth-submit">Войти</button>
+                <button type="submit" class="auth-submit">{_wp('Sign in')|escape}</button>
             </form>
         {/if}
     {/foreach}
 
     <div class="auth-links">
         {if $has_recovery}
-            <a href="{$recovery_url|escape}">Забыли пароль?</a>
+            <a href="{$recovery_url|escape}">{_wp('Forgot your password?')|escape}</a>
         {/if}
         {if $has_registration}
-            <a href="{$register_url|escape}">Регистрация</a>
+            <a href="{$register_url|escape}">{_wp('Sign up')|escape}</a>
         {/if}
     </div>
 

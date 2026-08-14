@@ -231,118 +231,28 @@ msgstr ""
 msgid "Sign-in and security"
 msgstr ""
 
-msgid "A password is set."
-msgstr ""
-
 msgid "Add"
-msgstr ""
-
-msgid "Back to my profile"
 msgstr ""
 
 msgid "Cancel"
 msgstr ""
 
-msgid "Cancel the change"
-msgstr ""
-
-msgid "Change"
-msgstr ""
-
-msgid "Choose a file"
-msgstr ""
-
-msgid "Code from the message"
-msgstr ""
-
 msgid "Confirm"
-msgstr ""
-
-msgid "Confirm the change"
-msgstr ""
-
-msgid "Current password"
 msgstr ""
 
 msgid "Delete"
 msgstr ""
 
-msgid "Deleting your account removes it permanently. This cannot be undone."
-msgstr ""
-
-msgid "Done"
-msgstr ""
-
 msgid "Edit"
-msgstr ""
-
-msgid "Finish the change"
 msgstr ""
 
 msgid "Link"
 msgstr ""
 
-msgid "Log out"
-msgstr ""
-
 msgid "Manage"
 msgstr ""
 
-msgid "My profile"
-msgstr ""
-
-msgid "No accounts linked yet."
-msgstr ""
-
-msgid "No password set. You sign in another way."
-msgstr ""
-
-msgid "Not configured"
-msgstr ""
-
-msgid "Not specified"
-msgstr ""
-
-msgid "Not specified yet."
-msgstr ""
-
-msgid "Remove photo"
-msgstr ""
-
-msgid "Send confirmation"
-msgstr ""
-
-msgid "Set password"
-msgstr ""
-
 msgid "Unlink"
-msgstr ""
-
-msgid "Used to sign in"
-msgstr ""
-
-msgid "Waiting for %s to be confirmed."
-msgstr ""
-
-msgid "We sent a code to %s."
-msgstr ""
-
-msgid "We sent a confirmation link to %s. Open it to finish the change."
-msgstr ""
-
-msgid "We will send a confirmation link to the new address. Until you open it, you keep signing in with the current one."
-msgstr ""
-
-msgid "We will text a code to the new number. Until you enter it, you keep signing in with the current one."
-msgstr ""
-
-msgid "Yes, delete my account"
-msgstr ""
-
-msgid "Your account and everything stored with it will be removed permanently. This cannot be undone."
-msgstr ""
-
-msgid "Your changes have been saved."
 msgstr ""
 
 msgid "Incorrect code."

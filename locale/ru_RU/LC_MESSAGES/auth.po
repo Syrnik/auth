@@ -231,119 +231,29 @@ msgstr "Изменение фото недоступно."
 msgid "Sign-in and security"
 msgstr "Вход и безопасность"
 
-msgid "A password is set."
-msgstr "Пароль установлен."
-
 msgid "Add"
 msgstr "Добавить"
-
-msgid "Back to my profile"
-msgstr "Назад в профиль"
 
 msgid "Cancel"
 msgstr "Отмена"
 
-msgid "Cancel the change"
-msgstr "Отменить изменение"
-
-msgid "Change"
-msgstr "Изменить"
-
-msgid "Choose a file"
-msgstr "Выбрать файл"
-
-msgid "Code from the message"
-msgstr "Код из сообщения"
-
 msgid "Confirm"
 msgstr "Подтвердить"
-
-msgid "Confirm the change"
-msgstr "Подтверждение изменения"
-
-msgid "Current password"
-msgstr "Текущий пароль"
 
 msgid "Delete"
 msgstr "Удалить"
 
-msgid "Deleting your account removes it permanently. This cannot be undone."
-msgstr "Удаление аккаунта необратимо."
-
-msgid "Done"
-msgstr "Готово"
-
 msgid "Edit"
 msgstr "Редактировать"
-
-msgid "Finish the change"
-msgstr "Завершить изменение"
 
 msgid "Link"
 msgstr "Привязать"
 
-msgid "Log out"
-msgstr "Выйти"
-
 msgid "Manage"
 msgstr "Управление"
 
-msgid "My profile"
-msgstr "Мой профиль"
-
-msgid "No accounts linked yet."
-msgstr "Пока нет привязанных аккаунтов."
-
-msgid "No password set. You sign in another way."
-msgstr "Пароль не задан. Вы входите другим способом."
-
-msgid "Not configured"
-msgstr "Не настроено"
-
-msgid "Not specified"
-msgstr "Не указано"
-
-msgid "Not specified yet."
-msgstr "Пока не указано."
-
-msgid "Remove photo"
-msgstr "Удалить фото"
-
-msgid "Send confirmation"
-msgstr "Отправить подтверждение"
-
-msgid "Set password"
-msgstr "Задать пароль"
-
 msgid "Unlink"
 msgstr "Отвязать"
-
-msgid "Used to sign in"
-msgstr "Используется для входа"
-
-msgid "Waiting for %s to be confirmed."
-msgstr "Ожидает подтверждения: %s."
-
-msgid "We sent a code to %s."
-msgstr "Мы отправили код на %s."
-
-msgid "We sent a confirmation link to %s. Open it to finish the change."
-msgstr "Мы отправили ссылку для подтверждения на %s. Перейдите по ней, чтобы завершить изменение."
-
-msgid "We will send a confirmation link to the new address. Until you open it, you keep signing in with the current one."
-msgstr "Мы отправим ссылку для подтверждения на новый адрес. Пока вы её не откроете, вход останется по текущему адресу."
-
-msgid "We will text a code to the new number. Until you enter it, you keep signing in with the current one."
-msgstr "Мы отправим код на новый номер по SMS. Пока вы его не введёте, вход останется по текущему номеру."
-
-msgid "Yes, delete my account"
-msgstr "Да, удалить мой аккаунт"
-
-msgid "Your account and everything stored with it will be removed permanently. This cannot be undone."
-msgstr "Аккаунт и всё, что с ним связано, будут удалены безвозвратно. Отменить это нельзя."
-
-msgid "Your changes have been saved."
-msgstr "Изменения сохранены."
 
 msgid "Incorrect code."
 msgstr "Неверный код."

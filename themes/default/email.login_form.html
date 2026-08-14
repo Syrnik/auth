@@ -1,6 +1,6 @@
 {if !empty($step_vars.show_code_field)}
     <div class="auth-field">
-        <label>Код из SMS</label>
+        <label>{_wp('Code from the message')|escape}</label>
         <input type="text" name="otp_code" autocomplete="one-time-code" autofocus>
     </div>
     {if !empty($step_vars.error)}
@@ -8,16 +8,16 @@
     {/if}
 {else}
     <div class="auth-field">
-        <label>Email</label>
+        <label>{_wp('E-mail')|escape}</label>
         <input type="email" name="email" autocomplete="email" autofocus>
     </div>
     <div class="auth-field">
-        <label>Пароль</label>
+        <label>{_wp('Password')|escape}</label>
         <input type="password" name="password" autocomplete="current-password">
     </div>
     {if $rememberme}
         <div class="auth-field">
-            <label><input type="checkbox" name="rememberme" value="1"> Запомнить меня</label>
+            <label><input type="checkbox" name="rememberme" value="1"> {_wp('Remember me')|escape}</label>
         </div>
     {/if}
 {/if}

@@ -26,7 +26,7 @@
         {/foreach}
 
         {if $is_login}
-            <p class="auth-hint">{_w('We will send a confirmation link to the new address. Until you open it, you keep signing in with the current one.')|escape}</p>
+            <p class="auth-hint">{_wp('We will send a confirmation link to the new address. Until you open it, you keep signing in with the current one.')|escape}</p>
         {/if}
 
         <div class="auth-field">{$field_html}</div>
@@ -35,7 +35,7 @@
             <div class="auth-field">
                 <label for="auth-{$section->getId()|escape}-ext">{_ws('Type')|escape}</label>
                 <select id="auth-{$section->getId()|escape}-ext" name="{$section->extInputName($index)|escape}">
-                    <option value="">{_w('Not specified')|escape}</option>
+                    <option value="">{_wp('Not specified')|escape}</option>
                     {foreach $ext_options as $ext_value => $ext_name}
                         <option value="{$ext_value|escape}"{if !empty($value.ext) && $value.ext == $ext_value} selected{/if}>{$ext_name|escape}</option>
                     {/foreach}
@@ -43,8 +43,8 @@
             </div>
         {/if}
 
-        <button type="submit" class="auth-submit">{if $is_login}{_w('Send confirmation')|escape}{else}{_w('Save')|escape}{/if}</button>
-        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_w('Cancel')|escape}</a>
+        <button type="submit" class="auth-submit">{if $is_login}{_wp('Send confirmation')|escape}{else}{_wp('Save')|escape}{/if}</button>
+        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_wp('Cancel')|escape}</a>
 
         {* The lock is on the value that signs the visitor in, and it is the
            whole reason this section is not the plain one: submitting it empty

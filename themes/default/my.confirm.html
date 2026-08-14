@@ -12,7 +12,7 @@
 *}
 <div class="auth-page auth-my-confirm">
 
-    <h2>{_w('Confirm the change')|escape}</h2>
+    <h2>{_wp('Confirm the change')|escape}</h2>
 
     {if $error}
         <div class="auth-error">{$error|escape}</div>
@@ -21,9 +21,9 @@
     {if $field}
         <p class="auth-my-confirm-value">
             {if $needs_code}
-                {sprintf(_w('We sent a code to %s.'), $value)|escape}
+                {sprintf(_wp('We sent a code to %s.'), $value)|escape}
             {else}
-                {sprintf(_w('We sent a confirmation link to %s. Open it to finish the change.'), $value)|escape}
+                {sprintf(_wp('We sent a confirmation link to %s. Open it to finish the change.'), $value)|escape}
             {/if}
         </p>
 
@@ -32,24 +32,24 @@
 
             {if $needs_code}
                 <div class="auth-field">
-                    <label for="auth-confirm-code">{_w('Code from the message')|escape}</label>
+                    <label for="auth-confirm-code">{_wp('Code from the message')|escape}</label>
                     {* inputmode/autocomplete let a phone offer the code it just
                        received instead of making the visitor switch apps. *}
                     <input type="text" id="auth-confirm-code" name="code" value=""
                            inputmode="numeric" autocomplete="one-time-code" autofocus>
                 </div>
 
-                <button type="submit" class="auth-submit">{_w('Confirm')|escape}</button>
+                <button type="submit" class="auth-submit">{_wp('Confirm')|escape}</button>
             {/if}
 
             {* Cancelling drops the pending change rather than just navigating
                away: the old login keeps working, and the visitor can start over
                with a corrected value instead of waiting out the old request. *}
-            <button type="submit" name="cancel" value="1" class="auth-cancel">{_w('Cancel the change')|escape}</button>
+            <button type="submit" name="cancel" value="1" class="auth-cancel">{_wp('Cancel the change')|escape}</button>
         </form>
     {else}
         <p class="auth-links">
-            <a href="{$my_url|escape}">{_w('Back to my profile')|escape}</a>
+            <a href="{$my_url|escape}">{_wp('Back to my profile')|escape}</a>
         </p>
     {/if}
 

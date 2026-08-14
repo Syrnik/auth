@@ -97,16 +97,11 @@ abstract class authProfileSectionPlugin extends authProfileSectionBase
         $safe_id = str_replace(':', '-', $this->getId());
         $file    = 'my.profile.'.$safe_id.'.'.$mode.'.html';
 
-        $theme_id = waRequest::getTheme();
-        if ($theme_id) {
-            try {
-                $theme = new waTheme($theme_id, 'auth');
-                $path  = $theme->path.'/'.$file;
-                if (file_exists($path)) {
-                    return $path;
-                }
-            } catch (waException $e) {
-                // Broken or missing theme: fall through to the plugin's own partial.
+        $theme = $this->resolveTheme();
+        if ($theme) {
+            $path = $theme->path.'/'.$file;
+            if (file_exists($path)) {
+                return $path;
             }
         }
 

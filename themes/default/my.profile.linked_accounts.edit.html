@@ -18,7 +18,7 @@
     <div class="auth-profile-section-head">
         <h4>{$section->getName()|escape}</h4>
 
-        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_w('Done')|escape}</a>
+        <a href="{$view_url|escape}" class="auth-profile-section-cancel" data-section-link>{_wp('Done')|escape}</a>
     </div>
 
     {foreach $errors as $field_errors}
@@ -41,13 +41,13 @@
                         <form method="post" action="{$save_url|escape}" class="auth-profile-account-form" data-section-form>
                             {$wa->csrf()}
                             <input type="hidden" name="unlink" value="{$account.id|escape}">
-                            <button type="submit" class="auth-profile-account-unlink">{_w('Unlink')|escape}</button>
+                            <button type="submit" class="auth-profile-account-unlink">{_wp('Unlink')|escape}</button>
                         </form>
                     {/if}
                 {elseif $account.link_url}
-                    <a href="{$account.link_url|escape}" class="auth-profile-account-link">{_w('Link')|escape}</a>
+                    <a href="{$account.link_url|escape}" class="auth-profile-account-link">{_wp('Link')|escape}</a>
                 {else}
-                    <span class="auth-profile-account-hint">{_w('Not configured')|escape}</span>
+                    <span class="auth-profile-account-hint">{_wp('Not configured')|escape}</span>
                 {/if}
             </li>
         {/foreach}

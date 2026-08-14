@@ -7,14 +7,14 @@
     {if $challenge_form_html}
         {$challenge_form_html}
     {else}
-        <h2>Подтверждение входа</h2>
+        <h2>{_wp('Sign-in confirmation')|escape}</h2>
         <form method="post" data-auth="challenge" class="auth-form">
             {$wa->csrf()}
             <div class="auth-field">
-                <label>Код подтверждения</label>
+                <label>{_wp('Verification code')|escape}</label>
                 <input type="text" name="code" autocomplete="one-time-code" autofocus>
             </div>
-            <button type="submit" class="auth-submit">Подтвердить</button>
+            <button type="submit" class="auth-submit">{_wp('Confirm')|escape}</button>
         </form>
     {/if}
 

@@ -13,11 +13,11 @@
 <div class="auth-profile-section" data-section="{$section->getId()|escape}">
     <div class="auth-profile-section-head">
         <h4>{$section->getName()|escape}</h4>
-        <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_w('Add')|escape}</a>
+        <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_wp('Add')|escape}</a>
     </div>
 
     {if $section->isEmpty()}
-        <div class="auth-profile-section-empty">{_w('Not specified yet.')|escape}</div>
+        <div class="auth-profile-section-empty">{_wp('Not specified yet.')|escape}</div>
     {else}
         <ul class="auth-profile-values">
             {foreach $values as $i => $item}
@@ -26,7 +26,7 @@
                     {if !empty($item.ext) && isset($ext_options[$item.ext])}
                         <span class="auth-profile-value-ext">{$ext_options[$item.ext]|escape}</span>
                     {/if}
-                    <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_w('Edit')|escape}</a>
+                    <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_wp('Edit')|escape}</a>
                 </li>
             {/foreach}
         </ul>

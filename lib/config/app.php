@@ -3,7 +3,7 @@ return [
     'name'       => 'Auth',
     'icon'       => 'img/auth.svg',
     'version'    => '0.1.0',
-    'vendor'     => '',
+    'vendor'     => '670917',
     'frontend'   => true,
     'auth'       => true,
     'routing_params' => [

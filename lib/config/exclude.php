@@ -11,6 +11,8 @@ return [
     // its own autoloader (tests/psalm-init.php) is already covered by 'tests' above.
     'psalm82.xml',
     'psalm85.xml',
+    'psalm82-baseline.xml',
+    'psalm85-baseline.xml',
     'phpcompatinfo.json',
     // .github/ is not listed here: webasystCompress.cli.php's own blacklist already
     // drops every leading-dot directory ('directory with leading dot').

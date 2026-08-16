@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac">
+  <file src="lib/actions/backend/authBackend.action.php">
+    <InvalidCast>
+      <code><![CDATA[$domain]]></code>
+    </InvalidCast>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/backend/authBackendCaptcha.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
+      <code><![CDATA[protected function getTemplateName(): string]]></code>
+      <code><![CDATA[protected function getUrlSegment(): string]]></code>
+      <code><![CDATA[protected function getViewData(array $config, string $domain): array]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendCaptchaAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/backend/authBackendChallenges.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
+      <code><![CDATA[protected function getTemplateName(): string]]></code>
+      <code><![CDATA[protected function getUrlSegment(): string]]></code>
+      <code><![CDATA[protected function getViewData(array $config, string $domain): array]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendChallengesAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/backend/authBackendDashboard.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function getTemplateName(): string]]></code>
+      <code><![CDATA[protected function getUrlSegment(): string]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendDashboardAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/backend/authBackendDomainSettings.action.php">
+    <InvalidCast>
+      <code><![CDATA[$domain]]></code>
+      <code><![CDATA[$domain]]></code>
+    </InvalidCast>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <NullArgument>
+      <code><![CDATA[null]]></code>
+    </NullArgument>
+  </file>
+  <file src="lib/actions/backend/authBackendGuards.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
+      <code><![CDATA[protected function getTemplateName(): string]]></code>
+      <code><![CDATA[protected function getUrlSegment(): string]]></code>
+      <code><![CDATA[protected function getViewData(array $config, string $domain): array]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendGuardsAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/backend/authBackendLogin.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
+      <code><![CDATA[protected function getTemplateName(): string]]></code>
+      <code><![CDATA[protected function getUrlSegment(): string]]></code>
+      <code><![CDATA[protected function getViewData(array $config, string $domain): array]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendLoginAction]]></code>
+    </UnusedClass>
+    <UnusedForeachValue>
+      <code><![CDATA[$provider_id]]></code>
+    </UnusedForeachValue>
+  </file>
+  <file src="lib/actions/backend/authBackendProfile.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
+      <code><![CDATA[protected function getTemplateName(): string]]></code>
+      <code><![CDATA[protected function getUrlSegment(): string]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendProfileAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/backend/authBackendRecovery.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
+      <code><![CDATA[protected function getTemplateName(): string]]></code>
+      <code><![CDATA[protected function getUrlSegment(): string]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendRecoveryAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/backend/authBackendSidebar.action.php">
+    <InvalidArrayOffset>
+      <code><![CDATA[$enabled[$d]]]></code>
+    </InvalidArrayOffset>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="lib/actions/backend/authBackendSignup.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
+      <code><![CDATA[protected function getTemplateName(): string]]></code>
+      <code><![CDATA[protected function getUrlSegment(): string]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authBackendSignupAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/design/authDesign.actions.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function defaultAction()]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authDesignActions]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontend.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authFrontendAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontendCallback.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <TooManyArguments>
+      <code><![CDATA[auth]]></code>
+      <code><![CDATA[get]]></code>
+    </TooManyArguments>
+    <UnusedClass>
+      <code><![CDATA[authFrontendCallbackAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontendChallenge.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <TooManyArguments>
+      <code><![CDATA[auth]]></code>
+    </TooManyArguments>
+    <UndefinedMethod>
+      <code><![CDATA[getFormHtml]]></code>
+    </UndefinedMethod>
+    <UnusedClass>
+      <code><![CDATA[authFrontendChallengeAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontendConfirm.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <TooManyArguments>
+      <code><![CDATA[auth]]></code>
+    </TooManyArguments>
+    <UnusedClass>
+      <code><![CDATA[authFrontendConfirmAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontendLogout.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authFrontendLogoutAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontendMy.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function display($clear_assign = true)]]></code>
+      <code><![CDATA[public function execute()]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authFrontendMyAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontendMyConfirm.action.php">
+    <InvalidArgument>
+      <code><![CDATA[$section]]></code>
+    </InvalidArgument>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="lib/actions/frontend/authFrontendMyLink.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authFrontendMyLinkAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontendMySave.controller.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function display()]]></code>
+      <code><![CDATA[public function execute()]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="lib/actions/frontend/authFrontendRecovery.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <TooManyArguments>
+      <code><![CDATA[auth]]></code>
+    </TooManyArguments>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchAssoc]]></code>
+    </UndefinedMagicMethod>
+    <UnusedClass>
+      <code><![CDATA[authFrontendRecoveryAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/frontend/authFrontendRegister.action.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <TooManyArguments>
+      <code><![CDATA[auth]]></code>
+    </TooManyArguments>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchField]]></code>
+    </UndefinedMagicMethod>
+    <UnusedClass>
+      <code><![CDATA[authFrontendRegisterAction]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/login/authLogin.controller.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute(): void]]></code>
+      <code><![CDATA[public function execute(): void]]></code>
+    </MissingOverrideAttribute>
+    <TooManyArguments>
+      <code><![CDATA[auth]]></code>
+    </TooManyArguments>
+    <UnusedClass>
+      <code><![CDATA[authLoginController]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/oauth/authOAuth.controller.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function afterAuth($data)]]></code>
+      <code><![CDATA[protected function getAuthAdapter($provider)]]></code>
+    </MissingOverrideAttribute>
+    <NullableReturnStatement>
+      <code><![CDATA[$contact]]></code>
+      <code><![CDATA[null]]></code>
+      <code><![CDATA[null]]></code>
+      <code><![CDATA[null]]></code>
+      <code><![CDATA[null]]></code>
+    </NullableReturnStatement>
+    <TooManyArguments>
+      <code><![CDATA[auth]]></code>
+    </TooManyArguments>
+    <UnusedClass>
+      <code><![CDATA[authOAuthController]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/actions/plugins/authPlugins.actions.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function defaultAction()]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authPluginsActions]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/authBuiltinMethod.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getTemplatePath]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/authContactResolver.class.php">
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchField]]></code>
+    </UndefinedMagicMethod>
+  </file>
+  <file src="lib/classes/authHelper.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getLogoutUrl]]></code>
+      <code><![CDATA[getUser]]></code>
+    </PossiblyUnusedMethod>
+    <UndefinedMethod>
+      <code><![CDATA[isAuth]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="lib/classes/authLinkIntent.class.php">
+    <UndefinedMethod>
+      <code><![CDATA[isAuth]]></code>
+    </UndefinedMethod>
+  </file>
+  <file src="lib/classes/authPlugin.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function getName()]]></code>
+    </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[getInstance]]></code>
+      <code><![CDATA[getMethodId]]></code>
+      <code><![CDATA[prepareSettings]]></code>
+    </PossiblyUnusedMethod>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$settings]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="lib/classes/authPluginManager.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[clearCache]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/authWaidAdapter.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function verifyState()]]></code>
+      <code><![CDATA[public function getCallbackUrl($absolute = true): string]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="lib/classes/interfaces/authCaptcha.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[renderWidget]]></code>
+      <code><![CDATA[verifyCaptcha]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/interfaces/authChallenge.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getId]]></code>
+      <code><![CDATA[isRequired]]></code>
+      <code><![CDATA[verify]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/interfaces/authGuard.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[checkLogin]]></code>
+      <code><![CDATA[checkSignup]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/interfaces/authMethod.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[authenticate]]></code>
+      <code><![CDATA[getId]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/interfaces/authProfileSectionProvider.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getProfileSection]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/methods/authEmailMethod.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function authenticate(array $params): ?int]]></code>
+      <code><![CDATA[public function getCallbackUrl(): string]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function handleCallback(array $params): authCallbackResult]]></code>
+    </MissingOverrideAttribute>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchAssoc]]></code>
+    </UndefinedMagicMethod>
+    <UnusedClass>
+      <code><![CDATA[authEmailMethod]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/methods/authLoginMethod.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function authenticate(array $params): ?int]]></code>
+      <code><![CDATA[public function getCallbackUrl(): string]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function handleCallback(array $params): authCallbackResult]]></code>
+    </MissingOverrideAttribute>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchAssoc]]></code>
+    </UndefinedMagicMethod>
+    <UnusedClass>
+      <code><![CDATA[authLoginMethod]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/methods/authPhoneMethod.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function authenticate(array $params): ?int]]></code>
+      <code><![CDATA[public function getCallbackUrl(): string]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function handleCallback(array $params): authCallbackResult]]></code>
+    </MissingOverrideAttribute>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchAssoc]]></code>
+    </UndefinedMagicMethod>
+    <UnusedClass>
+      <code><![CDATA[authPhoneMethod]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/methods/authSocialMethod.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function authenticate(array $params): ?int]]></code>
+      <code><![CDATA[public function getCallbackUrl(): string]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function handleCallback(array $params): authCallbackResult]]></code>
+    </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getName]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/methods/authWaidMethod.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function authenticate(array $params): ?int]]></code>
+      <code><![CDATA[public function getCallbackUrl(): string]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function handleCallback(array $params): authCallbackResult]]></code>
+    </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getName]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/profile/authProfileFields.class.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[clearCache]]></code>
+      <code><![CDATA[isEnabled]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionAddress.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function prepareForStorage(array $data): array]]></code>
+      <code><![CDATA[public function getName(): string]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionAddress]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionBase.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function getErrors(): array]]></code>
+      <code><![CDATA[public function getForm(?int $index = null): ?waContactForm]]></code>
+      <code><![CDATA[public function getGroup(): string]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function getRedirectAfterSave(): ?string]]></code>
+      <code><![CDATA[public function getRemovalLock(?int $index = null): ?string]]></code>
+      <code><![CDATA[public function isMultiple(): bool]]></code>
+      <code><![CDATA[public function render(string $mode, ?int $index = null): string]]></code>
+      <code><![CDATA[public function restoreFailedSave(array $data, array $errors, ?int $index = null): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionDeleteAccount.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function getTemplateVars(string $mode, ?int $index = null): array]]></code>
+      <code><![CDATA[public function getName(): string]]></code>
+      <code><![CDATA[public function getRedirectAfterSave(): ?string]]></code>
+      <code><![CDATA[public function getRemovalLock(?int $index = null): ?string]]></code>
+      <code><![CDATA[public function isAvailable(): bool]]></code>
+      <code><![CDATA[public function isEmpty(): bool]]></code>
+      <code><![CDATA[public function save(array $data, ?int $index = null): bool]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionDeleteAccount]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionEmail.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function getName(): string]]></code>
+      <code><![CDATA[public function isAvailable(): bool]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionEmail]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionFields.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function getForm(?int $index = null): ?waContactForm]]></code>
+      <code><![CDATA[public function isAvailable(): bool]]></code>
+      <code><![CDATA[public function isEmpty(): bool]]></code>
+      <code><![CDATA[public function restoreFailedSave(array $data, array $errors, ?int $index = null): void]]></code>
+      <code><![CDATA[public function save(array $data, ?int $index = null): bool]]></code>
+    </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getValues]]></code>
+    </PossiblyUnusedMethod>
+    <TypeDoesNotContainType>
+      <code><![CDATA[$this->errors]]></code>
+      <code><![CDATA[$this->errors]]></code>
+    </TypeDoesNotContainType>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionLinkedAccounts.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function getTemplateVars(string $mode, ?int $index = null): array]]></code>
+      <code><![CDATA[public function getName(): string]]></code>
+      <code><![CDATA[public function getRemovalLock(?int $index = null): ?string]]></code>
+      <code><![CDATA[public function isAvailable(): bool]]></code>
+      <code><![CDATA[public function isEmpty(): bool]]></code>
+      <code><![CDATA[public function save(array $data, ?int $index = null): bool]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionLogin.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function getEnabledFields(): array]]></code>
+      <code><![CDATA[protected function getTemplateVars(string $mode, ?int $index = null): array]]></code>
+      <code><![CDATA[public function applyConfirmedValue(string $value): bool]]></code>
+      <code><![CDATA[public function getConfirmationUrl(array $data, ?int $index = null): ?string]]></code>
+      <code><![CDATA[public function getRemovalLock(?int $index = null): ?string]]></code>
+      <code><![CDATA[public function isAvailable(): bool]]></code>
+      <code><![CDATA[public function save(array $data, ?int $index = null): bool]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionLoginEmail.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function isTaken(string $value): bool]]></code>
+      <code><![CDATA[protected function normalize(string $value): string]]></code>
+      <code><![CDATA[protected function sendProof(string $value, string $token, ?string $code): void]]></code>
+      <code><![CDATA[public function getConfirmableField(): string]]></code>
+      <code><![CDATA[public function getName(): string]]></code>
+      <code><![CDATA[public function usesCode(): bool]]></code>
+    </MissingOverrideAttribute>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchField]]></code>
+    </UndefinedMagicMethod>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionLoginEmail]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionLoginPhone.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function isTaken(string $value): bool]]></code>
+      <code><![CDATA[protected function normalize(string $value): string]]></code>
+      <code><![CDATA[protected function prepareList(&$list): void]]></code>
+      <code><![CDATA[protected function sendProof(string $value, string $token, ?string $code): void]]></code>
+      <code><![CDATA[public function getConfirmableField(): string]]></code>
+      <code><![CDATA[public function getName(): string]]></code>
+      <code><![CDATA[public function usesCode(): bool]]></code>
+    </MissingOverrideAttribute>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchField]]></code>
+    </UndefinedMagicMethod>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionLoginPhone]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionMultiField.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function getTemplateVars(string $mode, ?int $index = null): array]]></code>
+      <code><![CDATA[protected function prepareData(array $data, ?int $index = null): ?array]]></code>
+      <code><![CDATA[public function getRemovalLock(?int $index = null): ?string]]></code>
+      <code><![CDATA[public function isMultiple(): bool]]></code>
+    </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[extInputName]]></code>
+      <code><![CDATA[getAddUrl]]></code>
+      <code><![CDATA[getValueEditUrl]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionName.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function validateSection(array $data, waContactForm $form): void]]></code>
+      <code><![CDATA[public function getName(): string]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionName]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionPassword.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function getEnabledFields(): array]]></code>
+      <code><![CDATA[protected function prepareForStorage(array $data): array]]></code>
+      <code><![CDATA[protected function validateSection(array $data, waContactForm $form): void]]></code>
+      <code><![CDATA[public function getName(): string]]></code>
+      <code><![CDATA[public function isAvailable(): bool]]></code>
+      <code><![CDATA[public function isEmpty(): bool]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionPassword]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionPhone.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function prepareList(&$list): void]]></code>
+      <code><![CDATA[public function getName(): string]]></code>
+      <code><![CDATA[public function isAvailable(): bool]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionPhone]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionPhoto.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function getName(): string]]></code>
+      <code><![CDATA[public function isEmpty(): bool]]></code>
+      <code><![CDATA[public function save(array $data, ?int $index = null): bool]]></code>
+    </MissingOverrideAttribute>
+    <NullArgument>
+      <code><![CDATA[null]]></code>
+      <code><![CDATA[null]]></code>
+    </NullArgument>
+    <UnusedClass>
+      <code><![CDATA[authProfileSectionPhoto]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/classes/profile/authProfileSectionPlugin.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function getTemplatePath(string $mode): ?string]]></code>
+      <code><![CDATA[protected function getTemplateVars(string $mode, ?int $index = null): array]]></code>
+      <code><![CDATA[public function getGroup(): string]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function render(string $mode, ?int $index = null): string]]></code>
+    </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/profile/authProfileValues.class.php">
+    <ImplicitToStringCast>
+      <code><![CDATA[$file]]></code>
+      <code><![CDATA[$file]]></code>
+    </ImplicitToStringCast>
+  </file>
+  <file src="lib/layouts/authDefault.layout.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute()]]></code>
+    </MissingOverrideAttribute>
+  </file>
+  <file src="lib/layouts/authFrontend.layout.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function execute()]]></code>
+    </MissingOverrideAttribute>
+  </file>
+</files>

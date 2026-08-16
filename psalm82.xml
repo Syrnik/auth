@@ -8,6 +8,7 @@
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     autoloader="tests/psalm-init.php"
+    errorBaseline="psalm82-baseline.xml"
 >
     <projectFiles>
         <directory name="lib" />

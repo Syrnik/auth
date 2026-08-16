@@ -78,9 +78,23 @@ noise removed as above) the counts by level were 1→939, 2→441, 3→269, **4�
 requiring `#[Override]` everywhere), while 4 down to the loosest level 8 only trims another
 36. Level 4 is a reasonable place to sit rather than a compromise — going any looser barely
 reduces the count. It also means nothing here has been triaged yet: a first run at any level
-returns real work, not noise, so read it as a backlog rather than a gate. Anyone tightening
-this later can freeze the current findings with `--set-baseline=<file>` so CI only fails on
-genuinely new issues.
+returns real work, not noise, so read it as a backlog rather than a gate.
+
+`psalm82-baseline.xml`/`psalm85-baseline.xml` freeze that initial backlog (247 findings each,
+regenerated together — the two configs differ only in `phpVersion`, so their baselines cover
+the same findings) — a plain run now reports clean, and only a genuinely new issue fails it.
+The `errorBaseline` attribute in each config points at its own file; both are read
+automatically, no extra flag needed:
+
+```
+/c/osp6/modules/PHP-8.4/php.exe -n -c tests/psalm.ini /c/osp6/modules/PHP-8.4/psalm.phar --config=psalm82.xml --no-cache
+```
+
+Fixing a baselined finding for real, not just suppressing it further, should also drop its
+entry from the baseline file by hand (or regenerate with `--set-baseline=psalm82-baseline.xml`,
+which overwrites the whole file with whatever's still outstanding — only do that once you've
+actually looked at the diff, since it will just as happily paper over a new regression as
+record a real fix).
 
 `phpcompatinfo.json` is a config stub carried over from the same `sdekint` reference for
 future use with `bartlett/php-compatinfo`; nothing here currently runs it.

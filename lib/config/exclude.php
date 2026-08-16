@@ -18,4 +18,15 @@ return [
     // Contributor-facing docs, not part of the running app.
     'AGENTS.md',
     'docs',
+    'LICENSE',
+    'LICENSE_ru',
+    '*/LICENSE',
+    '*/LICENSE_ru',
+    'README.md',
+    '*/README.md',
+    'README.en.md',
+    '*/README.en.md',
+    'CHANGELOG.md',
+    '*/CHANGELOG.md',
+    'compress-app.php',
 ];

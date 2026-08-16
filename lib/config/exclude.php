@@ -29,4 +29,7 @@ return [
     'CHANGELOG.md',
     '*/CHANGELOG.md',
     'compress-app.php',
+    // compress-app.php's own blacklist already drops plugins/ (they ship as
+    // separate repos/bundles), this is just a belt-and-suspenders backstop.
+    'plugins/*',
 ];

@@ -2,7 +2,7 @@
 return [
     'name'       => 'Auth',
     'icon'       => 'img/auth.svg',
-    'version'    => '0.1.0',
+    'version'    => '0.2.0',
     'vendor'     => '670917',
     'frontend'   => true,
     'auth'       => true,

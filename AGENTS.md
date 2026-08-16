@@ -96,9 +96,6 @@ which overwrites the whole file with whatever's still outstanding — only do th
 actually looked at the diff, since it will just as happily paper over a new regression as
 record a real fix).
 
-`phpcompatinfo.json` is a config stub carried over from the same `sdekint` reference for
-future use with `bartlett/php-compatinfo`; nothing here currently runs it.
-
 ## Commit Messages
 
 All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.

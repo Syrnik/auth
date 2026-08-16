@@ -13,7 +13,6 @@ return [
     'psalm85.xml',
     'psalm82-baseline.xml',
     'psalm85-baseline.xml',
-    'phpcompatinfo.json',
     // .github/ is not listed here: webasystCompress.cli.php's own blacklist already
     // drops every leading-dot directory ('directory with leading dot').
     // Contributor-facing docs, not part of the running app.

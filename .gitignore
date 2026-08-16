@@ -2,6 +2,10 @@
 .vscode/
 *.DS_Store
 
+# PHPUnit run cache (AUTH-87) and the release bundle compress-cli produces locally
+.phpunit.result.cache
+*.tar.gz
+
 # Separate repository (task 76.14)
 plugins/blackmailguard/
 

@@ -12,13 +12,13 @@ class authConfig
      * lib/config/config.php, so their stored value IS null — callers must
      * chain `?: fallback` on the result instead of passing $default here.
      */
-    public static function get(string $key, $default = null, string $domain = null)
+    public static function get(string $key, $default = null, ?string $domain = null)
     {
         $config = self::getMerged($domain);
         return array_key_exists($key, $config) ? $config[$key] : $default;
     }
 
-    public static function getLoginMethods(string $domain = null): array
+    public static function getLoginMethods(?string $domain = null): array
     {
         return (array)self::get('login_methods', [], $domain);
     }
@@ -29,17 +29,17 @@ class authConfig
      * login/registration at all — it's just a landing page. There is no global
      * "default" fallback: every site carries its own settings or has none.
      */
-    public static function isEnabled(string $domain = null): bool
+    public static function isEnabled(?string $domain = null): bool
     {
         return count(self::getLoginMethods($domain)) > 0;
     }
 
-    public static function getChallengeMethods(string $domain = null): array
+    public static function getChallengeMethods(?string $domain = null): array
     {
         return (array)self::get('challenge_methods', [], $domain);
     }
 
-    public static function getGuardPlugins(string $domain = null): array
+    public static function getGuardPlugins(?string $domain = null): array
     {
         return (array)self::get('guard_plugins', [], $domain);
     }
@@ -51,7 +51,7 @@ class authConfig
      * 'plugin_settings' => [plugin_id => [instance_key => [...]]] — pass
      * $instance to get that slice ($instance === null keeps the old behavior).
      */
-    public static function getPluginSettings(string $plugin_id, string $domain = null, string $instance = null): array
+    public static function getPluginSettings(string $plugin_id, ?string $domain = null, ?string $instance = null): array
     {
         $all = (array)self::get('plugin_settings', [], $domain);
         $settings = (array)($all[$plugin_id] ?? []);
@@ -64,7 +64,7 @@ class authConfig
     /**
      * Saved credentials for a system/OAuth adapter, keyed by method id (e.g. 'waid', 'vkontakte').
      */
-    public static function getAdapterCredentials(string $id, string $domain = null): array
+    public static function getAdapterCredentials(string $id, ?string $domain = null): array
     {
         $adapters = (array)self::get('adapters', [], $domain);
         return (array)($adapters[$id] ?? []);
@@ -77,7 +77,7 @@ class authConfig
      * saved settings. There is no global settings layer — a domain either has
      * its own saved config or falls back to the (disabled) distribution defaults.
      */
-    public static function getMerged(string $domain = null): array
+    public static function getMerged(?string $domain = null): array
     {
         $domain = $domain ?: self::currentDomain();
 

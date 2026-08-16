@@ -41,6 +41,36 @@ behind if the test fails partway through. Tests that depend on domain settings
 (`login_methods` and friends) should use `authTestConfigOverrideTrait::overrideAuthConfig()`
 instead of relying on whatever is actually configured for `syrnik.local` right now.
 
+## PHP Compatibility
+
+Target range is PHP 8.2–8.5, declared in `lib/config/requirements.php` (installer-enforced)
+and in both READMEs. `.github/workflows/php-version-check.yml` lints every `*.php` file
+(`php -l`) on a matrix of 8.2/8.3/8.4/8.5 on every push and PR — the fast, reliable check;
+run it locally with any installed PHP version before pushing if you touched syntax.
+
+`psalm82.xml` and `psalm85.xml` pin the two ends of the range (`phpVersion="8.2"` /
+`"8.5"`) for deeper static analysis — deprecations or removed features that only show up
+at one boundary. Style and structure copied from the `sdekint` plugin's own
+`psalm74.xml`/`psalm85.xml`. Run from the app root:
+
+```
+/c/osp6/modules/PHP-8.4/php.exe -n -c tests/psalm.ini /c/osp6/modules/PHP-8.4/psalm.phar --config=psalm82.xml --no-cache
+/c/osp6/modules/PHP-8.4/php.exe -n -c tests/psalm.ini /c/osp6/modules/PHP-8.4/psalm.phar --config=psalm85.xml --no-cache
+```
+
+`tests/psalm.ini` exists only to work around this machine's PHPRC always pointing at
+PHP-8.4's own `php.ini` (which fails to load openssl for a bare CLI invocation) — see the
+comment in that file. Without it, psalm.phar's bundled Box requirements checker hard-fails
+before analysis even starts.
+
+`extraFiles` in both configs pulls in the framework itself for symbol resolution, so a run
+also reports pre-existing `wa-system`/`wa-apps` issues alongside the app's own — that's
+expected (`sdekint`'s own psalm run does the same), triage only the findings under this
+app's own `wa-apps/auth/lib/`.
+
+`phpcompatinfo.json` is a config stub carried over from the same `sdekint` reference for
+future use with `bartlett/php-compatinfo`; nothing here currently runs it.
+
 ## Commit Messages
 
 All commits must follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.

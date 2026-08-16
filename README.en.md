@@ -19,7 +19,7 @@ A frontend application for the Webasyst Framework that provides a full set of us
 ## Requirements
 
 - Webasyst Framework 4.0+
-- PHP 7.4+
+- PHP 8.2–8.5
 
 ## Installation
 

@@ -6,6 +6,9 @@
 .phpunit.result.cache
 *.tar.gz
 
+# Psalm run cache (psalm82.xml / psalm85.xml)
+tests/.psalm-cache-*/
+
 # Separate repository (task 76.14)
 plugins/blackmailguard/
 

@@ -20,7 +20,7 @@ abstract class authProfileSectionBase implements authProfileSection
     /** @var array field_id => list of error messages, from the last save() */
     protected $errors = [];
 
-    public function __construct(waContact $contact = null)
+    public function __construct(?waContact $contact = null)
     {
         $this->contact = $contact ?: wa()->getUser();
     }

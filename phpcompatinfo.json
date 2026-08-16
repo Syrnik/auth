@@ -1,0 +1,14 @@
+{
+    "source-providers": [
+        {
+            "in": "lib as current",
+            "name": "/\\.(php|inc|phtml)$/"
+        }
+    ],
+    "plugins": [
+    ],
+    "analysers": [
+    ],
+    "services": [
+    ]
+}

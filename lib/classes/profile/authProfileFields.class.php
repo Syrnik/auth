@@ -28,7 +28,7 @@ class authProfileFields
      * Enabled fields of the current domain as field_id => waContactField,
      * in the framework's own order.
      */
-    public static function getEnabled(string $domain = null): array
+    public static function getEnabled(?string $domain = null): array
     {
         // Same domain resolution as waMyProfileAction::getForm(), on purpose:
         // this reads the site app's per-domain config, so it must agree with
@@ -42,7 +42,7 @@ class authProfileFields
         return self::$cache[$domain];
     }
 
-    public static function isEnabled(string $field_id, string $domain = null): bool
+    public static function isEnabled(string $field_id, ?string $domain = null): bool
     {
         $enabled = self::getEnabled($domain);
         return isset($enabled[$field_id]);
@@ -55,7 +55,7 @@ class authProfileFields
      * @param string[] $field_ids
      * @return array field_id => waContactField
      */
-    public static function filter(array $field_ids, string $domain = null): array
+    public static function filter(array $field_ids, ?string $domain = null): array
     {
         $enabled = self::getEnabled($domain);
         $result  = [];

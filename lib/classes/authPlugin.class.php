@@ -79,7 +79,7 @@ abstract class authPlugin extends waPlugin
      * Not to be confused with waPlugin::getSettings(), which is global
      * (stored in wa_app_settings without a domain dimension).
      */
-    public function getDomainSettings(string $domain = null): array
+    public function getDomainSettings(?string $domain = null): array
     {
         return authConfig::getPluginSettings($this->id, $domain, $this->instance);
     }

@@ -11,11 +11,20 @@
 >
     <projectFiles>
         <directory name="lib" />
-    </projectFiles>
-    <extraFiles>
-        <directory name="../../wa-apps" />
+        <!-- Scanned for symbol resolution (waContact, waModel, wa()...) but not
+             reported on: sdekint's own extraFiles do get analyzed by this Psalm
+             version, which floods the report with framework issues nobody here
+             can fix. ignoreFiles keeps the scan without the noise. wa-apps/ is
+             deliberately not listed: wa-apps/auth/lib sits inside it, and an
+             ignoreFiles entry for the whole tree would swallow this app's own
+             code too (verified — it turns the run into "No files analyzed"). -->
         <directory name="../../wa-system" />
         <directory name="../../wa-config" />
         <directory name="../../wa-plugins" />
-    </extraFiles>
+        <ignoreFiles>
+            <directory name="../../wa-system" />
+            <directory name="../../wa-config" />
+            <directory name="../../wa-plugins" />
+        </ignoreFiles>
+    </projectFiles>
 </psalm>

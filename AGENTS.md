@@ -63,10 +63,24 @@ PHP-8.4's own `php.ini` (which fails to load openssl for a bare CLI invocation) 
 comment in that file. Without it, psalm.phar's bundled Box requirements checker hard-fails
 before analysis even starts.
 
-`extraFiles` in both configs pulls in the framework itself for symbol resolution, so a run
-also reports pre-existing `wa-system`/`wa-apps` issues alongside the app's own — that's
-expected (`sdekint`'s own psalm run does the same), triage only the findings under this
-app's own `wa-apps/auth/lib/`.
+Both configs scan `wa-system`/`wa-config`/`wa-plugins` for symbol resolution (`waContact`,
+`waModel`, `wa()`...) but wrap them in a nested `<ignoreFiles>` so nothing gets reported
+from there — a plain `<extraFiles>` block (what `sdekint`'s own config uses) gets fully
+analyzed by this Psalm version too, and the framework was never written against Psalm, so
+that buries the app's own findings under hundreds nobody here can act on. `wa-apps/` is
+deliberately left out of the scan (not just out of the report): `wa-apps/auth/lib` sits
+inside it, and ignoring the whole tree ignores this app's own code too — confirmed by
+watching the run collapse to "No files analyzed" with it included.
+
+`errorLevel="4"` matches `sdekint`'s own config. On this app's ~90 files (with the framework
+noise removed as above) the counts by level were 1→939, 2→441, 3→269, **4→247**, 5→227,
+6→222, 7→211, 8→211: most of the drop happens going from 1 to 4 (pedantic checks like
+requiring `#[Override]` everywhere), while 4 down to the loosest level 8 only trims another
+36. Level 4 is a reasonable place to sit rather than a compromise — going any looser barely
+reduces the count. It also means nothing here has been triaged yet: a first run at any level
+returns real work, not noise, so read it as a backlog rather than a gate. Anyone tightening
+this later can freeze the current findings with `--set-baseline=<file>` so CI only fails on
+genuinely new issues.
 
 `phpcompatinfo.json` is a config stub carried over from the same `sdekint` reference for
 future use with `bartlett/php-compatinfo`; nothing here currently runs it.

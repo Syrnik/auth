@@ -77,4 +77,89 @@ class authPluginManagerTest extends TestCase
         // plugin directory that does not exist must not fall through to loadBuiltin().
         $this->assertNull(authPluginManager::get('there-is-no-such-plugin_plugin'));
     }
+
+    /** @dataProvider validInstanceKeyProvider */
+    public function testIsValidInstanceKey(string $key, bool $expected): void
+    {
+        $this->assertSame($expected, authPluginManager::isValidInstanceKey($key));
+    }
+
+    public function validInstanceKeyProvider(): array
+    {
+        return [
+            'plain lowercase key'       => ['gitlab', true],
+            'digits and hyphen'         => ['keycloak-2', true],
+            'starts with a digit'       => ['2fa', true],
+            'underscore allowed'        => ['my_instance', true],
+            'empty string'              => ['', false],
+            'uppercase is not accepted' => ['GitLab', false],
+            'starts with a hyphen'      => ['-gitlab', false],
+            'contains a colon'          => ['gitlab:eu', false],
+            'contains a space'          => ['git lab', false],
+        ];
+    }
+
+    /**
+     * filterInstanceBlocks() is the one place AUTH-440's explicit deletion
+     * list actually removes an instance's settings block — every guarantee
+     * "deletion is never inferred from absence" rests on lives here.
+     */
+    public function testFilterInstanceBlocksDropsOnlyDeletedKeys(): void
+    {
+        $posted = [
+            'gitlab'   => ['client_id' => '1'],
+            'keycloak' => ['client_id' => '2'],
+        ];
+
+        $this->assertSame(
+            ['keycloak' => ['client_id' => '2']],
+            authPluginManager::filterInstanceBlocks($posted, ['gitlab'])
+        );
+    }
+
+    public function testFilterInstanceBlocksNormalizesKeyCaseAndWhitespace(): void
+    {
+        $posted = ['GitLab ' => ['client_id' => '1']];
+
+        // Same normalization the server has always applied when reading
+        // posted instance keys (strtolower + trim) — a deletion list built
+        // from the same un-normalized key must still match.
+        $this->assertSame(
+            [],
+            authPluginManager::filterInstanceBlocks($posted, ['gitlab'])
+        );
+    }
+
+    public function testFilterInstanceBlocksDropsKeysFailingTheRegex(): void
+    {
+        $posted = [
+            'gitlab'  => ['client_id' => '1'],
+            'git lab' => ['client_id' => '2'],
+            ''        => ['client_id' => '3'],
+        ];
+
+        $this->assertSame(
+            ['gitlab' => ['client_id' => '1']],
+            authPluginManager::filterInstanceBlocks($posted, [])
+        );
+    }
+
+    public function testFilterInstanceBlocksDeletingEveryInstanceYieldsEmptyArray(): void
+    {
+        // The AUTH-440 regression this whole mechanism exists to fix:
+        // deleting the last instance of a plugin must produce [], not have
+        // the stale block survive because "nothing was posted" looked the
+        // same as "nothing to delete".
+        $posted = ['gitlab' => ['client_id' => '1']];
+
+        $this->assertSame(
+            [],
+            authPluginManager::filterInstanceBlocks($posted, ['gitlab'])
+        );
+    }
+
+    public function testFilterInstanceBlocksOnEmptyPostedIsEmpty(): void
+    {
+        $this->assertSame([], authPluginManager::filterInstanceBlocks([], ['gitlab']));
+    }
 }

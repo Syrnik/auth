@@ -64,6 +64,39 @@ abstract class authPlugin extends waPlugin
     }
 
     /**
+     * How many contacts hold data tied to this instance — asked only when a
+     * named instance is about to be deleted (backend "Login" screen, AUTH-440),
+     * so the admin sees "N accounts linked" before confirming.
+     *
+     * Default counts links stored under getLinkSource() — correct for a plain
+     * authMethod, whose only footprint on a contact is that link. A plugin
+     * that keeps its own per-contact state outside authContactResolver's link
+     * (a challenge plugin's enrollment secret, for instance) must override
+     * this together with purgeInstanceData(), or its rows survive the
+     * instance's deletion invisibly, same as links used to before AUTH-440.
+     */
+    public function countInstanceContacts(): int
+    {
+        return authContactLinks::countBySource($this->getLinkSource());
+    }
+
+    /**
+     * Removes every contact's data tied to this instance. Called once, right
+     * after the instance's connection is deleted from the domain config
+     * (authBackendDomainSettingsAction::afterSave()) — never for a merely
+     * disabled instance, which keeps its settings and its links on purpose.
+     * Returns the number of contacts affected, for the admin log line the
+     * caller writes.
+     *
+     * See countInstanceContacts() for why a plugin with its own storage must
+     * override both together.
+     */
+    public function purgeInstanceData(): int
+    {
+        return authContactLinks::deleteBySource($this->getLinkSource());
+    }
+
+    /**
      * Absolute path to a template in the plugin's templates/ directory.
      * Returns null if the template does not exist.
      */

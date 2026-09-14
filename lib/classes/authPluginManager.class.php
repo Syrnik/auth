@@ -154,6 +154,55 @@ class authPluginManager
         return $result;
     }
 
+    /**
+     * Whether a string is a valid named-instance key: same rule the backend
+     * Login screen enforces both server-side (authBackendDomainSettingsAction
+     * ::collectPluginSettings()) and client-side (the "+ Add connection"
+     * prompt in BackendLogin.html) — kept here, next to splitInstance(), so
+     * every place that needs to recognize an instance key reads the same
+     * definition.
+     */
+    public static function isValidInstanceKey(string $key): bool
+    {
+        return (bool)preg_match('~^[a-z0-9][a-z0-9_-]*$~', $key);
+    }
+
+    /**
+     * Drops the named-instance blocks in $deleted from a posted
+     * plugin_settings[plugin_id] slice (AUTH-440's explicit deletion list) —
+     * used instead of collectPluginSettings() simply reading which keys are
+     * absent from POST, because a request that lost a field to a truncated
+     * max_input_vars or a JS bug would otherwise be indistinguishable from an
+     * admin who chose to delete an instance, and the admin action here also
+     * purges account links.
+     *
+     * Keys are normalized (lowercased, trimmed) and validated the same way
+     * collectPluginSettings() validates surviving keys, so a $deleted entry
+     * that could never have been a real instance key matches nothing instead
+     * of silently comparing false to false.
+     *
+     * @param array $posted [instance_key => settings, ...] — one plugin's slice of POST plugin_settings
+     * @param string[] $deleted instance keys the admin removed on this submit
+     * @return array the same shape as $posted, with $deleted keys removed
+     */
+    public static function filterInstanceBlocks(array $posted, array $deleted): array
+    {
+        $deleted = array_flip(array_map(
+            static fn($key) => strtolower(trim((string)$key)),
+            $deleted
+        ));
+
+        $result = [];
+        foreach ($posted as $key => $settings) {
+            $normalized = strtolower(trim((string)$key));
+            if (!self::isValidInstanceKey($normalized) || isset($deleted[$normalized])) {
+                continue;
+            }
+            $result[$normalized] = $settings;
+        }
+        return $result;
+    }
+
     public static function clearCache(): void
     {
         self::$cache = [];

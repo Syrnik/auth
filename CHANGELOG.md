@@ -5,7 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-08-16
+## [Unreleased]
+
+### Security
+
+- **Deleting a named connection of a multi-instance plugin (backend "Login" screen) now unlinks the accounts held under it (AUTH-440).** A connection's account links (`wa_contact_data`, `<source>_id`) and its settings block (`plugin_settings[plugin_id][instance]`) used to have unrelated lifecycles: deleting the connection dropped the settings but left the links behind. Because an instance key is free to reuse (it's validated but never edited in the UI — only retyped via "+ Add connection"), a later connection created with the same key silently inherited a stranger's account: `authContactResolver::find()` matches by the provider's `source_id` alone, with no idea the key had a previous, different provider behind it. Deletion now purges those links in the same save, skipped only when the same connection is still configured on another domain (a link carries no domain dimension, the connection config does — see `docs/adr/002-multi-instance-connection-lifecycle.md`). A plugin with its own per-contact storage beyond the link (a challenge plugin's enrollment secret, say) must override the new `authPlugin::countInstanceContacts()`/`purgeInstanceData()` pair together, or that data would survive the same way links used to
+
+### Added
+
+- **The admin sees a linked-account count before deleting a connection**, and confirms — "delete" now marks the block "will be deleted on save" with a "Cancel" link instead of removing it from the page outright, and the server acts only on an explicit `deleted_instances[plugin_id][]` list posted alongside the form, never on a field's mere absence from POST (a truncated request must not read the same as an admin's explicit deletion, now that deletion also purges account links)
+- `authContactLinks` — bulk read/delete over `wa_contact_data` for one link source, the admin-side counterpart to `authContactResolver`'s single-contact reads and writes
+- `authPlugin::countInstanceContacts()` / `purgeInstanceData()` — the contract a multi-instance plugin's own storage participates in an instance deletion through, documented in README under "Именованные инстансы (multi_instance)"
+- `authPluginManager::isValidInstanceKey()` / `filterInstanceBlocks()` — the instance-key validation and deletion-list filtering the backend Login screen and its tests now share one definition of
+- `docs/adr/002-multi-instance-connection-lifecycle.md` — the decisions above, plus the same question answered for 2FA enrollment: unlike a link, an enrollment carries no domain dimension while its *enforcement* does, so disabling a challenge plugin (per domain or in `plugins.php`) simply stops asking for the second factor rather than revoking it
+
+### Fixed
+
+- **Deleting the last named instance of a multi-instance plugin didn't stick — it silently reappeared on the next save.** `collectPluginSettings()` skipped a plugin id entirely when POST carried no block for it at all (the case when the last instance's fields simply aren't in the form anymore), so the stored `plugin_settings[plugin_id]` block from before the deletion survived `save()`'s one-level `array_replace()` untouched, and the "deleted" instance came back, unchecked, on the redraw the save produced. The multi-instance branch now always resolves to a result — empty when nothing is left — instead of being skipped
 
 ### Added
 

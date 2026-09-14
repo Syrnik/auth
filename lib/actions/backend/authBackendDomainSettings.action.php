@@ -13,6 +13,9 @@ abstract class authBackendDomainSettingsAction extends waViewAction
 {
     public const DOMAIN_COOKIE = 'auth_app_domain';
 
+    /** @var string[] every domain the auth app is routed on, filled by execute() */
+    private array $domains = [];
+
     public function execute(): void
     {
         if (!waRequest::isXMLHttpRequest()) {
@@ -28,6 +31,8 @@ abstract class authBackendDomainSettingsAction extends waViewAction
             ]);
             return;
         }
+
+        $this->domains = $domains;
 
         $domain = waRequest::param('domain', '', 'string');
         if (!$domain || !in_array($domain, $domains, true)) {
@@ -76,6 +81,34 @@ abstract class authBackendDomainSettingsAction extends waViewAction
         return [];
     }
 
+    /**
+     * Runs once, right after the domain's config file is written and the
+     * cache cleared — a hook for work that must see the just-saved config
+     * (AUTH-440: purging account links for a multi-instance connection the
+     * admin just deleted). Default: nothing. Deliberately not folded into
+     * collectSectionData(), which runs before the write and whose return
+     * value only ever describes config to merge — this runs after, for
+     * side effects the config write itself doesn't cover.
+     */
+    protected function afterSave(string $domain): void
+    {
+    }
+
+    /**
+     * Every domain the auth app is routed on — the same list execute() reads
+     * this app's routing rules for. A subclass needs it to tell "this
+     * connection is configured on another domain too" (AUTH-440's cross-
+     * domain check, see authPlugin::getLinkSource()'s class-level note:
+     * account links carry no domain dimension, only the connection config
+     * does) from "it's only ever been on this one".
+     *
+     * @return string[]
+     */
+    protected function getDomains(): array
+    {
+        return $this->domains;
+    }
+
     private function save(string $domain): void
     {
         $config_path = wa()->getConfig()->getConfigPath('config.php', true, 'auth');
@@ -96,6 +129,8 @@ abstract class authBackendDomainSettingsAction extends waViewAction
 
         waUtils::varExportToFile(['domains' => $domains_cfg], $config_path);
         authConfig::clearCache();
+
+        $this->afterSave($domain);
 
         if (!waRequest::isXMLHttpRequest()) {
             wa()->getResponse()->redirect($this->getSectionUrl($domain) . '?saved=1');
@@ -138,32 +173,70 @@ abstract class authBackendDomainSettingsAction extends waViewAction
      *
      * For multi_instance plugins POST carries one block per named instance
      * (plugin_settings[plugin][instance_key][field]); each block goes through
-     * prepareSettings() separately. An instance absent from POST is deleted —
-     * the screen always renders every existing instance, so absence means
-     * the admin removed it.
+     * prepareSettings() separately. Deletion is never inferred from an
+     * instance being absent from POST — a truncated request (max_input_vars,
+     * a JS failure) would then read identically to an admin who removed it,
+     * and since AUTH-440 that removal also purges account links. $deleted
+     * is the explicit, validated list from the caller (deleted_instances in
+     * POST, checked against real instance keys before it gets here — see
+     * authBackendLoginAction::collectSectionData()).
+     *
+     * $current_plugin_settings (this domain's stored plugin_settings, before
+     * this save) is the fallback for a multi_instance plugin id: save()'s own
+     * merge (array_replace() on the top-level plugin_settings, one level
+     * deep) treats whatever this method returns for a plugin id as that id's
+     * *entire* block, so an instance key present in storage but missing from
+     * this POST — for any reason other than an explicit deletion — has to be
+     * carried forward here, or it silently disappears the moment any other
+     * instance of the same plugin is touched. This is the AUTH-440 "deleting
+     * the last instance doesn't stick" bug in reverse: the single-slot branch
+     * above doesn't need this, because save() leaves a plugin id it never
+     * hears about alone entirely.
+     *
+     * @param array $plugins [plugin_id => authPlugin instance]
+     * @param array $post_settings raw POST plugin_settings
+     * @param array $current_plugin_settings this domain's plugin_settings before this save
+     * @param array $deleted [plugin_id => [instance_key, ...]] confirmed deletions
      */
-    protected function collectPluginSettings(array $plugins, array $post_settings): array
-    {
+    protected function collectPluginSettings(
+        array $plugins,
+        array $post_settings,
+        array $current_plugin_settings = [],
+        array $deleted = []
+    ): array {
         $result = [];
         foreach ($plugins as $id => $plugin) {
-            if (!isset($post_settings[$id]) || !is_array($post_settings[$id])) {
-                continue;
-            }
             if (empty($plugin->getInfo()['multi_instance'])) {
+                if (!isset($post_settings[$id]) || !is_array($post_settings[$id])) {
+                    continue;
+                }
                 $result[$id] = $plugin->prepareSettings($post_settings[$id]);
                 continue;
             }
-            $instances = [];
-            foreach ($post_settings[$id] as $key => $values) {
-                $key = strtolower(trim((string)$key));
-                if (!is_array($values) || !preg_match('~^[a-z0-9][a-z0-9_-]*$~', $key)) {
+
+            $posted  = is_array($post_settings[$id] ?? null) ? $post_settings[$id] : [];
+            $current = is_array($current_plugin_settings[$id] ?? null) ? $current_plugin_settings[$id] : [];
+
+            // Current first, POST on top: an instance this request didn't
+            // touch at all keeps its stored settings; one it did post
+            // replaces its settings wholesale, same as before. Only then is
+            // the explicit deletion list applied — deleting the last
+            // instance of a plugin now correctly yields [], not the stale
+            // block this fallback would otherwise resurrect.
+            $instances = authPluginManager::filterInstanceBlocks(
+                array_replace($current, $posted),
+                $deleted[$id] ?? []
+            );
+
+            foreach ($instances as $key => $values) {
+                if (!is_array($values)) {
+                    unset($instances[$key]);
                     continue;
                 }
                 $instances[$key] = $plugin->prepareSettings($values);
             }
-            if ($instances) {
-                $result[$id] = $instances;
-            }
+
+            $result[$id] = $instances;
         }
         return $result;
     }

@@ -46,6 +46,14 @@
             <p class="hint custom-mb-0">[`Enable at least one login method, otherwise this site has no login or registration.`]</p>
         </div>
 
+        {if !empty($notices)}
+            <div class="custom-mb-16">
+                {foreach $notices as $notice}
+                    <p class="hint text-orange">{$notice|escape}</p>
+                {/foreach}
+            </div>
+        {/if}
+
         <form method="post" action="" id="auth-settings-form" class="fields js-ajax-save">
             <input type="hidden" name="domain" value="{$domain|escape}">
             {$wa->csrf()}
@@ -63,23 +71,33 @@
                                         <div>{$m.name|escape} <span class="hint">[`several named connections can be added`]</span></div>
                                         <div class="js-auth-instances custom-ml-24" data-method="{$id|escape}">
                                             {foreach $m.instances as $ikey => $inst}
-                                                <div class="js-auth-instance custom-mt-12" data-key="{$ikey|escape}">
-                                                    <label>
-                                                        <span class="wa-checkbox">
-                                                            <input type="checkbox" name="login_methods[]" value="{$id|escape}:{$ikey|escape}"
-                                                                {if $inst.enabled}checked{/if}>
-                                                            <span>
-                                                                <span class="icon">
-                                                                    <i class="fas fa-check"></i>
+                                                <div class="js-auth-instance custom-mt-12" data-key="{$ikey|escape}" data-existing="1" data-links="{$inst.links|default:0}">
+                                                    <div class="js-auth-instance-fields">
+                                                        <label>
+                                                            <span class="wa-checkbox">
+                                                                <input type="checkbox" name="login_methods[]" value="{$id|escape}:{$ikey|escape}"
+                                                                    {if $inst.enabled}checked{/if}>
+                                                                <span>
+                                                                    <span class="icon">
+                                                                        <i class="fas fa-check"></i>
+                                                                    </span>
                                                                 </span>
                                                             </span>
-                                                        </span>
-                                                        <span class="badge count gray">{$ikey|escape}</span>
-                                                    </label>
-                                                    <a href="#" class="js-auth-instance-delete text-red smaller custom-ml-8">[`delete`]</a>
-                                                    <div class="custom-mt-8 custom-ml-24">
-                                                        {plugin_controls controls=$inst.controls prefix="plugin_settings[{$m.plugin_id}][{$ikey}]"}
+                                                            <span class="badge count gray">{$ikey|escape}</span>
+                                                        </label>
+                                                        {if !empty($inst.links)}
+                                                            <span class="hint text-orange custom-ml-8">[`linked accounts:`] {$inst.links}</span>
+                                                        {/if}
+                                                        <a href="#" class="js-auth-instance-delete text-red smaller custom-ml-8">[`delete`]</a>
+                                                        <div class="custom-mt-8 custom-ml-24">
+                                                            {plugin_controls controls=$inst.controls prefix="plugin_settings[{$m.plugin_id}][{$ikey}]"}
+                                                        </div>
                                                     </div>
+                                                    <div class="js-auth-instance-pending" style="display:none;">
+                                                        <span class="hint text-orange">[`This connection will be deleted when you save.`]</span>
+                                                        <a href="#" class="js-auth-instance-cancel-delete smaller custom-ml-8">[`Cancel`]</a>
+                                                    </div>
+                                                    <input type="hidden" class="js-auth-instance-deleted-flag" name="deleted_instances[{$m.plugin_id|escape}][]" value="{$ikey|escape}" disabled>
                                                 </div>
                                             {/foreach}
                                         </div>
@@ -148,15 +166,62 @@
 
         <script>
         (function() {
-            // Add/delete named instances of multi-instance plugins. Deletion only
-            // removes the block from the form; settings are actually dropped on save.
+            // Add/delete named instances of multi-instance plugins.
+            //
+            // A block just added via "+ Add connection" (no data-existing) has
+            // never been saved and owns no account links, so deleting it is a
+            // plain DOM removal, same as before.
+            //
+            // A block that came from the server (data-existing="1") is never
+            // removed outright: its fields are hidden and disabled (so they
+            // drop out of the submit — collectPluginSettings() on the server
+            // reads absence from plugin_settings the same way it always has),
+            // a "will be deleted" notice takes their place, and the block's
+            // hidden deleted_instances[] input is enabled — the server acts on
+            // that explicit list, never on a field simply being missing,
+            // because AUTH-440 ties this deletion to purging account links and
+            // a truncated or buggy POST must not be read as "purge everyone".
+            // "Cancel" reverses all of that before the form is submitted.
+            function setInstancePending(block, pending) {
+                var fields = block.querySelector('.js-auth-instance-fields');
+                var pendingEl = block.querySelector('.js-auth-instance-pending');
+                var flag = block.querySelector('.js-auth-instance-deleted-flag');
+                fields.style.display = pending ? 'none' : '';
+                pendingEl.style.display = pending ? '' : 'none';
+                flag.disabled = !pending;
+                var controls = fields.querySelectorAll('input, select, textarea');
+                for (var i = 0; i < controls.length; i++) {
+                    controls[i].disabled = pending;
+                }
+            }
+
             document.getElementById('auth-settings-form').addEventListener('click', function(e) {
                 var del = e.target.closest('.js-auth-instance-delete');
                 if (del) {
                     e.preventDefault();
-                    del.closest('.js-auth-instance').remove();
+                    var block = del.closest('.js-auth-instance');
+                    if (block.dataset.existing !== '1') {
+                        block.remove();
+                        return;
+                    }
+                    var links = parseInt(block.getAttribute('data-links') || '0', 10);
+                    var message = links > 0
+                        ? '[`This connection has %d linked account(s). They will be unlinked when you save. Delete this connection?`]'.replace('%d', links)
+                        : '[`Delete this connection?`]';
+                    if (!window.confirm(message)) {
+                        return;
+                    }
+                    setInstancePending(block, true);
                     return;
                 }
+
+                var cancel = e.target.closest('.js-auth-instance-cancel-delete');
+                if (cancel) {
+                    e.preventDefault();
+                    setInstancePending(cancel.closest('.js-auth-instance'), false);
+                    return;
+                }
+
                 var add = e.target.closest('.js-auth-instance-add');
                 if (!add) {
                     return;

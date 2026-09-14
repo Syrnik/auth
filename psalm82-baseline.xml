@@ -67,6 +67,7 @@
   </file>
   <file src="lib/actions/backend/authBackendLogin.action.php">
     <MissingOverrideAttribute>
+      <code><![CDATA[protected function afterSave(string $domain): void]]></code>
       <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
       <code><![CDATA[protected function getTemplateName(): string]]></code>
       <code><![CDATA[protected function getUrlSegment(): string]]></code>
@@ -280,6 +281,11 @@
     <PossiblyUnusedMethod>
       <code><![CDATA[getTemplatePath]]></code>
     </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/classes/authContactLinks.class.php">
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchAll]]></code>
+    </UndefinedMagicMethod>
   </file>
   <file src="lib/classes/authContactResolver.class.php">
     <UndefinedMagicMethod>

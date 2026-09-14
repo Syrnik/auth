@@ -257,3 +257,33 @@ msgstr "Отвязать"
 
 msgid "Incorrect code."
 msgstr "Неверный код."
+
+msgid "linked accounts:"
+msgstr "привязано аккаунтов:"
+
+msgid "This connection will be deleted when you save."
+msgstr "Это подключение будет удалено при сохранении."
+
+msgid "This connection has %d linked account(s). They will be unlinked when you save. Delete this connection?"
+msgstr "К этому подключению привязано %d аккаунт(ов). Они будут отвязаны при сохранении. Удалить подключение?"
+
+msgid "Delete this connection?"
+msgstr "Удалить это подключение?"
+
+msgid "Connection \"%s\" was removed for this site; its linked accounts were kept because the same connection is still configured on %s."
+msgstr "Подключение «%s» удалено для этого сайта; привязанные аккаунты сохранены, так как такое же подключение всё ещё настроено на %s."
+
+msgid "Please reload the page and try again."
+msgstr "Обновите страницу и попробуйте снова."
+
+msgid "This sign-in method is not configured."
+msgstr "Этот способ входа не настроен."
+
+msgid "This sign-in method is no longer available."
+msgstr "Этот способ входа больше недоступен."
+
+msgid "This account is already linked to another profile."
+msgstr "Этот аккаунт уже привязан к другому профилю."
+
+msgid "The account could not be linked."
+msgstr "Не удалось привязать аккаунт."

@@ -257,3 +257,33 @@ msgstr ""
 
 msgid "Incorrect code."
 msgstr ""
+
+msgid "linked accounts:"
+msgstr ""
+
+msgid "This connection will be deleted when you save."
+msgstr ""
+
+msgid "This connection has %d linked account(s). They will be unlinked when you save. Delete this connection?"
+msgstr ""
+
+msgid "Delete this connection?"
+msgstr ""
+
+msgid "Connection \"%s\" was removed for this site; its linked accounts were kept because the same connection is still configured on %s."
+msgstr ""
+
+msgid "Please reload the page and try again."
+msgstr ""
+
+msgid "This sign-in method is not configured."
+msgstr ""
+
+msgid "This sign-in method is no longer available."
+msgstr ""
+
+msgid "This account is already linked to another profile."
+msgstr ""
+
+msgid "The account could not be linked."
+msgstr ""

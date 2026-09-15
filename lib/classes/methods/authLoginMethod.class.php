@@ -27,11 +27,11 @@ class authLoginMethod extends authBuiltinMethod implements authMethod
 
         $contact = $this->findByLogin($login);
         if (!$contact) {
-            throw new authGuardException('Пользователь не найден или неверный пароль.');
+            throw new authCredentialFailureException('Пользователь не найден или неверный пароль.');
         }
 
         if (!waContact::verifyPasswordHash($password, $contact['password'])) {
-            throw new authGuardException('Пользователь не найден или неверный пароль.');
+            throw new authCredentialFailureException('Пользователь не найден или неверный пароль.');
         }
 
         return (int)$contact['id'];

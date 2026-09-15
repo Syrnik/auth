@@ -12,7 +12,8 @@ A frontend application for the Webasyst Framework that provides a full set of us
 - **My account** (`/my/`) — profile editing
 - **Two-factor authentication** — via `authChallenge` plugins
 - **Guard plugins** — block login and/or signup based on any condition
-- **Captcha** — pluggable via `authCaptcha` interface
+- **Brute-force protection** (AUTH-49) — two independent counters (typed identifier and IP), escalating delay → captcha; the counter store is pluggable via `authThrottleStore`
+- **Captcha** — pluggable via `authCaptcha` interface, with a display mode on the sign-in form (always / never / after N failed attempts)
 - **Design theme** — inherits `site:default`; auth pages look like part of the site
 - **Per-domain settings** — stored in `wa-config/apps/auth/config.php`
 
@@ -44,6 +45,14 @@ Parameters editable in the backend:
 | `recovery_enabled` | `true` | Allow password recovery |
 | `rememberme` | `false` | Show "Remember me" checkbox |
 | `captcha_plugin` | `null` | Captcha plugin ID (or `null`) |
+| `captcha_mode` | `'always'` | When to show the captcha on sign-in: `off` / `always` / `after_n`. Registration always shows it unconditionally regardless of this setting |
+| `captcha_after_n` | `3` | Failed-attempt threshold for `after_n` mode |
+| `throttle_enabled` | `true` | Brute-force protection (AUTH-49) is on for this domain |
+| `throttle_login_attempts` / `throttle_login_window` | `5` / `900` | Threshold and window (seconds) by typed identifier |
+| `throttle_ip_attempts` / `throttle_ip_window` | `30` / `900` | Threshold and window (seconds) by IP address |
+| `throttle_delay` | `2` | Growing delay (seconds), `attempts × throttle_delay` |
+| `throttle_lockout` | `0` | Hard lockout (seconds) once over threshold — IP only, `0` = disabled |
+| `throttle_store` | `null` | Counter-store plugin ID (`authThrottleStore`), `null` = built-in (`auth_throttle` table) |
 | `adapters` | `[]` | Per-domain OAuth adapter credentials (`app_id`/`app_secret`, etc.) |
 | `guard_plugins` | `[]` | Active guard plugins ("Signup and login protection" section) |
 | `challenge_methods` | `[]` | Active challenge plugins, second factor ("Two-factor authentication" section) |
@@ -54,6 +63,7 @@ Additional parameters can only be set in `lib/config/config.php` (or manually in
 | Parameter | Default | Description |
 |---|---|---|
 | `challenge_methods` | `[]` | Active second-factor plugins |
+| `throttle_otp_delay` | `60` | Growing delay (seconds) for the `otp_send` scope (`authPhoneMethod`) — separate from `throttle_delay`: SMS costs money, so its step is larger than the one used against password guessing |
 | `signup_methods` | `['email', 'waid']` | Methods offered on the registration form |
 | `signup_fields` | `['firstname', 'lastname', 'email', 'password']` | Registration form fields |
 | `redirect_after_login` / `redirect_after_register` / `redirect_after_logout` | `null` / `null` / `'/'` | Post-action redirects (`null` = `goal_url` / `HTTP_REFERER`) |
@@ -108,6 +118,32 @@ class myPluginAuthCaptcha implements authCaptcha {
 }
 ```
 
+### `authThrottleStore` — brute-force counter storage (AUTH-49)
+
+The one pluggable part of brute-force protection — the thresholds, windows, delay and
+captcha escalation themselves stay domain settings (`throttle_*`/`captcha_*` above), not a
+plugin; see `docs/adr/003-credential-throttle.md`. A plugin is only needed when the
+built-in store (the `auth_throttle` table) doesn't fit — for example, several app servers
+that need to share one set of counters (Redis, memcached).
+
+```php
+class myPluginAuthThrottleStore implements authThrottleStore {
+    public function getRow(string $scope, string $key_type, string $key_hash, string $window_start): ?array {
+        /* ['attempts' => int, 'window_start' => 'Y-m-d H:i:s', 'last_attempt' => 'Y-m-d H:i:s'], or null */
+    }
+    public function hit(string $scope, string $key_type, string $key_hash, string $window_start): array {
+        /* count one attempt and return the row in the same shape */
+    }
+    public function reset(string $scope, string $key_type, string $key_hash): void {
+        /* clear every window of the key */
+    }
+}
+```
+
+`$key_hash` is already hashed (sha256) by the caller — the plugin never sees a raw
+email/login/IP. Selected via the `throttle_store` setting (a plugin ID, `null` = the
+built-in store), the same pattern as `captcha_plugin`.
+
 Describe the plugin in `plugins/<plugin_id>/lib/config/plugin.php` — `authPluginManager` uses this file to determine which interfaces the plugin must implement, and verifies it on load (throwing otherwise):
 
 ```php
@@ -120,6 +156,7 @@ return [
     'guard_login'  => true,   // apply guard on login (is_guard only)
     'guard_signup' => true,   // apply guard on signup (is_guard only)
     'is_captcha'   => true,   // implements authCaptcha
+    'is_throttle_store' => true, // implements authThrottleStore
 ];
 ```
 

@@ -26,7 +26,10 @@ class authFrontendRegisterAction extends waViewAction
             'data'          => $data,
             'csrf_token'    => authHelper::getCsrfToken(),
             'login_url'     => authHelper::getLoginUrl(),
-            'captcha_widget' => authHelper::getCaptchaWidget(),
+            // Unconditional at every captcha_mode — see decision 5 of
+            // docs/adr/003-credential-throttle.md: after_n's escalation has
+            // no failed-attempt sequence to key on for a signup.
+            'captcha_widget' => authHelper::getCaptchaWidget(true),
         ]);
         $this->setThemeTemplate('register.html');
     }
@@ -37,6 +40,18 @@ class authFrontendRegisterAction extends waViewAction
         $fields = authConfig::get('signup_fields', ['firstname', 'email', 'password']);
         $errors = [];
 
+        // Throttle: only by IP (AUTH-49) — a signup has no identifier that
+        // repeats across attempts, unlike login, so there is nothing else to
+        // key on. Checked before the captcha on purpose: verifyCaptcha() is
+        // an outgoing HTTP call for most captcha plugins, and a blocked IP
+        // shouldn't get to spend it.
+        $throttle_keys = ['ip' => waRequest::getIp()];
+        $throttle_state = authThrottle::check('signup', $throttle_keys);
+        if ($throttle_state->blocked) {
+            $this->showForm(['general' => authThrottle::blockedMessage($throttle_state->retryAfter)], $post);
+            return;
+        }
+
         // Captcha: stop immediately on failure, same as authLoginController —
         // a bad captcha shouldn't still spend guard checks (rate limits, etc.)
         // or have its error overwritten by a later guard block.
@@ -45,6 +60,11 @@ class authFrontendRegisterAction extends waViewAction
             $this->showForm(['captcha' => 'Неверный код капчи.'], $post);
             return;
         }
+
+        // Counts the request itself, not a failure: a signup consumes
+        // resources (a new contact, a confirmation email) whether or not it
+        // ends up valid, so every accepted POST past this point counts.
+        authThrottle::hit('signup', $throttle_keys);
 
         // Guards: a guard block is final, so show it alone and stop —
         // field validation makes no sense for a signup that cannot proceed

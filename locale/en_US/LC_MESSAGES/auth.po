@@ -287,3 +287,69 @@ msgstr ""
 
 msgid "The account could not be linked."
 msgstr ""
+
+msgid "Brute-force protection"
+msgstr ""
+
+msgid "Limit sign-in attempts"
+msgstr ""
+
+msgid "Counted separately by the typed identifier (email/login/phone) and by IP address — see docs/adr/003-credential-throttle.md."
+msgstr ""
+
+msgid "Attempts per identifier"
+msgstr ""
+
+msgid "per"
+msgstr ""
+
+msgid "seconds"
+msgstr ""
+
+msgid "Attempts per IP address"
+msgstr ""
+
+msgid "Delay growth"
+msgstr ""
+
+msgid "seconds, multiplied by the attempt count so far"
+msgstr ""
+
+msgid "Hard lockout (IP only)"
+msgstr ""
+
+msgid "seconds, 0 = disabled"
+msgstr ""
+
+msgid "Never applied to the identifier counter — locking someone out by their email/login alone is a lever an attacker who merely knows it would control, not one they have to earn."
+msgstr ""
+
+msgid "Counter storage"
+msgstr ""
+
+msgid "Built-in (database)"
+msgstr ""
+
+msgid "Show captcha"
+msgstr ""
+
+msgid "Never"
+msgstr ""
+
+msgid "Always"
+msgstr ""
+
+msgid "After a number of failed attempts"
+msgstr ""
+
+msgid "Sign-in only. Registration always shows a captcha when one is configured below, regardless of this setting."
+msgstr ""
+
+msgid "Failed attempts before captcha"
+msgstr ""
+
+msgid "Too many attempts. Try again in %d seconds."
+msgstr ""
+
+msgid "Please confirm you are not a robot and try again."
+msgstr ""

@@ -9,6 +9,12 @@ non-obvious constraints, and they are not re-derivable from the code alone.
 - `001-profile-config-boundaries.md` — which config governs which block of the
   user profile (`my/`): site's `personal_fields` vs auth's `login_methods` vs the
   contact's actual linked accounts.
+- `002-multi-instance-connection-lifecycle.md` — what deleting vs merely
+  disabling a named instance of a multi-instance plugin does to its settings and
+  to the account links stored under its `getLinkSource()`.
+- `003-credential-throttle.md` — why brute-force protection is a core service
+  rather than an `authGuard` plugin (guards only run after authentication has
+  already succeeded), and what is configurable vs pluggable about it.
 
 ## Tests
 
@@ -33,7 +39,8 @@ Domain-dependent tests assume `syrnik.local` is a routed domain; set `AUTH_TEST_
 running if your checkout uses a different one.
 
 Tests run against the real dev database (`wa-config/db.php`). Anything that touches a table
-this app owns (`auth_signup_confirm`, `auth_profile_confirm`, `auth_password_recovery`) should
+this app owns (`auth_signup_confirm`, `auth_profile_confirm`, `auth_password_recovery`,
+`auth_throttle`) should
 shadow it with `authTestTemporaryTablesTrait::setUpTemporaryTables()` — a real
 `CREATE TEMPORARY TABLE` that shares the table's name and is invisible to any other
 connection, rather than inserting rows and deleting them in `tearDown()`, which leaves rows

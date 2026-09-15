@@ -45,6 +45,80 @@ class authConfig
     }
 
     /**
+     * Whether the brute-force throttle (AUTH-49) is active for this domain.
+     * On by default — see docs/adr/003-credential-throttle.md.
+     */
+    public static function isThrottleEnabled(?string $domain = null): bool
+    {
+        return (bool)self::get('throttle_enabled', true, $domain);
+    }
+
+    /**
+     * [attempts, window_seconds] for one throttle key type — 'ip' or the
+     * identifier ('login' and anything else authThrottle is given).
+     */
+    public static function getThrottlePolicy(string $key_type, ?string $domain = null): array
+    {
+        if ($key_type === 'ip') {
+            return [
+                (int)self::get('throttle_ip_attempts', 30, $domain),
+                (int)self::get('throttle_ip_window', 900, $domain),
+            ];
+        }
+        return [
+            (int)self::get('throttle_login_attempts', 5, $domain),
+            (int)self::get('throttle_login_window', 900, $domain),
+        ];
+    }
+
+    public static function getThrottleDelay(?string $domain = null): int
+    {
+        return (int)self::get('throttle_delay', 2, $domain);
+    }
+
+    /**
+     * The otp_send scope's own delay step, tuned for a paid resend channel
+     * (SMS) rather than a password guess — see the comment on
+     * throttle_otp_delay in lib/config/config.php.
+     */
+    public static function getThrottleOtpDelay(?string $domain = null): int
+    {
+        return (int)self::get('throttle_otp_delay', 60, $domain);
+    }
+
+    /**
+     * Seconds a key stays hard-blocked once over threshold. Only ever
+     * consulted for the 'ip' key — see decision 4 of
+     * docs/adr/003-credential-throttle.md and authThrottle's own docblock.
+     */
+    public static function getThrottleLockout(?string $domain = null): int
+    {
+        return (int)self::get('throttle_lockout', 0, $domain);
+    }
+
+    /**
+     * throttle_store is deliberately not chained through `?:` here despite
+     * being declared null in config.php: null is exactly "use the built-in
+     * store", not a missing value to fall back from (same shape as
+     * captcha_plugin).
+     */
+    public static function getThrottleStoreId(?string $domain = null): ?string
+    {
+        $id = self::get('throttle_store', null, $domain);
+        return $id !== null && $id !== '' ? (string)$id : null;
+    }
+
+    public static function getCaptchaMode(?string $domain = null): string
+    {
+        return (string)self::get('captcha_mode', 'always', $domain);
+    }
+
+    public static function getCaptchaAfterN(?string $domain = null): int
+    {
+        return (int)self::get('captcha_after_n', 3, $domain);
+    }
+
+    /**
      * Per-domain settings of an app plugin (e.g. a guard's blacklist rules),
      * stored under 'plugin_settings' => [plugin_id => [...]] in the domain config.
      * Multi-instance plugins keep one settings block per named instance:

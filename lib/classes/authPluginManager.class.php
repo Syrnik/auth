@@ -108,6 +108,27 @@ class authPluginManager
     }
 
     /**
+     * Throttle counter store for the current domain — the built-in
+     * authThrottleDbStore unless a plugin is configured under throttle_store
+     * (same shape as captcha_plugin: an id, null = built-in). See
+     * authThrottleStore's own docblock for why this is the one throttle
+     * concern that is pluggable at all.
+     */
+    public static function getThrottleStore(): authThrottleStore
+    {
+        $id = authConfig::getThrottleStoreId();
+        if ($id) {
+            [$id, $instance] = self::splitInstance($id);
+            $plugin_id = str_ends_with($id, '_plugin') ? substr($id, 0, -7) : $id;
+            $plugin = self::loadPlugin($plugin_id, $instance, 'is_throttle_store');
+            if ($plugin instanceof authThrottleStore) {
+                return $plugin;
+            }
+        }
+        return new authThrottleDbStore();
+    }
+
+    /**
      * Plugins offering a profile section (my/) for the current domain, keyed
      * by the config id they are enabled under — 'github_plugin',
      * 'oidc_plugin:gitlab'. That key, not anything the plugin returns, is what
@@ -360,6 +381,9 @@ class authPluginManager
         }
         if (!empty($info['is_captcha']) && !($plugin instanceof authCaptcha)) {
             throw new waException("Plugin {$plugin_id} declared is_captcha but does not implement authCaptcha");
+        }
+        if (!empty($info['is_throttle_store']) && !($plugin instanceof authThrottleStore)) {
+            throw new waException("Plugin {$plugin_id} declared is_throttle_store but does not implement authThrottleStore");
         }
         if (!empty($info['has_profile_section']) && !($plugin instanceof authProfileSectionProvider)) {
             throw new waException("Plugin {$plugin_id} declared has_profile_section but does not implement authProfileSectionProvider");

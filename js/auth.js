@@ -37,6 +37,9 @@
                 errorEl.textContent = data.error || 'Ошибка.';
                 errorEl.style.display = '';
                 resetCaptcha(form);
+                if (data.captcha_widget) {
+                    injectCaptcha(form, data.captcha_widget);
+                }
             } else if (data.status === 'step') {
                 var stepHtml = data.html || '';
                 if (stepHtml) {
@@ -61,6 +64,36 @@
     function resetCaptcha(form) {
         if (window.grecaptcha && form.querySelector('.g-recaptcha')) {
             window.grecaptcha.reset();
+        }
+    }
+
+    /**
+     * The login form's error response only ever comes with a captcha_widget
+     * when one just became necessary mid-session (AUTH-49's captcha_mode
+     * escalation) — the widget wasn't in the page when it was first rendered,
+     * so there is nothing to reset(), only to inject.
+     *
+     * `.innerHTML =` alone would parse but never execute the widget's own
+     * <script> tags (every captcha plugin's markup relies on one running,
+     * see plugins/gcaptcha/templates/*.html) — each script is rebuilt as a
+     * fresh element and appended so the browser actually runs it, in place
+     * of the inert node innerHTML left behind.
+     */
+    function injectCaptcha(form, html) {
+        var container = form.querySelector('[data-auth-captcha]');
+        if (!container) {
+            return;
+        }
+        container.innerHTML = html;
+        var scripts = container.querySelectorAll('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var old = scripts[i];
+            var fresh = document.createElement('script');
+            for (var a = 0; a < old.attributes.length; a++) {
+                fresh.setAttribute(old.attributes[a].name, old.attributes[a].value);
+            }
+            fresh.textContent = old.textContent;
+            old.parentNode.replaceChild(fresh, old);
         }
     }
 

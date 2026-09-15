@@ -24,6 +24,24 @@ class authFrontendRecoveryAction extends waViewAction
     // GET/POST without token: "forgot password" form
     private function handleEmailPost(): void
     {
+        // Throttle: only by IP (AUTH-49). Not by the typed email — see
+        // decision 4 of docs/adr/003-credential-throttle.md: an identifier-
+        // keyed limit here would hand anyone who merely knows a victim's
+        // email address a way to lock them out of *requesting* a reset,
+        // without ever needing the password or mailbox access — the same
+        // attacker-controlled lever the ADR rejects for login, just moved to
+        // a different form. Checked before the email is even validated, so
+        // resending to one address from many IPs isn't slowed by this at
+        // all — that channel-specific defense is out of scope (AUTH-48).
+        $throttle_keys = ['ip' => waRequest::getIp()];
+        $throttle_state = authThrottle::check('recovery', $throttle_keys);
+        if ($throttle_state->blocked) {
+            $this->setLayout(new authFrontendLayout());
+            $this->view->assign(['error' => authThrottle::blockedMessage($throttle_state->retryAfter), 'sent' => false, 'token' => '']);
+            $this->setThemeTemplate('recovery.html');
+            return;
+        }
+
         $email = trim((string)waRequest::post('email', ''));
         if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->setLayout(new authFrontendLayout());
@@ -31,6 +49,11 @@ class authFrontendRecoveryAction extends waViewAction
             $this->setThemeTemplate('recovery.html');
             return;
         }
+
+        // Counts the request itself, not a failure — every accepted POST
+        // past this point risks sending an email, whether or not the address
+        // turns out to belong to a real account.
+        authThrottle::hit('recovery', $throttle_keys);
 
         // Find contact
         $model = new waContactModel();

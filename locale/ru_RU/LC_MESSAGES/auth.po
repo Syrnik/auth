@@ -287,3 +287,69 @@ msgstr "Этот аккаунт уже привязан к другому про
 
 msgid "The account could not be linked."
 msgstr "Не удалось привязать аккаунт."
+
+msgid "Brute-force protection"
+msgstr "Защита от подбора"
+
+msgid "Limit sign-in attempts"
+msgstr "Ограничивать число попыток входа"
+
+msgid "Counted separately by the typed identifier (email/login/phone) and by IP address — see docs/adr/003-credential-throttle.md."
+msgstr "Считается отдельно по введённому идентификатору (email/логин/телефон) и по IP-адресу — см. docs/adr/003-credential-throttle.md."
+
+msgid "Attempts per identifier"
+msgstr "Попыток на идентификатор"
+
+msgid "per"
+msgstr "за"
+
+msgid "seconds"
+msgstr "сек."
+
+msgid "Attempts per IP address"
+msgstr "Попыток на IP-адрес"
+
+msgid "Delay growth"
+msgstr "Рост задержки"
+
+msgid "seconds, multiplied by the attempt count so far"
+msgstr "сек., умножается на число уже сделанных попыток"
+
+msgid "Hard lockout (IP only)"
+msgstr "Жёсткая блокировка (только по IP)"
+
+msgid "seconds, 0 = disabled"
+msgstr "сек., 0 = отключена"
+
+msgid "Never applied to the identifier counter — locking someone out by their email/login alone is a lever an attacker who merely knows it would control, not one they have to earn."
+msgstr "Никогда не применяется к счётчику по идентификатору — блокировка по одному лишь email/логину дала бы атакующему, который его просто знает, рычаг управления, не требующий подбора пароля."
+
+msgid "Counter storage"
+msgstr "Хранилище счётчиков"
+
+msgid "Built-in (database)"
+msgstr "Встроенное (база данных)"
+
+msgid "Show captcha"
+msgstr "Показывать капчу"
+
+msgid "Never"
+msgstr "Никогда"
+
+msgid "Always"
+msgstr "Всегда"
+
+msgid "After a number of failed attempts"
+msgstr "После нескольких неудачных попыток"
+
+msgid "Sign-in only. Registration always shows a captcha when one is configured below, regardless of this setting."
+msgstr "Только для входа. Регистрация всегда показывает капчу, если она настроена ниже, независимо от этой настройки."
+
+msgid "Failed attempts before captcha"
+msgstr "Неудачных попыток до показа капчи"
+
+msgid "Too many attempts. Try again in %d seconds."
+msgstr "Слишком много попыток. Повторите через %d сек."
+
+msgid "Please confirm you are not a robot and try again."
+msgstr "Подтвердите, что вы не робот, и повторите попытку."

@@ -12,7 +12,8 @@
 - **Личный кабинет** (`/my/`) — редактирование профиля
 - **Двухфакторная аутентификация** — через `authChallenge`-плагины
 - **Guard-плагины** — блокировка входа и/или регистрации по любому условию
-- **Капча** — подключаемая через `authCaptcha`-плагин
+- **Защита от подбора** (AUTH-49) — два независимых счётчика (по введённому идентификатору и по IP), эскалация задержка → капча; хранилище счётчиков подключается через `authThrottleStore`-плагин
+- **Капча** — подключаемая через `authCaptcha`-плагин, с режимом показа на форме входа (всегда / никогда / после N неудачных попыток)
 - **Тема дизайна** — наследует `site:default`; страницы авторизации выглядят как часть сайта
 - **Настройки на домен** — конфигурация хранится в `wa-config/apps/auth/config.php`
 
@@ -45,6 +46,14 @@
 | `rememberme` | `false` | Показывать «Запомнить меня» |
 | `delete_account_enabled` | `false` | Разрешить пользователю удалить свой аккаунт из `my/` (секция «Профиль»). Удаление жёсткое и необратимое |
 | `captcha_plugin` | `null` | ID капча-плагина (или `null`) |
+| `captcha_mode` | `'always'` | Когда показывать капчу на входе: `off` / `always` / `after_n`. На регистрации капча всегда безусловна независимо от режима |
+| `captcha_after_n` | `3` | Порог неудачных попыток для режима `after_n` |
+| `throttle_enabled` | `true` | Защита от подбора (AUTH-49) включена для домена |
+| `throttle_login_attempts` / `throttle_login_window` | `5` / `900` | Порог и окно (сек.) по введённому идентификатору |
+| `throttle_ip_attempts` / `throttle_ip_window` | `30` / `900` | Порог и окно (сек.) по IP-адресу |
+| `throttle_delay` | `2` | Растущая задержка (сек.), `attempts × throttle_delay` |
+| `throttle_lockout` | `0` | Жёсткая блокировка (сек.) после превышения порога — только по IP, `0` = отключена |
+| `throttle_store` | `null` | ID плагина-хранилища счётчиков (`authThrottleStore`), `null` = встроенное (таблица `auth_throttle`) |
 | `adapters` | `[]` | Учётные данные OAuth-адаптеров (`app_id`/`app_secret` и т.д.) на домен |
 | `guard_plugins` | `[]` | Активные guard-плагины (секция «Signup and login protection») |
 | `challenge_methods` | `[]` | Активные challenge-плагины, второй фактор (секция «Two-factor authentication») |
@@ -55,6 +64,7 @@
 | Параметр | По умолчанию | Описание |
 |---|---|---|
 | `challenge_methods` | `[]` | Активные плагины второго фактора |
+| `throttle_otp_delay` | `60` | Растущая задержка (сек.) для scope `otp_send` (`authPhoneMethod`) — отдельно от `throttle_delay`: СМС стоит денег, поэтому шаг для неё крупнее, чем для подбора пароля |
 | `signup_methods` | `['email', 'waid']` | Методы, доступные при регистрации |
 | `signup_fields` | `['firstname', 'lastname', 'email', 'password']` | Поля формы регистрации |
 | `redirect_after_login` / `redirect_after_register` / `redirect_after_logout` | `null` / `null` / `'/'` | Редиректы после действий (`null` = `goal_url` / `HTTP_REFERER`) |
@@ -109,6 +119,32 @@ class myPluginAuthCaptcha implements authCaptcha {
 }
 ```
 
+### `authThrottleStore` — хранилище счётчиков подбора (AUTH-49)
+
+Единственная плагинизируемая часть защиты от подбора — сами пороги, окна, задержка и
+эскалация до капчи остаются доменными настройками (`throttle_*`/`captcha_*` выше), не
+плагином: см. `docs/adr/003-credential-throttle.md`. Плагин нужен только тем, кому не
+подходит встроенное хранилище (таблица `auth_throttle`) — например, при нескольких
+app-серверах, где счётчики должны быть общими (Redis, memcached).
+
+```php
+class myPluginAuthThrottleStore implements authThrottleStore {
+    public function getRow(string $scope, string $key_type, string $key_hash, string $window_start): ?array {
+        /* ['attempts' => int, 'window_start' => 'Y-m-d H:i:s', 'last_attempt' => 'Y-m-d H:i:s'] или null */
+    }
+    public function hit(string $scope, string $key_type, string $key_hash, string $window_start): array {
+        /* засчитать попытку и вернуть строку в том же формате */
+    }
+    public function reset(string $scope, string $key_type, string $key_hash): void {
+        /* удалить все окна ключа */
+    }
+}
+```
+
+`$key_hash` уже хеширован (sha256) вызывающей стороной — плагин не видит сырой email/логин/IP.
+Плагин выбирается настройкой `throttle_store` (id плагина, `null` = встроенное хранилище) —
+тот же принцип, что у `captcha_plugin`.
+
 Описание плагина в `plugins/<plugin_id>/lib/config/plugin.php` — по этому файлу `authPluginManager` определяет, какие интерфейсы должен реализовывать плагин, и проверяет это при загрузке (иначе бросает исключение):
 
 ```php
@@ -121,6 +157,7 @@ return [
     'guard_login'          => true,   // применять guard при входе (только для is_guard)
     'guard_signup'         => true,   // применять guard при регистрации (только для is_guard)
     'is_captcha'           => true,   // реализует authCaptcha
+    'is_throttle_store'    => true,   // реализует authThrottleStore
     'auth_type'            => 'oauth', // OAuth-метод: кнопка вместо формы (только для is_auth)
     'multi_instance'       => true,   // поддержка именованных инстансов (см. ниже)
     'has_profile_section'  => true,   // реализует authProfileSectionProvider (блок в my/, см. ниже)

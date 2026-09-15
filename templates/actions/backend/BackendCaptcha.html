@@ -40,15 +40,107 @@
     {else}
 
         <div class="flexbox middle wrap space-16 custom-mb-32">
-            <h1 class="custom-mb-0">{$domain|escape} &mdash; [`Captcha`]</h1>
+            <h1 class="custom-mb-0">{$domain|escape} &mdash; [`Brute-force protection`]</h1>
         </div>
 
         <form method="post" action="" id="auth-settings-form" class="fields js-ajax-save">
             <input type="hidden" name="domain" value="{$domain|escape}">
             {$wa->csrf()}
 
-            {if $available_captchas}
-                <div class="field-group">
+            <div class="field-group">
+                <div class="field">
+                    <div class="value">
+                        <label>
+                            <input type="checkbox" name="throttle_enabled" value="1"
+                                {if $config.throttle_enabled}checked{/if}>
+                            [`Limit sign-in attempts`]
+                        </label>
+                        <div class="hint custom-mt-4">[`Counted separately by the typed identifier (email/login/phone) and by IP address — see docs/adr/003-credential-throttle.md.`]</div>
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Attempts per identifier`]</div>
+                    <div class="value">
+                        <input type="number" min="1" name="throttle_login_attempts" value="{$config.throttle_login_attempts|escape}" style="width:80px;">
+                        [`per`]
+                        <input type="number" min="1" max="86400" name="throttle_login_window" value="{$config.throttle_login_window|escape}" style="width:80px;">
+                        [`seconds`]
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Attempts per IP address`]</div>
+                    <div class="value">
+                        <input type="number" min="1" name="throttle_ip_attempts" value="{$config.throttle_ip_attempts|escape}" style="width:80px;">
+                        [`per`]
+                        <input type="number" min="1" max="86400" name="throttle_ip_window" value="{$config.throttle_ip_window|escape}" style="width:80px;">
+                        [`seconds`]
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Delay growth`]</div>
+                    <div class="value">
+                        <input type="number" min="0" name="throttle_delay" value="{$config.throttle_delay|escape}" style="width:80px;">
+                        [`seconds, multiplied by the attempt count so far`]
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="name">[`Hard lockout (IP only)`]</div>
+                    <div class="value">
+                        <input type="number" min="0" max="86400" name="throttle_lockout" value="{$config.throttle_lockout|escape}" style="width:80px;">
+                        [`seconds, 0 = disabled`]
+                        <div class="hint custom-mt-4">[`Never applied to the identifier counter — locking someone out by their email/login alone is a lever an attacker who merely knows it would control, not one they have to earn.`]</div>
+                    </div>
+                </div>
+                {if $available_throttle_stores}
+                    <div class="field">
+                        <div class="name">[`Counter storage`]</div>
+                        <div class="value">
+                            <div class="wa-select">
+                                <select name="throttle_store">
+                                    <option value="" {if !$config.throttle_store}selected{/if}>[`Built-in (database)`]</option>
+                                    {foreach $available_throttle_stores as $id => $s}
+                                        <option value="{$id|escape}" {if $config.throttle_store == $id}selected{/if}>{$s.name|escape}</option>
+                                    {/foreach}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    {foreach $available_throttle_stores as $id => $s}
+                        {if $s.controls}
+                            <div class="field">
+                                <div class="name">{$s.name|escape}</div>
+                                <div class="value">
+                                    {plugin_controls controls=$s.controls prefix="plugin_settings[{$id}]"}
+                                </div>
+                            </div>
+                        {/if}
+                    {/foreach}
+                {else}
+                    <input type="hidden" name="throttle_store" value="">
+                {/if}
+            </div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Show captcha`]</div>
+                    <div class="value">
+                        <div class="wa-select">
+                            <select name="captcha_mode" id="auth-captcha-mode">
+                                <option value="off" {if $config.captcha_mode == 'off'}selected{/if}>[`Never`]</option>
+                                <option value="always" {if $config.captcha_mode == 'always'}selected{/if}>[`Always`]</option>
+                                <option value="after_n" {if $config.captcha_mode == 'after_n'}selected{/if}>[`After a number of failed attempts`]</option>
+                            </select>
+                        </div>
+                        <div class="hint custom-mt-4">[`Sign-in only. Registration always shows a captcha when one is configured below, regardless of this setting.`]</div>
+                    </div>
+                </div>
+                <div class="field" id="auth-captcha-after-n-field">
+                    <div class="name">[`Failed attempts before captcha`]</div>
+                    <div class="value">
+                        <input type="number" min="1" name="captcha_after_n" value="{$config.captcha_after_n|escape}" style="width:80px;">
+                    </div>
+                </div>
+                {if $available_captchas}
                     <div class="field">
                         <div class="name">[`Captcha plugin`]</div>
                         <div class="value">
@@ -75,12 +167,27 @@
                             </div>
                         {/if}
                     {/foreach}
-                </div>
-            {else}
-                <input type="hidden" name="captcha_plugin" value="">
-                <p class="hint">[`No captcha plugins are installed.`]</p>
-            {/if}
+                {else}
+                    <input type="hidden" name="captcha_plugin" value="">
+                    <p class="hint">[`No captcha plugins are installed.`]</p>
+                {/if}
+            </div>
         </form>
+
+        <script>
+            (function () {
+                var select = document.getElementById('auth-captcha-mode');
+                var field  = document.getElementById('auth-captcha-after-n-field');
+                if (!select || !field) {
+                    return;
+                }
+                function sync() {
+                    field.style.display = select.value === 'after_n' ? '' : 'none';
+                }
+                select.addEventListener('change', sync);
+                sync();
+            })();
+        </script>
 
     {/if}
 

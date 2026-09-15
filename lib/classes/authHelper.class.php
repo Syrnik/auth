@@ -102,12 +102,76 @@ class authHelper
     }
 
     /**
-     * Returns HTML of the captcha widget, or empty string if captcha is not configured.
+     * Returns HTML of the captcha widget, or empty string if captcha is not
+     * configured or not currently required.
+     *
+     * $required === null (the default) asks the login throttle's own
+     * escalation policy — captcha_mode / captcha_after_n, see authThrottle
+     * and decision 5 of docs/adr/003-credential-throttle.md — using only the
+     * IP counter, since the visitor's typed identifier isn't known until the
+     * form POSTs. authLoginController overrides this explicitly on the
+     * re-render after a POST, with the just-computed state instead of a
+     * fresh (and by then stale) guess.
+     *
+     * Pass true to force the widget regardless of mode — what registration
+     * uses: captcha there stays unconditional at every captcha_mode, since
+     * after_n's escalation has no failed-attempt sequence to key on for a
+     * signup (decision 5 of the ADR).
      */
-    public static function getCaptchaWidget(): string
+    public static function getCaptchaWidget(?bool $required = null): string
     {
         $plugin = authPluginManager::getCaptchaPlugin();
-        return $plugin ? $plugin->renderWidget() : '';
+        if (!$plugin) {
+            return '';
+        }
+        if ($required === null) {
+            $required = authThrottle::check('login', ['ip' => waRequest::getIp()])->captchaRequired;
+        }
+        return $required ? $plugin->renderWidget() : '';
+    }
+
+    /**
+     * POST field name that a rendered login form carries alongside the
+     * widget itself (see loginCaptchaWidget()) — never part of a captcha
+     * plugin's own markup, so it survives regardless of which plugin is
+     * configured.
+     */
+    public const CAPTCHA_SHOWN_FIELD = '_captcha_shown';
+
+    /**
+     * The login form's captcha_widget value: getCaptchaWidget() prefixed
+     * with a marker field when non-empty, so authLoginController can tell
+     * "this visitor's page never had a widget" apart from "it did, and they
+     * left it unsolved".
+     *
+     * Exists because the GET-time decision (getCaptchaWidget(null), IP
+     * counter only — the identifier isn't known yet) and the POST-time
+     * decision (authThrottle::check('login', [ip, login]), both counters)
+     * can disagree: an identifier counter that climbed since the form was
+     * rendered can make captcha_mode:after_n require a captcha on POST that
+     * the visitor's own page was never given. Without the marker,
+     * authLoginController would run verifyCaptcha() against a POST with no
+     * token at all, fail it, and both blame the visitor for a wrong captcha
+     * and charge their IP a hit — all before their password was ever
+     * checked.
+     */
+    public static function loginCaptchaWidget(?bool $required = null): string
+    {
+        $widget = self::getCaptchaWidget($required);
+        if ($widget === '') {
+            return '';
+        }
+        return '<input type="hidden" name="' . self::CAPTCHA_SHOWN_FIELD . '" value="1">' . $widget;
+    }
+
+    /**
+     * Whether the form this POST came from actually carried a captcha
+     * widget — see loginCaptchaWidget()'s docblock for why this has to be
+     * asked before verifying, not assumed from the current throttle state.
+     */
+    public static function isCaptchaShown(array $post): bool
+    {
+        return !empty($post[self::CAPTCHA_SHOWN_FIELD]);
     }
 
     /**
@@ -314,8 +378,12 @@ class authHelper
      * they share this single source instead of two hand-kept assign() blocks
      * that drift out of sync (a missing key makes Smarty warn or break).
      */
-    public static function loginViewData(string $goal_url = '', string $error = '', array $step_vars = []): array
-    {
+    public static function loginViewData(
+        string $goal_url = '',
+        string $error = '',
+        array $step_vars = [],
+        ?bool $captcha_required = null
+    ): array {
         return [
             'goal_url'         => $goal_url,
             'error'            => $error,
@@ -328,7 +396,7 @@ class authHelper
             'has_registration' => self::isRegistrationEnabled(),
             'register_url'     => self::getRegisterUrl(),
             'recovery_url'     => self::getRecoveryUrl(),
-            'captcha_widget'   => self::getCaptchaWidget(),
+            'captcha_widget'   => self::loginCaptchaWidget($captcha_required),
         ];
     }
 

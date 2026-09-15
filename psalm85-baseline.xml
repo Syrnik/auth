@@ -325,6 +325,13 @@
       <code><![CDATA[clearCache]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/classes/authThrottleDbStore.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function getRow(string $scope, string $key_type, string $key_hash, string $window_start): ?array]]></code>
+      <code><![CDATA[public function hit(string $scope, string $key_type, string $key_hash, string $window_start): array]]></code>
+      <code><![CDATA[public function reset(string $scope, string $key_type, string $key_hash): void]]></code>
+    </MissingOverrideAttribute>
+  </file>
   <file src="lib/classes/authWaidAdapter.class.php">
     <MissingOverrideAttribute>
       <code><![CDATA[protected function verifyState()]]></code>
@@ -632,5 +639,10 @@
     <MissingOverrideAttribute>
       <code><![CDATA[public function execute()]]></code>
     </MissingOverrideAttribute>
+  </file>
+  <file src="lib/models/authThrottle.model.php">
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchAssoc]]></code>
+    </UndefinedMagicMethod>
   </file>
 </files>

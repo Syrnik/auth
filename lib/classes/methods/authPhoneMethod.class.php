@@ -9,8 +9,9 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
 
     private const OTP_SESSION_KEY        = 'auth_phone_otp';
     private const OTP_TTL_SECONDS        = 300;
-    private const RESEND_COOLDOWN_SECONDS = 60;
-    private const MAX_SENDS              = 5;
+    // Guessing the 6-digit code stays capped in the session: that limit lives
+    // no longer than the code itself, and resetting the session invalidates
+    // both together (see decision 7 of docs/adr/003-credential-throttle.md).
     private const MAX_ATTEMPTS           = 5;
 
     public function getId(): string
@@ -54,31 +55,30 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
 
     private function sendOtp(string $phone): ?int
     {
-        $now    = time();
-        $stored = wa()->getStorage()->get(self::OTP_SESSION_KEY);
-        $active = $stored && $stored['phone'] === $phone && $now < ($stored['expires'] ?? 0);
-
-        // Throttle resends for the same number so the SMS channel can't be spammed
-        // (each message costs money) and the code can't be endlessly re-rolled.
-        if ($active) {
-            $since_last = $now - ($stored['last_sent'] ?? 0);
-            if ($since_last < self::RESEND_COOLDOWN_SECONDS) {
-                throw new authMethodStepException([
-                    'show_code_field' => true,
-                    'error' => sprintf('Код уже отправлен. Повторная отправка через %d сек.', self::RESEND_COOLDOWN_SECONDS - $since_last),
-                ]);
-            }
-            if (($stored['sends'] ?? 0) >= self::MAX_SENDS) {
-                wa()->getStorage()->del(self::OTP_SESSION_KEY);
-                throw new authGuardException('Слишком много запросов кода. Попробуйте позже.');
-            }
+        // SMS is a paid resource, so resends/sends are capped the same way as
+        // any other throttled scope — by IP and by the typed phone — rather
+        // than the ad hoc session cooldown this used to be (decision 7 of
+        // docs/adr/003-credential-throttle.md). Not a credential-guessing
+        // scope, so it never touches the 'login' counter.
+        $keys = ['ip' => waRequest::getIp(), 'login' => $phone];
+        $state = authThrottle::check('otp_send', $keys);
+        if ($state->blocked) {
+            throw new authMethodStepException([
+                'show_code_field' => true,
+                'error' => sprintf(
+                    'Код уже отправлен. Повторная отправка через %d сек.',
+                    $state->retryAfter
+                ),
+            ]);
         }
+        authThrottle::hit('otp_send', $keys);
 
         $contact = $this->findByPhone($phone);
         if (!$contact) {
             throw new authGuardException('Пользователь с таким номером не найден.');
         }
 
+        $now  = time();
         $code = (string)random_int(100000, 999999);
         wa()->getStorage()->set(self::OTP_SESSION_KEY, [
             'contact_id' => (int)$contact['id'],
@@ -87,8 +87,6 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
             'hash'       => password_hash($code, PASSWORD_DEFAULT),
             'expires'    => $now + self::OTP_TTL_SECONDS,
             'attempts'   => 0,
-            'sends'      => ($active ? (int)$stored['sends'] : 0) + 1,
-            'last_sent'  => $now,
         ]);
 
         $this->sendSms($phone, $code);
@@ -127,6 +125,14 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
         }
 
         wa()->getStorage()->del(self::OTP_SESSION_KEY);
+
+        // Proving control of this phone means the sends *to it* were
+        // legitimate — clears the identifier's otp_send counter the same
+        // way a successful login clears scope 'login' (see authThrottle's
+        // own docblock). Never the IP key: this says nothing about whatever
+        // other numbers that IP has been requesting codes for.
+        authThrottle::reset('otp_send', ['login' => $phone]);
+
         return (int)$stored['contact_id'];
     }
 

@@ -353,3 +353,33 @@ msgstr ""
 
 msgid "Please confirm you are not a robot and try again."
 msgstr ""
+
+msgid "Recovery channels"
+msgstr ""
+
+msgid "A visitor's entered value is matched against these, in the order listed here — the first one that recognizes the shape (an email, a phone number, or a plugin's own kind of identifier) handles the request. Password recovery is only reachable at all once at least one channel is enabled here, at least one enabled sign-in method uses a password, and \"Allow password recovery\" above is checked."
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Phone (SMS code)"
+msgstr ""
+
+msgid "The code expired or ran out of attempts. Request a new one."
+msgstr ""
+
+msgid "This link is invalid or has expired."
+msgstr ""
+
+msgid "Account not found."
+msgstr ""
+
+msgid "Enter a valid email address or phone number."
+msgstr ""
+
+msgid "Open the link below to set a new password."
+msgstr ""
+
+msgid "Your password recovery code: %s"
+msgstr ""

@@ -21,6 +21,14 @@ use PHPUnit\Framework\TestCase;
  */
 class authPluginManagerTest extends TestCase
 {
+    use authTestConfigOverrideTrait;
+
+    protected function tearDown(): void
+    {
+        $this->restoreAuthConfig();
+        parent::tearDown();
+    }
+
     /** @dataProvider splitInstanceProvider */
     public function testSplitInstance(string $id, array $expected): void
     {
@@ -161,5 +169,101 @@ class authPluginManagerTest extends TestCase
     public function testFilterInstanceBlocksOnEmptyPostedIsEmpty(): void
     {
         $this->assertSame([], authPluginManager::filterInstanceBlocks([], ['gitlab']));
+    }
+
+    /**
+     * getRecoveryProvider() — the resolver docs/adr/004-recovery-channels.md
+     * introduces for AUTH-48, discovered by id the same way get() discovers a
+     * login method, but never confused with one: 'email'/'phone' here yield
+     * authEmailRecoveryProvider/authPhoneRecoveryProvider, not
+     * authEmailMethod/authPhoneMethod.
+     */
+    public function testGetRecoveryProviderReturnsBuiltinEmailProvider(): void
+    {
+        $this->assertInstanceOf(authEmailRecoveryProvider::class, authPluginManager::getRecoveryProvider('email'));
+    }
+
+    public function testGetRecoveryProviderReturnsBuiltinPhoneProvider(): void
+    {
+        $this->assertInstanceOf(authPhoneRecoveryProvider::class, authPluginManager::getRecoveryProvider('phone'));
+    }
+
+    public function testGetRecoveryProviderLoadsAnInstalledPlugin(): void
+    {
+        $provider = authPluginManager::getRecoveryProvider('testrecovery_plugin');
+        $this->assertInstanceOf(authRecoveryProvider::class, $provider);
+    }
+
+    public function testGetRecoveryProviderReturnsNullForAnUnknownId(): void
+    {
+        $this->assertNull(authPluginManager::getRecoveryProvider('there-is-no-such-thing'));
+    }
+
+    /**
+     * The flag/interface mismatch check every other role already has
+     * (is_guard, is_captcha, is_throttle_store, ...) — a fixture plugin
+     * declaring is_recovery_provider without implementing
+     * authRecoveryProvider must fail to load.
+     *
+     * Built and torn down inline rather than shipped as a permanent fixture
+     * (like testguard/testmulti): a plugin sitting in plugins/ with a
+     * declared-but-unimplemented flag breaks loadPlugin() for *every*
+     * interface, not just this one — authBackendDomainSettingsAction::
+     * getPluginInstancesOf() scandir()s the whole plugins/ directory and
+     * calls authPluginManager::get() on each entry regardless of which
+     * interface it is currently enumerating, and loadPlugin() validates
+     * every flag a plugin.php declares, not only the one being asked about.
+     * A permanent broken fixture here would 500 the real "Login"/"Guards"/
+     * "Captcha" backend screens on any install this test suite ships with,
+     * not just fail this one assertion — this was caught by hand against a
+     * live domain while verifying AUTH-48, not by any automated check.
+     */
+    public function testGetRecoveryProviderThrowsWhenFlagDeclaredWithoutInterface(): void
+    {
+        $dir = wa()->getAppPath('plugins/testbadrecoverytmp', 'auth');
+        mkdir($dir . '/lib/config', 0777, true);
+        file_put_contents(
+            $dir . '/lib/config/plugin.php',
+            "<?php\nreturn ['name' => 'x', 'version' => '1.0.0', 'is_recovery_provider' => true];\n"
+        );
+        file_put_contents(
+            $dir . '/lib/authTestbadrecoverytmpPlugin.class.php',
+            "<?php\nclass authTestbadrecoverytmpPlugin extends authPlugin {}\n"
+        );
+
+        try {
+            $this->expectException(waException::class);
+            authPluginManager::getRecoveryProvider('testbadrecoverytmp_plugin');
+        } finally {
+            authPluginManager::clearCache();
+            unlink($dir . '/lib/authTestbadrecoverytmpPlugin.class.php');
+            unlink($dir . '/lib/config/plugin.php');
+            rmdir($dir . '/lib/config');
+            rmdir($dir . '/lib');
+            rmdir($dir);
+        }
+    }
+
+    /**
+     * getRecoveryProviders() tries claims() in recovery_channels order
+     * (decision 3 of docs/adr/004-recovery-channels.md) — a plugin listed
+     * before the built-ins must come back before them, not after.
+     */
+    public function testGetRecoveryProvidersFollowsRecoveryChannelsOrder(): void
+    {
+        $this->overrideAuthConfig(['recovery_channels' => ['phone', 'testrecovery_plugin', 'email']]);
+
+        $ids = array_map(static fn($p) => $p->getId(), authPluginManager::getRecoveryProviders());
+
+        $this->assertSame(['phone', 'testrecovery', 'email'], $ids);
+    }
+
+    public function testGetRecoveryProvidersSkipsUnknownIds(): void
+    {
+        $this->overrideAuthConfig(['recovery_channels' => ['email', 'there-is-no-such-thing', 'phone']]);
+
+        $ids = array_map(static fn($p) => $p->getId(), authPluginManager::getRecoveryProviders());
+
+        $this->assertSame(['email', 'phone'], $ids);
     }
 }

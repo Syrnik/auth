@@ -175,19 +175,52 @@ class authHelper
     }
 
     /**
-     * Returns true if at least one active login method supports password recovery.
+     * Whether the recovery page (recovery/) is reachable on this domain.
+     * Recovery is a domain-level capability, not a property of any one login
+     * method — see docs/adr/004-recovery-channels.md, decision 1. Two
+     * independent conditions, neither of which looks at a contact (so this
+     * is never an enumeration oracle by itself):
+     *
+     *   - hasPasswordLogin(): there is a password to reset at all. A domain
+     *     signing people in only by OTP/OAuth has nothing for recovery to do.
+     *   - at least one enabled authRecoveryProvider: there is a channel to
+     *     deliver the reset through.
      */
     public static function hasRecovery(): bool
     {
         if (!authConfig::get('recovery_enabled')) {
             return false;
         }
-        foreach (authPluginManager::getEnabled() as $method) {
-            if (self::methodHasRecovery($method)) {
-                return true;
-            }
+        if (!self::hasPasswordLogin()) {
+            return false;
         }
-        return false;
+        return authPluginManager::getRecoveryProviders() !== [];
+    }
+
+    /**
+     * The three rules a new password must satisfy, shared between the
+     * profile's password section and password recovery so the two paths
+     * cannot silently drift apart — lifted from
+     * authProfileSectionPassword::validateSection(), itself lifted from
+     * waMyProfileAction::saveFromPost() (waMyProfileAction.class.php:106-115).
+     * Checking the current password (only meaningful in the profile, never
+     * in recovery, which exists precisely because the old one is unknown)
+     * stays out of this shared rule and is the profile section's own concern.
+     *
+     * @return string|null An error message, or null when the password is acceptable.
+     */
+    public static function validateNewPassword(string $password, string $confirm): ?string
+    {
+        if ($password === '') {
+            return _ws('Password is required.');
+        }
+        if (strlen($password) > waAuth::PASSWORD_MAX_LENGTH) {
+            return _ws('Specified password is too long.');
+        }
+        if ($password !== $confirm) {
+            return _ws('Passwords do not match');
+        }
+        return null;
     }
 
     public static function isRememberMeEnabled(): bool
@@ -470,17 +503,4 @@ class authHelper
         return false;
     }
 
-    private static function methodHasRecovery($method): bool
-    {
-        if ($method instanceof authPlugin) {
-            return (bool)($method->getInfo()['has_recovery'] ?? false);
-        }
-        if ($method instanceof authBuiltinMethod) {
-            // built-in methods declare this as a class constant or static property
-            return defined(get_class($method).'::HAS_RECOVERY')
-                ? (bool)constant(get_class($method).'::HAS_RECOVERY')
-                : false;
-        }
-        return false;
-    }
 }

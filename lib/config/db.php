@@ -34,15 +34,43 @@ return [
             'contact' => ['contact_id', 'field', 'unique' => 1],
         ],
     ],
+    // One row per pending recovery request (email link or phone code) — see
+    // authPasswordRecoveryModel and docs/adr/004-recovery-channels.md.
     'auth_password_recovery' => [
         'id'               => ['int', 11, 'null' => 0, 'autoincrement' => 1],
+        // 0 for a decoy row (identifier did not resolve to a contact) — see
+        // decision 5 of the ADR: a decoy must exist and behave identically to
+        // a real request, so this stays NOT NULL rather than nullable.
         'contact_id'       => ['int', 11, 'null' => 0],
+        // Recovery provider id (a recovery_channels entry) that issued this
+        // row: 'email'/'phone' for the built-ins, or a plugin id
+        // ('myplugin_plugin', 'oidc_plugin:gitlab') for a third-party
+        // authRecoveryProvider — same id shape as login_methods, hence 64
+        // chars, not 16. Decides which provider's verifyCode()/complete()
+        // handles this row.
+        'channel'          => ['varchar', 64, 'null' => 0, 'default' => 'email'],
+        // sha256 of the provider's normalized identifier, never the raw
+        // value — same reasoning as auth_throttle.key_hash: in the clear
+        // this is someone's email or phone. The unique key below is on this,
+        // not contact_id: every decoy shares contact_id = 0, and a key on
+        // contact_id would let two decoys collide and swap each other's
+        // attempt counters (decision 6 of the ADR).
+        'identifier_hash'  => ['varchar', 64, 'null' => 0, 'default' => ''],
         'token'            => ['varchar', 64, 'null' => 0],
+        // Non-empty only for a code-based provider (phone). A decoy row gets
+        // a real hash of a real, never-sent code — an empty value here reads
+        // as "the link alone proves it", which would route a decoy into the
+        // wrong branch instead of the shared one (decision 5 of the ADR).
+        'code_hash'        => ['varchar', 255, 'null' => 0, 'default' => ''],
+        'attempts'         => ['int', 11, 'null' => 0, 'default' => 0],
         'created_datetime' => ['datetime', 'null' => 0],
         'expire_datetime'  => ['datetime', 'null' => 0],
         ':keys' => [
-            'PRIMARY' => 'id',
-            'token'   => ['token', 'unique' => 1],
+            'PRIMARY'    => 'id',
+            'token'      => ['token', 'unique' => 1],
+            // Replace-on-reissue and the decoy-collision guard both key off
+            // this pair — see the identifier_hash comment above.
+            'identifier' => ['identifier_hash', 'channel', 'unique' => 1],
         ],
     ],
     // Brute-force throttle counters (AUTH-49): one row per (key, scope, window),

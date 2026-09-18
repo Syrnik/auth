@@ -96,15 +96,24 @@ class authHelperLoginMethodsTest extends TestCase
         $this->assertFalse(authHelper::isRegistrationEnabled());
     }
 
-    public function testHasRecoveryRequiresRecoveryEnabledAndACapableMethod(): void
+    /**
+     * hasRecovery() is a domain-level gate now, not a property of whichever
+     * method signs someone in (docs/adr/004-recovery-channels.md, decision
+     * 1): hasPasswordLogin() (something to reset) AND at least one enabled
+     * authRecoveryProvider (something to deliver a proof through).
+     */
+    public function testHasRecoveryRequiresRecoveryEnabledAPasswordMethodAndAChannel(): void
     {
-        // email (authEmailMethod::HAS_RECOVERY = true) qualifies, phone (OTP) does not.
+        // phone (OTP) is passwordless — nothing to reset, regardless of
+        // recovery_enabled or which channels are configured.
         $this->overrideAuthConfig([
             'login_methods'    => ['phone'],
             'recovery_enabled' => true,
         ]);
         $this->assertFalse(authHelper::hasRecovery());
 
+        // email is both a password method and — via the distribution
+        // default, untouched here — an enabled recovery channel.
         $this->overrideAuthConfig([
             'login_methods'    => ['email'],
             'recovery_enabled' => true,
@@ -114,6 +123,26 @@ class authHelperLoginMethodsTest extends TestCase
         $this->overrideAuthConfig([
             'login_methods'    => ['email'],
             'recovery_enabled' => false,
+        ]);
+        $this->assertFalse(authHelper::hasRecovery());
+
+        // The case this rewrite exists to prove: a domain with ONLY
+        // authLoginMethod (login+password) used to get HAS_RECOVERY = false
+        // and a permanent 404 on recovery/ — it now gets recovery like any
+        // other password method, because recovery no longer asks the method
+        // at all.
+        $this->overrideAuthConfig([
+            'login_methods'    => ['login'],
+            'recovery_enabled' => true,
+        ]);
+        $this->assertTrue(authHelper::hasRecovery());
+
+        // A password method with no enabled recovery channel still gets
+        // nothing — there is a password to reset but no way to deliver a proof.
+        $this->overrideAuthConfig([
+            'login_methods'     => ['email'],
+            'recovery_enabled'  => true,
+            'recovery_channels' => [],
         ]);
         $this->assertFalse(authHelper::hasRecovery());
     }

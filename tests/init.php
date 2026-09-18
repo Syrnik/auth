@@ -24,6 +24,16 @@ waSystem::getInstance(null, new SystemConfig());
 // Registers autoloading for the app's own classes (and its plugins').
 wa('auth');
 
+// authRecoveryTest exercises wa()->getStorage() (waSessionStorage, a real PHP
+// session) for the code-based recovery flow. session_start() fails with
+// "headers already sent" the moment any output has occurred — and PHPUnit's
+// own dot-progress reporter writes output well before any individual test
+// runs — so the session has to start here, before PHPUnit prints anything,
+// not lazily inside the test that first needs it.
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    @session_start();
+}
+
 // tests/ is outside the app's autoload scan (it only scans lib/), so shared
 // test helpers must be required explicitly.
 require_once dirname(__FILE__) . '/authTestTemporaryTablesTrait.php';

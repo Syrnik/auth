@@ -83,8 +83,18 @@ return [
     'signup_confirm' => true,
     'signup_fields'  => ['firstname', 'lastname', 'email', 'password'],
 
-    // Восстановление пароля
+    // Восстановление пароля (AUTH-48) — см. docs/adr/004-recovery-channels.md.
     'recovery_enabled' => true,
+
+    // Каналы восстановления, в порядке проверки claims() (решение 3 ADR):
+    // 'email' / 'phone' — встроенные, id плагина ('myplugin_plugin') — тот же
+    // формат, что у login_methods. Не выводится из login_methods: включение
+    // SMS-канала — отдельное решение админа (SIM swap иначе даёт доступ туда,
+    // куда домен по SMS не пускает), а не следствие включённого OTP-входа.
+    'recovery_channels' => ['email'],
+
+    // Время жизни ссылки восстановления по email. Секунды.
+    'recovery_link_ttl' => 3600,
 
     // Разрешить пользователю удалить свой аккаунт из личного кабинета.
     // Управляется здесь, а не картой сайта: personal_fields описывает, из каких

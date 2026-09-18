@@ -353,3 +353,33 @@ msgstr "Слишком много попыток. Повторите через 
 
 msgid "Please confirm you are not a robot and try again."
 msgstr "Подтвердите, что вы не робот, и повторите попытку."
+
+msgid "Recovery channels"
+msgstr "Каналы восстановления"
+
+msgid "A visitor's entered value is matched against these, in the order listed here — the first one that recognizes the shape (an email, a phone number, or a plugin's own kind of identifier) handles the request. Password recovery is only reachable at all once at least one channel is enabled here, at least one enabled sign-in method uses a password, and \"Allow password recovery\" above is checked."
+msgstr "Введённое посетителем значение сверяется с этим списком в указанном здесь порядке — обрабатывает запрос первый канал, распознавший форму (email, телефон или собственный вид идентификатора плагина). Восстановление пароля доступно только когда включён хотя бы один канал, среди активных методов входа есть паролевый, и выше отмечена галка «Разрешить восстановление пароля»."
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Phone (SMS code)"
+msgstr "Телефон (код по SMS)"
+
+msgid "The code expired or ran out of attempts. Request a new one."
+msgstr "Код устарел или попытки исчерпаны. Запросите новый."
+
+msgid "This link is invalid or has expired."
+msgstr "Ссылка недействительна или устарела."
+
+msgid "Account not found."
+msgstr "Аккаунт не найден."
+
+msgid "Enter a valid email address or phone number."
+msgstr "Введите корректный email или номер телефона."
+
+msgid "Open the link below to set a new password."
+msgstr "Перейдите по ссылке ниже, чтобы задать новый пароль."
+
+msgid "Your password recovery code: %s"
+msgstr "Ваш код восстановления пароля: %s"

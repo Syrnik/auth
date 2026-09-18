@@ -37,6 +37,23 @@
                         </label>
                     </div>
                 </div>
+                <div class="field">
+                    <div class="name">[`Recovery channels`]</div>
+                    <div class="value">
+                        <ul>
+                        {foreach $available_providers as $id => $p}
+                            <li>
+                                <label>
+                                    <input type="checkbox" name="recovery_channels[]" value="{$id|escape}"
+                                        {if in_array($id, $config.recovery_channels)}checked{/if}>
+                                    {$p.name|escape}
+                                </label>
+                            </li>
+                        {/foreach}
+                        </ul>
+                        <div class="hint">[`A visitor's entered value is matched against these, in the order listed here — the first one that recognizes the shape (an email, a phone number, or a plugin's own kind of identifier) handles the request. Password recovery is only reachable at all once at least one channel is enabled here, at least one enabled sign-in method uses a password, and "Allow password recovery" above is checked.`]</div>
+                    </div>
+                </div>
             </div>
         </form>
 

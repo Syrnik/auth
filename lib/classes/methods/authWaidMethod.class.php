@@ -3,7 +3,6 @@
 class authWaidMethod extends authBuiltinMethod implements authMethod
 {
     const AUTH_TYPE    = 'oauth';
-    const HAS_RECOVERY = false;
 
     public function getId(): string
     {

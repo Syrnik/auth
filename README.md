@@ -8,7 +8,7 @@
 
 - **Вход** — email/пароль, логин/пароль (`wa_contact.login`), Webasyst ID и любой OAuth-адаптер фреймворка (VK, Google, Facebook и т.д. — подключаются автоматически, без плагинов), телефон (OTP-код по SMS), сторонние методы входа через `authMethod`-плагины
 - **Регистрация** — с опциональным подтверждением по email
-- **Восстановление пароля** — ссылка с токеном на email
+- **Восстановление пароля** (AUTH-48) — по email (ссылка) или по телефону (SMS-код), либо своим каналом стороннего `authRecoveryProvider`-плагина; какие каналы принимает форма и в каком порядке — настройка `recovery_channels`
 - **Личный кабинет** (`/my/`) — редактирование профиля
 - **Двухфакторная аутентификация** — через `authChallenge`-плагины
 - **Guard-плагины** — блокировка входа и/или регистрации по любому условию
@@ -43,6 +43,7 @@
 | `signup_enabled` | `false` | Разрешить регистрацию |
 | `signup_confirm` | `true` | Требовать подтверждение email |
 | `recovery_enabled` | `true` | Разрешить восстановление пароля |
+| `recovery_channels` | `['email']` | Провайдеры восстановления, в порядке проверки (AUTH-48, `docs/adr/004-recovery-channels.md`). Формат id тот же, что у `login_methods`: `email`/`phone` (встроенные), `myplugin_plugin` (плагин, `authRecoveryProvider`). Восстановление доступно только когда список не пуст **и** среди `login_methods` есть паролевый метод |
 | `rememberme` | `false` | Показывать «Запомнить меня» |
 | `delete_account_enabled` | `false` | Разрешить пользователю удалить свой аккаунт из `my/` (секция «Профиль»). Удаление жёсткое и необратимое |
 | `captcha_plugin` | `null` | ID капча-плагина (или `null`) |
@@ -65,6 +66,7 @@
 |---|---|---|
 | `challenge_methods` | `[]` | Активные плагины второго фактора |
 | `throttle_otp_delay` | `60` | Растущая задержка (сек.) для scope `otp_send` (`authPhoneMethod`) — отдельно от `throttle_delay`: СМС стоит денег, поэтому шаг для неё крупнее, чем для подбора пароля |
+| `recovery_link_ttl` | `3600` | Время жизни ссылки восстановления по email (сек.). Код по SMS живёт отдельный, фиксированный срок — 5 минут, как у `authPhoneMethod`'s OTP |
 | `signup_methods` | `['email', 'waid']` | Методы, доступные при регистрации |
 | `signup_fields` | `['firstname', 'lastname', 'email', 'password']` | Поля формы регистрации |
 | `redirect_after_login` / `redirect_after_register` / `redirect_after_logout` | `null` / `null` / `'/'` | Редиректы после действий (`null` = `goal_url` / `HTTP_REFERER`) |
@@ -145,6 +147,62 @@ class myPluginAuthThrottleStore implements authThrottleStore {
 Плагин выбирается настройкой `throttle_store` (id плагина, `null` = встроенное хранилище) —
 тот же принцип, что у `captcha_plugin`.
 
+### `authRecoveryProvider` — канал восстановления пароля (AUTH-48)
+
+Единственный способ дать плагину участвовать в восстановлении пароля — ядро **не** пытается
+само распознать email/телефон и не лезет в контакт напрямую: оно перебирает провайдеров из
+`recovery_channels` и берёт первого, чей `claims()` подтвердил, что это его форма
+идентификатора. Встроенные `email`/`phone` — такие же провайдеры, зарегистрированные по
+умолчанию, а не особый случай. Подробности и обоснование — `docs/adr/004-recovery-channels.md`.
+
+```php
+class myPluginAuthRecoveryProvider implements authRecoveryProvider {
+    public function getId(): string { return 'myplugin'; }
+
+    // Синтаксическая проверка "это моя форма идентификатора?", без обращения к контакту.
+    public function claims(string $identifier): bool { /* ... */ }
+
+    // ОБЯЗАН вести себя одинаково независимо от того, нашёлся ли контакт —
+    // включая тайминг и форму возвращаемого хендла. См. класс-докблок интерфейса.
+    public function start(string $identifier): authRecoveryHandle { /* ... */ }
+
+    // true → форма покажет шаг ввода кода и позовёт verifyCode(); false → покажет
+    // общий экран "отправлено", а токен-ссылка ведёт прямо в complete().
+    public function needsCode(): bool { return false; }
+
+    public function verifyCode(authRecoveryHandle $handle, string $code): bool { /* ... */ }
+
+    // Возвращает contact_id, которому ставить новый пароль, или null для
+    // просроченного/несуществующего запроса — оба случая показываются одинаково.
+    public function complete(authRecoveryHandle $handle): ?int { /* ... */ }
+}
+```
+
+Четыре вещи, которые плагин обязан соблюдать сам — ядро не может проверить это за него:
+
+- **анти-перечисление** — `start()`/`complete()` не должны выдавать себя тем, нашёлся ли
+  контакт; наивная реализация («есть что показать → код, иначе → страница „отправлено“»)
+  превращает форму восстановления в оракул перечисления пользователей;
+- **граница пароля** — плагин никогда не пишет `wa_contact.password` сам; он только
+  резолвит идентификатор в `contact_id` и доставляет доказательство, пароль ставит ядро
+  после `complete()`;
+- **отказ платного ресурса** — если `start()` тратит что-то небесплатное (SMS и т. п.) и
+  метрирует это собственным throttle, отказ должен и наступать, и выглядеть одинаково для
+  найденного и ненайденного идентификатора: `start()` бросает `authRecoveryThrottledException`
+  (счётчик по идентификатору как введён, до резолва в контакт) — ядро ловит её и рендерит
+  тот же общий текст, что и для своего IP-throttle сцены `recovery`. Так делает встроенный
+  `authPhoneRecoveryProvider` для `otp_send` — см. решение 5 в ADR;
+- шаг с кодом (`needsCode() === true`) может переиспользовать общую таблицу
+  `auth_password_recovery`/`authPasswordRecoveryModel` (там уже есть `channel`,
+  `code_hash`, счётчик попыток) — либо вести собственное хранилище, интерфейсу это
+  безразлично.
+
+Плагин объявляется флагом `is_recovery_provider` в `plugin.php` (см. таблицу ниже) и
+перечисляется в `recovery_channels` домена — id в том же формате, что у `login_methods`
+(`myplugin_plugin`, именованный инстанс `oidc_plugin:gitlab`). Порядок в `recovery_channels`
+значим: первый подходящий `claims()` побеждает, так что провайдер, перечисленный раньше
+встроенных, перехватывает формы, которые иначе достались бы им.
+
 Описание плагина в `plugins/<plugin_id>/lib/config/plugin.php` — по этому файлу `authPluginManager` определяет, какие интерфейсы должен реализовывать плагин, и проверяет это при загрузке (иначе бросает исключение):
 
 ```php
@@ -158,7 +216,10 @@ return [
     'guard_signup'         => true,   // применять guard при регистрации (только для is_guard)
     'is_captcha'           => true,   // реализует authCaptcha
     'is_throttle_store'    => true,   // реализует authThrottleStore
+    'is_recovery_provider' => true,   // реализует authRecoveryProvider (AUTH-48)
     'auth_type'            => 'oauth', // OAuth-метод: кнопка вместо формы (только для is_auth)
+    'uses_password'        => true,   // is_auth-метод аутентифицирует паролем (см. hasPasswordLogin(),
+                                       // шлюз доступности восстановления в docs/adr/004-recovery-channels.md)
     'multi_instance'       => true,   // поддержка именованных инстансов (см. ниже)
     'has_profile_section'  => true,   // реализует authProfileSectionProvider (блок в my/, см. ниже)
 ];
@@ -302,7 +363,7 @@ class authMypluginPlugin extends authPlugin implements authGuard
 | `login.html` | Форма входа (подключает `<method>.login_form.html` для активного метода) |
 | `register.html` | Форма регистрации |
 | `register.confirm.html` | Страница ожидания подтверждения email |
-| `recovery.html` | Форма восстановления пароля и форма нового пароля |
+| `recovery.html` | Восстановление пароля, все шаги одним файлом (`$step`): `request` — ввод email/телефона, `code` — код + новый пароль (провайдер с кодом), `password` — новый пароль по ссылке (провайдер без кода), `sent` — общий экран «отправлено» |
 | `challenge.html` | Форма двухфакторной аутентификации |
 | `my.profile.html` | Страница профиля |
 | `my.profile.<секция>.<режим>.html` | Партиал одной секции профиля в одном режиме (`view` / `edit`); для секции плагина `<секция>` — её id с `:` (именованный инстанс) заменённым на `-`, и тема переопределяет этот файл точно так же, как ядровой |

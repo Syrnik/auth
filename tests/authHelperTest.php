@@ -92,4 +92,37 @@ class authHelperTest extends TestCase
         $this->assertFalse(authHelper::methodIsOAuth(new stdClass()));
         $this->assertSame('', authHelper::methodName(new stdClass()));
     }
+
+    /**
+     * validateNewPassword() — the three rules shared between
+     * authProfileSectionPassword and password recovery (docs/adr/004-
+     * recovery-channels.md), so the two paths cannot silently drift apart.
+     * No DB, no config: pure string checks against waAuth::PASSWORD_MAX_LENGTH.
+     */
+    public function testValidateNewPasswordAcceptsAMatchingPair(): void
+    {
+        $this->assertNull(authHelper::validateNewPassword('correct horse', 'correct horse'));
+    }
+
+    public function testValidateNewPasswordRejectsAnEmptyPassword(): void
+    {
+        $this->assertNotNull(authHelper::validateNewPassword('', ''));
+    }
+
+    public function testValidateNewPasswordRejectsAMismatchedConfirmation(): void
+    {
+        $this->assertNotNull(authHelper::validateNewPassword('correct horse', 'something else'));
+    }
+
+    public function testValidateNewPasswordRejectsOverlongPassword(): void
+    {
+        $too_long = str_repeat('a', waAuth::PASSWORD_MAX_LENGTH + 1);
+        $this->assertNotNull(authHelper::validateNewPassword($too_long, $too_long));
+    }
+
+    public function testValidateNewPasswordAcceptsPasswordAtTheLengthLimit(): void
+    {
+        $at_limit = str_repeat('a', waAuth::PASSWORD_MAX_LENGTH);
+        $this->assertNull(authHelper::validateNewPassword($at_limit, $at_limit));
+    }
 }

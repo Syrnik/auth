@@ -45,6 +45,18 @@ class authConfig
     }
 
     /**
+     * Recovery providers enabled for this domain, in the order authRecovery
+     * tries claims() — see docs/adr/004-recovery-channels.md, decision 2/3.
+     * Deliberately not derived from login_methods: which identifiers a
+     * domain accepts for a password reset is its own decision, not a
+     * consequence of which methods happen to sign people in.
+     */
+    public static function getRecoveryChannels(?string $domain = null): array
+    {
+        return (array)self::get('recovery_channels', ['email'], $domain);
+    }
+
+    /**
      * Whether the brute-force throttle (AUTH-49) is active for this domain.
      * On by default — see docs/adr/003-credential-throttle.md.
      */

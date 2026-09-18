@@ -206,3 +206,18 @@ msgstr "Зарегистрироваться"
 
 msgid "Already have an account? Sign in"
 msgstr "Уже есть аккаунт? Войти"
+
+msgid "If an account exists for that email or phone, we sent instructions to it."
+msgstr "Если такой email или телефон зарегистрированы, мы отправили на них инструкции."
+
+msgid "Didn't get anything? Contact support."
+msgstr "Ничего не пришло? Обратитесь в поддержку."
+
+msgid "Enter the code"
+msgstr "Введите код"
+
+msgid "Code"
+msgstr "Код"
+
+msgid "Email or phone"
+msgstr "Email или телефон"

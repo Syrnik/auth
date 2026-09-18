@@ -8,7 +8,7 @@ A frontend application for the Webasyst Framework that provides a full set of us
 
 - **Login** — email/password, login/password (`wa_contact.login`), Webasyst ID and any framework OAuth adapter (VK, Google, Facebook, etc. — wired up automatically, no plugin needed), phone (SMS OTP), third-party login methods via `authMethod` plugins
 - **Registration** — with optional email confirmation
-- **Password recovery** — token link sent by email
+- **Password recovery** (AUTH-48) — by email (a link) or by phone (an SMS code), or a third-party `authRecoveryProvider` plugin's own channel; which channels the form accepts and in what order is the `recovery_channels` setting
 - **My account** (`/my/`) — profile editing
 - **Two-factor authentication** — via `authChallenge` plugins
 - **Guard plugins** — block login and/or signup based on any condition
@@ -43,6 +43,7 @@ Parameters editable in the backend:
 | `signup_enabled` | `false` | Allow registration |
 | `signup_confirm` | `true` | Require email confirmation on signup |
 | `recovery_enabled` | `true` | Allow password recovery |
+| `recovery_channels` | `['email']` | Recovery providers, in the order they are tried (AUTH-48, `docs/adr/004-recovery-channels.md`). Same id format as `login_methods`: `email`/`phone` (built-in), `myplugin_plugin` (an `authRecoveryProvider` plugin). Recovery is only reachable when the list is non-empty **and** at least one `login_methods` entry uses a password |
 | `rememberme` | `false` | Show "Remember me" checkbox |
 | `captcha_plugin` | `null` | Captcha plugin ID (or `null`) |
 | `captcha_mode` | `'always'` | When to show the captcha on sign-in: `off` / `always` / `after_n`. Registration always shows it unconditionally regardless of this setting |
@@ -64,6 +65,7 @@ Additional parameters can only be set in `lib/config/config.php` (or manually in
 |---|---|---|
 | `challenge_methods` | `[]` | Active second-factor plugins |
 | `throttle_otp_delay` | `60` | Growing delay (seconds) for the `otp_send` scope (`authPhoneMethod`) — separate from `throttle_delay`: SMS costs money, so its step is larger than the one used against password guessing |
+| `recovery_link_ttl` | `3600` | Lifetime (seconds) of an email recovery link. The SMS code has its own fixed lifetime — 5 minutes, same as `authPhoneMethod`'s OTP |
 | `signup_methods` | `['email', 'waid']` | Methods offered on the registration form |
 | `signup_fields` | `['firstname', 'lastname', 'email', 'password']` | Registration form fields |
 | `redirect_after_login` / `redirect_after_register` / `redirect_after_logout` | `null` / `null` / `'/'` | Post-action redirects (`null` = `goal_url` / `HTTP_REFERER`) |
@@ -144,6 +146,62 @@ class myPluginAuthThrottleStore implements authThrottleStore {
 email/login/IP. Selected via the `throttle_store` setting (a plugin ID, `null` = the
 built-in store), the same pattern as `captcha_plugin`.
 
+### `authRecoveryProvider` — a password-recovery channel (AUTH-48)
+
+The only way a plugin participates in password recovery — the core does **not** try to
+classify an identifier as an email or a phone number itself and never queries a contact
+directly: it walks the providers listed in `recovery_channels` and uses the first one whose
+`claims()` confirms it owns that identifier's shape. The built-in `email`/`phone` providers
+are ordinary providers registered by default, not a special case. See
+`docs/adr/004-recovery-channels.md` for the reasoning.
+
+```php
+class myPluginAuthRecoveryProvider implements authRecoveryProvider {
+    public function getId(): string { return 'myplugin'; }
+
+    // Syntactic "is this my identifier shape?" check, no contact lookup yet.
+    public function claims(string $identifier): bool { /* ... */ }
+
+    // MUST behave identically whether or not the identifier resolves to a
+    // real contact — including timing and the returned handle's shape.
+    public function start(string $identifier): authRecoveryHandle { /* ... */ }
+
+    // true → the form shows a code step and calls verifyCode(); false → it shows
+    // a generic "sent" screen, and the mailed link's token goes straight to complete().
+    public function needsCode(): bool { return false; }
+
+    public function verifyCode(authRecoveryHandle $handle, string $code): bool { /* ... */ }
+
+    // Returns the contact_id to set the new password on, or null for an
+    // expired/unknown request — both cases render the same response.
+    public function complete(authRecoveryHandle $handle): ?int { /* ... */ }
+}
+```
+
+Four things a provider must uphold on its own — the core has no way to check these for it:
+
+- **anti-enumeration** — `start()`/`complete()` must never leak whether a contact was found;
+  a naive "something to show → code step, otherwise → sent screen" implementation turns the
+  recovery form into a user-enumeration oracle;
+- **the password boundary** — a provider never writes `wa_contact.password` itself; it only
+  resolves an identifier to a `contact_id` and delivers the proof, the core sets the password
+  after `complete()`;
+- **paid-resource refusal** — if `start()` spends something non-free (SMS, etc.) and meters it
+  with its own throttle, the refusal must both happen and look identical for a found and an
+  unfound identifier: `start()` throws `authRecoveryThrottledException` (counter keyed on the
+  identifier as typed, before it is ever resolved to a contact) — the core catches it and
+  renders the same generic message it uses for its own IP-scoped `recovery` throttle. This is
+  what the built-in `authPhoneRecoveryProvider` does for `otp_send` — see decision 5 in the ADR;
+- a code-based provider (`needsCode() === true`) may reuse the shared
+  `auth_password_recovery` table/`authPasswordRecoveryModel` (it already has `channel`,
+  `code_hash`, an attempt counter) — or keep its own storage; the interface does not care.
+
+A plugin declares itself with the `is_recovery_provider` flag in `plugin.php` (see the table
+below) and is listed in the domain's `recovery_channels` — same id format as `login_methods`
+(`myplugin_plugin`, a named instance `oidc_plugin:gitlab`). Order in `recovery_channels`
+matters: the first matching `claims()` wins, so a provider listed before the built-ins
+intercepts forms they would otherwise have handled.
+
 Describe the plugin in `plugins/<plugin_id>/lib/config/plugin.php` — `authPluginManager` uses this file to determine which interfaces the plugin must implement, and verifies it on load (throwing otherwise):
 
 ```php
@@ -157,6 +215,10 @@ return [
     'guard_signup' => true,   // apply guard on signup (is_guard only)
     'is_captcha'   => true,   // implements authCaptcha
     'is_throttle_store' => true, // implements authThrottleStore
+    'is_recovery_provider' => true, // implements authRecoveryProvider (AUTH-48)
+    'uses_password' => true, // an is_auth method authenticates by password (see
+                              // hasPasswordLogin(), the recovery availability gate
+                              // in docs/adr/004-recovery-channels.md)
 ];
 ```
 
@@ -229,7 +291,7 @@ Key theme files:
 | `login.html` | Login form (includes `<method>.login_form.html` for the active method) |
 | `register.html` | Registration form |
 | `register.confirm.html` | Email confirmation pending page |
-| `recovery.html` | Password recovery form and new-password form |
+| `recovery.html` | Password recovery, all steps in one file (`$step`): `request` — enter email/phone, `code` — code + new password (a code-based provider), `password` — new password from a link (a link-based provider), `sent` — the generic "sent" screen |
 | `challenge.html` | Two-factor authentication form |
 | `my.profile.html` | Profile page |
 

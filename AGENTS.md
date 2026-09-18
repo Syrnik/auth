@@ -15,6 +15,11 @@ non-obvious constraints, and they are not re-derivable from the code alone.
 - `003-credential-throttle.md` — why brute-force protection is a core service
   rather than an `authGuard` plugin (guards only run after authentication has
   already succeeded), and what is configurable vs pluggable about it.
+- `004-recovery-channels.md` — why password recovery is a plugin extension
+  point (`authRecoveryProvider`), not a core service that classifies email vs
+  phone itself; the anti-enumeration contract every provider (built-in or
+  third-party) must uphold; why the shared `auth_password_recovery` row is
+  keyed on the identifier hash rather than `contact_id`.
 
 ## Tests
 
@@ -25,6 +30,14 @@ for the pattern), and never ship: `lib/config/exclude.php` keeps the whole direc
 `tests/init.php` is the bootstrap — `tests/` is outside the app's autoload scan (which only
 covers `lib/`), so any shared test helper needs an explicit `require_once` there, same as the
 two existing traits (`authTestTemporaryTablesTrait`, `authTestConfigOverrideTrait`).
+
+`tests/init.php` also calls `session_start()` eagerly, right after `wa('auth')`, for every test
+in the suite — not just the ones that need a session. Any test exercising `authRecovery`'s
+code-based path (`authRecoveryTest`) reads/writes `wa()->getStorage()`, which is backed by a
+real PHP session; calling `session_start()` lazily, on first use, fails once PHPUnit's own
+progress output has already been flushed ("headers already sent"). Starting it in the bootstrap,
+before PHPUnit prints anything, is the only place it can happen unconditionally for the whole
+run.
 
 Run from the app root. The `2>/dev/null` isn't optional — without it, any PHP-8.4-vs-phar
 deprecation notice the framework happens to emit gets an xdebug stack trace dumped to stderr

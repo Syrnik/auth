@@ -3,7 +3,6 @@
 class authEmailMethod extends authBuiltinMethod implements authMethod
 {
     const AUTH_TYPE  = 'form';
-    const HAS_RECOVERY = true;
     const USES_PASSWORD = true;
 
     public function getId(): string

@@ -9,7 +9,6 @@
 class authSocialMethod extends authBuiltinMethod implements authMethod
 {
     const AUTH_TYPE    = 'oauth';
-    const HAS_RECOVERY = false;
 
     private string $id;
     private string $provider_id;

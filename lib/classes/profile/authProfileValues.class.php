@@ -181,6 +181,22 @@ class authProfileValues
         unset($address);
     }
 
+    /**
+     * The normalized form of one phone number, on its own — the single-value
+     * edge of preparePhones() (which also carries confirmation status and
+     * works on a whole list), needed wherever something just has to compare
+     * or look up a phone the same way the contact's own values are stored.
+     * authPhoneRecoveryProvider uses this so a recovery request and
+     * authPhoneMethod::findByPhone() agree on what "the same number" means —
+     * without it '+7 900…' and '89001234567' would be two different lookups
+     * (and, if used as a throttle key, two different otp_send counters for
+     * one person).
+     */
+    public static function normalizePhone(string $phone): string
+    {
+        return waContactPhoneField::cleanPhoneNumber(self::transformPhone($phone));
+    }
+
     // -------------------------------------------------------------------------
 
     /**

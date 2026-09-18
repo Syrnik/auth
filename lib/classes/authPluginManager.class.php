@@ -129,6 +129,56 @@ class authPluginManager
     }
 
     /**
+     * Recovery providers for the current domain, in recovery_channels order —
+     * the order authRecovery tries claims() in (decision 3 of
+     * docs/adr/004-recovery-channels.md: the first provider to claim an
+     * identifier wins, so a plugin listed before the built-ins can intercept
+     * a form they would otherwise have handled). Built-in ids 'email'/'phone'
+     * resolve to authEmailRecoveryProvider/authPhoneRecoveryProvider — loaded
+     * the same way any other id here is, not a special case inside
+     * authRecovery itself.
+     *
+     * @return authRecoveryProvider[]
+     */
+    public static function getRecoveryProviders(): array
+    {
+        $result = [];
+        foreach (authConfig::getRecoveryChannels() as $id) {
+            $provider = self::getRecoveryProvider($id);
+            if ($provider instanceof authRecoveryProvider) {
+                $result[] = $provider;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Resolves one recovery provider by id, regardless of whether it is
+     * currently listed in the domain's recovery_channels — used by
+     * authRecovery to find the provider that owns an already-issued
+     * auth_password_recovery row (its 'channel' column) when finishing a
+     * request that may have started before the admin changed the setting.
+     * getRecoveryProviders() is the domain-filtered, ordered list built on
+     * top of this for starting a new request.
+     */
+    public static function getRecoveryProvider(string $id): ?authRecoveryProvider
+    {
+        if ($id === 'email') {
+            return new authEmailRecoveryProvider();
+        }
+        if ($id === 'phone') {
+            return new authPhoneRecoveryProvider();
+        }
+
+        [$plugin_id, $instance] = self::splitInstance($id);
+        if (!str_ends_with($plugin_id, '_plugin')) {
+            return null;
+        }
+        $plugin = self::loadPlugin(substr($plugin_id, 0, -7), $instance, 'is_recovery_provider');
+        return $plugin instanceof authRecoveryProvider ? $plugin : null;
+    }
+
+    /**
      * Plugins offering a profile section (my/) for the current domain, keyed
      * by the config id they are enabled under — 'github_plugin',
      * 'oidc_plugin:gitlab'. That key, not anything the plugin returns, is what
@@ -384,6 +434,9 @@ class authPluginManager
         }
         if (!empty($info['is_throttle_store']) && !($plugin instanceof authThrottleStore)) {
             throw new waException("Plugin {$plugin_id} declared is_throttle_store but does not implement authThrottleStore");
+        }
+        if (!empty($info['is_recovery_provider']) && !($plugin instanceof authRecoveryProvider)) {
+            throw new waException("Plugin {$plugin_id} declared is_recovery_provider but does not implement authRecoveryProvider");
         }
         if (!empty($info['has_profile_section']) && !($plugin instanceof authProfileSectionProvider)) {
             throw new waException("Plugin {$plugin_id} declared has_profile_section but does not implement authProfileSectionProvider");

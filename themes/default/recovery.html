@@ -4,14 +4,36 @@
         <div class="auth-error">{$error|escape}</div>
     {/if}
 
-    {if $sent}
+    {if $step == 'sent'}
         <div class="auth-success">
-            {_wp('If an account with that email exists, we sent a link to reset the password.')|escape}
+            {_wp('If an account exists for that email or phone, we sent instructions to it.')|escape}
         </div>
+        <p class="auth-hint">{_wp('Didn\'t get anything? Contact support.')|escape}</p>
         <div class="auth-links">
             <a href="{$wa_app_url}login/">{_wp('Back to sign-in')|escape}</a>
         </div>
-    {elseif $token}
+
+    {elseif $step == 'code'}
+        <h2>{_wp('Enter the code')|escape}</h2>
+        <form method="post" class="auth-form">
+            {$wa->csrf()}
+            <div class="auth-field">
+                <label>{_wp('Code')|escape}</label>
+                <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" autofocus>
+            </div>
+            <div class="auth-field">
+                <label>{_wp('New password')|escape}</label>
+                <input type="password" name="password" autocomplete="new-password">
+            </div>
+            <div class="auth-field">
+                <label>{_wp('Repeat password')|escape}</label>
+                <input type="password" name="password_confirm" autocomplete="new-password">
+            </div>
+            <button type="submit" class="auth-submit">{_wp('Save password')|escape}</button>
+        </form>
+        <p class="auth-hint">{_wp('Didn\'t get anything? Contact support.')|escape}</p>
+
+    {elseif $step == 'password'}
         <h2>{_wp('New password')|escape}</h2>
         <form method="post" class="auth-form">
             {$wa->csrf()}
@@ -25,13 +47,14 @@
             </div>
             <button type="submit" class="auth-submit">{_wp('Save password')|escape}</button>
         </form>
+
     {else}
         <h2>{_wp('Password recovery')|escape}</h2>
         <form method="post" class="auth-form">
             {$wa->csrf()}
             <div class="auth-field">
-                <label>{_wp('E-mail')|escape}</label>
-                <input type="email" name="email" autocomplete="email" autofocus>
+                <label>{_wp('Email or phone')|escape}</label>
+                <input type="text" name="identifier" autocomplete="username" autofocus>
             </div>
             <button type="submit" class="auth-submit">{_wp('Recover')|escape}</button>
         </form>

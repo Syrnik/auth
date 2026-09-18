@@ -78,6 +78,13 @@ class authProfileSectionPassword extends authProfileSectionFields
      * empty, because there it is one field among a whole profile being saved.
      * Here the section IS the password, so an empty submit is a failed change
      * and says so.
+     *
+     * The three password-shape rules themselves live in
+     * authHelper::validateNewPassword(), shared with password recovery
+     * (authFrontendRecoveryAction) so the two paths cannot silently drift
+     * apart — see docs/adr/004-recovery-channels.md. Only the current-password
+     * check stays here: recovery exists precisely because the old password is
+     * unknown, so it has nothing to check it against.
      */
     protected function validateSection(array $data, waContactForm $form): void
     {
@@ -96,18 +103,9 @@ class authProfileSectionPassword extends authProfileSectionFields
             }
         }
 
-        if ($password === '') {
-            $this->fail($form, 'password', _ws('Password is required.'));
-            return;
-        }
-
-        if (strlen($password) > waAuth::PASSWORD_MAX_LENGTH) {
-            $this->fail($form, 'password', _ws('Specified password is too long.'));
-            return;
-        }
-
-        if ($password !== $confirm) {
-            $this->fail($form, 'password', _ws('Passwords do not match'));
+        $error = authHelper::validateNewPassword($password, $confirm);
+        if ($error !== null) {
+            $this->fail($form, 'password', $error);
         }
     }
 

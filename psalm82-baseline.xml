@@ -95,6 +95,7 @@
       <code><![CDATA[protected function collectSectionData(string $domain, array $current): array]]></code>
       <code><![CDATA[protected function getTemplateName(): string]]></code>
       <code><![CDATA[protected function getUrlSegment(): string]]></code>
+      <code><![CDATA[protected function getViewData(array $config, string $domain): array]]></code>
     </MissingOverrideAttribute>
     <UnusedClass>
       <code><![CDATA[authBackendRecoveryAction]]></code>
@@ -217,9 +218,6 @@
     <TooManyArguments>
       <code><![CDATA[auth]]></code>
     </TooManyArguments>
-    <UndefinedMagicMethod>
-      <code><![CDATA[fetchAssoc]]></code>
-    </UndefinedMagicMethod>
     <UnusedClass>
       <code><![CDATA[authFrontendRecoveryAction]]></code>
     </UnusedClass>
@@ -629,6 +627,32 @@
       <code><![CDATA[$file]]></code>
       <code><![CDATA[$file]]></code>
     </ImplicitToStringCast>
+  </file>
+  <file src="lib/classes/recovery/authEmailRecoveryProvider.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function claims(string $identifier): bool]]></code>
+      <code><![CDATA[public function complete(authRecoveryHandle $handle): ?int]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function needsCode(): bool]]></code>
+      <code><![CDATA[public function start(string $identifier): authRecoveryHandle]]></code>
+      <code><![CDATA[public function verifyCode(authRecoveryHandle $handle, string $code): bool]]></code>
+    </MissingOverrideAttribute>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchAssoc]]></code>
+    </UndefinedMagicMethod>
+  </file>
+  <file src="lib/classes/recovery/authPhoneRecoveryProvider.class.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function claims(string $identifier): bool]]></code>
+      <code><![CDATA[public function complete(authRecoveryHandle $handle): ?int]]></code>
+      <code><![CDATA[public function getId(): string]]></code>
+      <code><![CDATA[public function needsCode(): bool]]></code>
+      <code><![CDATA[public function start(string $identifier): authRecoveryHandle]]></code>
+      <code><![CDATA[public function verifyCode(authRecoveryHandle $handle, string $code): bool]]></code>
+    </MissingOverrideAttribute>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchAssoc]]></code>
+    </UndefinedMagicMethod>
   </file>
   <file src="lib/layouts/authDefault.layout.php">
     <MissingOverrideAttribute>

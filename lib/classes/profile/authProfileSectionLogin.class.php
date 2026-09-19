@@ -21,9 +21,18 @@
  * built-in method looks up (authEmailMethod::findByEmail(),
  * authPhoneMethod::findByPhone(), both "AND sort = 0"). Values past it are
  * ordinary contact values and behave exactly as they do in the plain section.
+ *
+ * The issue/send/rollback mechanics of proving a value are shared with the
+ * plain twins (authProfileSectionEmail/Phone, decision 1 of
+ * docs/adr/005-value-confirmation.md) through authProfileConfirmableValueTrait;
+ * what stays here is what only a login value needs: withholding the value
+ * until it is proven, and refusing a change outright when the new value is
+ * already someone else's login.
  */
 abstract class authProfileSectionLogin extends authProfileSectionMultiField implements authProfileSectionConfirmable
 {
+    use authProfileConfirmableValueTrait;
+
     /**
      * Errors from a getConfirmationUrl() that refused the change, kept until
      * save() can answer with them. See save().
@@ -65,7 +74,8 @@ abstract class authProfileSectionLogin extends authProfileSectionMultiField impl
 
     /**
      * Whether the proof is a code typed back (phone, by SMS) or a link followed
-     * (email). It decides what is sent and how it is checked, and nothing else.
+     * (email). Provided by whichever channel trait (authProfileConfirmEmailTrait
+     * / authProfileConfirmPhoneTrait) the concrete subclass uses.
      */
     abstract public function usesCode(): bool;
 
@@ -78,32 +88,24 @@ abstract class authProfileSectionLogin extends authProfileSectionMultiField impl
     abstract protected function sendProof(string $value, string $token, ?string $code): void;
 
     /**
+     * How the value is written before it is compared or stored. Provided by
+     * whichever channel trait the concrete subclass uses.
+     */
+    abstract protected function normalize(string $value): string;
+
+    /**
+     * Stamps a proven value confirmed (authContactStatus::confirmEmail()/
+     * confirmPhone()). Provided by whichever channel trait the concrete
+     * subclass uses.
+     */
+    abstract protected function stampConfirmed(string $value): bool;
+
+    /**
      * Whether another account already signs in with this value. Two accounts on
      * one login make the method ambiguous — it resolves to the lowest id — so
      * the second one could never sign in with it anyway.
      */
     abstract protected function isTaken(string $value): bool;
-
-    /**
-     * How the value is written before it is compared or stored. Phone numbers
-     * are only equal in their normalized form.
-     */
-    protected function normalize(string $value): string
-    {
-        return trim($value);
-    }
-
-    /**
-     * The change this visitor is waiting to confirm, or null. The view partial
-     * shows it instead of offering the same edit again — the old login is still
-     * the login until the proof arrives, and saying so is the difference between
-     * "nothing happened" and "check your messages".
-     */
-    public function getPending(): ?array
-    {
-        return (new authProfileConfirmModel())
-            ->getPending((int)$this->contact->getId(), $this->getConfirmableField());
-    }
 
     /**
      * The value currently signing this visitor in.
@@ -146,21 +148,16 @@ abstract class authProfileSectionLogin extends authProfileSectionMultiField impl
             return $this->refuse($field_id, _w('This value is already used by another account.'));
         }
 
-        $model  = new authProfileConfirmModel();
-        $issued = $model->issue((int)$this->contact->getId(), $field_id, $value, $this->usesCode());
-
-        try {
-            $this->sendProof($value, $issued['token'], $issued['code']);
-        } catch (Exception $e) {
-            // Nothing was delivered, so nothing is pending — leaving the row
-            // would show a "confirm it" page for a message that never arrives.
-            $model->deleteByField('token', $issued['token']);
-            waLog::log('auth profile confirmation not sent: '.$e->getMessage(), 'auth.log');
-
-            return $this->refuse($field_id, _w('The confirmation could not be sent. Please try again later.'));
+        $url = $this->startConfirmation($value);
+        if ($url === null) {
+            // startConfirmation() has already recorded the error via addError();
+            // mark it a refusal too so save() (above) does not write the
+            // submitted value straight through, skipping the very proof this
+            // was about.
+            $this->refusal = $this->errors;
         }
 
-        return authFrontendMyConfirmAction::getWaitUrl($field_id);
+        return $url;
     }
 
     /**
@@ -189,6 +186,27 @@ abstract class authProfileSectionLogin extends authProfileSectionMultiField impl
 
         $value = $this->normalize($value);
 
+        // Already one of this contact's own stored values — a secondary
+        // address at index > 0, reconfirmed through sendConfirmation()
+        // (authProfileConfirmableValueTrait) the same way the plain twin's
+        // own secondary values are, per decision 1 of
+        // docs/adr/005-value-confirmation.md: this section's list holds both
+        // the login (index 0) and every secondary value for the same field,
+        // and only a row issued for index 0 by getConfirmationUrl() below is
+        // about replacing the login. There is no index on applyConfirmedValue()
+        // to tell the two cases apart by, but a value getConfirmationUrl()
+        // ever issued a row for is guaranteed NOT to already be in this list
+        // (it checks that before issuing), so a value found here can only
+        // have arrived through the other path — nothing to write, only the
+        // status to stamp.
+        if ($this->isAlreadyStored($value)) {
+            if (!$this->stampConfirmed($value)) {
+                $this->addError('', _w('This value is no longer on your profile.'));
+                return false;
+            }
+            return true;
+        }
+
         // Time has passed since the change was asked for: the value may have
         // been claimed in the meantime, and it is this check, not the token,
         // that keeps two accounts off one login.
@@ -199,7 +217,31 @@ abstract class authProfileSectionLogin extends authProfileSectionMultiField impl
 
         // Straight past getConfirmationUrl(): this value is proven, and asking
         // for it again would start a second flow instead of finishing this one.
-        return parent::save([$field->getId() => [0 => $value]], 0);
+        if (!parent::save([$field->getId() => [0 => $value]], 0)) {
+            return false;
+        }
+
+        // The save just wrote this exact value, so a false here (the writer
+        // finding nothing to stamp) is an anomaly, not something the visitor
+        // did wrong — stampConfirmed() already logs it, nothing more to do.
+        $this->stampConfirmed($value);
+
+        return true;
+    }
+
+    /**
+     * Whether $value (already normalized) sits somewhere in this contact's
+     * current list for this field — any index, login or not.
+     */
+    private function isAlreadyStored(string $value): bool
+    {
+        foreach ($this->getList() as $item) {
+            if ($this->normalize((string)($item['value'] ?? '')) === $value) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -282,9 +324,8 @@ abstract class authProfileSectionLogin extends authProfileSectionMultiField impl
 
     protected function getTemplateVars(string $mode, ?int $index = null): array
     {
-        return parent::getTemplateVars($mode, $index) + [
+        return parent::getTemplateVars($mode, $index) + $this->confirmableTemplateVars() + [
             'login_value' => $this->getLoginValue(),
-            'pending'     => $this->getPending(),
             'uses_code'   => $this->usesCode(),
             'is_login'    => ($index ?? 0) === 0,
         ];

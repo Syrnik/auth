@@ -5,9 +5,15 @@
  * several numbers, each of an optional type, saved on submit. Available only
  * while phone is NOT a login method — see authProfileSectionLoginPhone and
  * decision 2 of docs/adr/001-profile-config-boundaries.md.
+ *
+ * Decision 1 of docs/adr/005-value-confirmation.md — see authProfileSectionEmail's
+ * docblock, which applies here unchanged with 'phone' in place of 'email'.
  */
-class authProfileSectionPhone extends authProfileSectionMultiField
+class authProfileSectionPhone extends authProfileSectionMultiField implements authProfileSectionConfirmable
 {
+    use authProfileConfirmableValueTrait;
+    use authProfileConfirmPhoneTrait;
+
     protected static $id = 'phone';
 
     public function getName(): string
@@ -21,17 +27,32 @@ class authProfileSectionPhone extends authProfileSectionMultiField
     }
 
     /**
-     * Normalizes the numbers and keeps the confirmation status each of them
-     * already had — see authProfileValues::preparePhones().
-     *
-     * This is the reason a phone cannot just be written like any other field:
-     * the status lives beside the value in wa_contact_data, nothing in the form
-     * carries it, and a plain save would file every number as unconfirmed. A
-     * number verified by SMS would quietly stop being verified because the
-     * visitor corrected the one below it.
+     * Always null — see authProfileSectionEmail::getConfirmationUrl().
      */
-    protected function prepareList(&$list): void
+    public function getConfirmationUrl(array $data, ?int $index = null): ?string
     {
-        authProfileValues::preparePhones($list, (int)$this->contact->getId());
+        return null;
+    }
+
+    public function applyConfirmedValue(string $value): bool
+    {
+        $this->errors = [];
+
+        if (!$this->isAvailable()) {
+            $this->addError('', _w('This change can no longer be applied.'));
+            return false;
+        }
+
+        if (!$this->stampConfirmed($this->normalize($value))) {
+            $this->addError('', _w('This number is no longer on your profile.'));
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function getTemplateVars(string $mode, ?int $index = null): array
+    {
+        return parent::getTemplateVars($mode, $index) + $this->confirmableTemplateVars();
     }
 }

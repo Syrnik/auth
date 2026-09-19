@@ -9,12 +9,34 @@
 
     "Available but empty" is a state of its own, not an absence: the section
     exists for this domain, the visitor simply has not added an address yet.
+
+    Decision 1 of docs/adr/005-value-confirmation.md: a secondary address is
+    stored right away and proven afterwards, separately, so each value here
+    shows its own confirmation state — a badge when $item.status is already
+    'confirmed', a "Confirm" action otherwise. The one value currently waiting
+    on a sent proof ($pending, matched by value — one pending row per field,
+    see authProfileConfirmModel) shows the wait note instead of the action,
+    with the same link back to my/confirm/ the sign-in twins already use.
+
+    $errors here is authFrontendMyConfirmSendController's own failure —
+    nothing this template renders was written, so this stays view mode; see
+    that controller's fail() for why a JSON error alone is not enough.
 *}
 <div class="auth-profile-section" data-section="{$section->getId()|escape}">
     <div class="auth-profile-section-head">
         <h4>{$section->getName()|escape}</h4>
         <a href="{$section->getAddUrl()|escape}" class="auth-profile-section-add" data-section-link>{_wp('Add')|escape}</a>
     </div>
+
+    {if $errors}
+        <div class="auth-error">
+            {foreach $errors as $field_messages}
+                {foreach (array)$field_messages as $message}
+                    {if $message}<div>{$message|escape}</div>{/if}
+                {/foreach}
+            {/foreach}
+        </div>
+    {/if}
 
     {if $section->isEmpty()}
         <div class="auth-profile-section-empty">{_wp('Not specified yet.')|escape}</div>
@@ -26,6 +48,20 @@
                     {if !empty($item.ext) && isset($ext_options[$item.ext])}
                         <span class="auth-profile-value-ext">{$ext_options[$item.ext]|escape}</span>
                     {/if}
+
+                    {if $item.status == 'confirmed'}
+                        <span class="auth-profile-value-badge auth-profile-value-confirmed">{_wp('Confirmed')|escape}</span>
+                    {elseif $pending && $pending.value == $item.value}
+                        <span class="auth-profile-value-badge">{_wp('Confirmation sent')|escape}</span>
+                        <a href="{$wa_app_url}my/confirm/?field={$section->getConfirmableField()|escape:'url'}">{_wp('Finish the change')|escape}</a>
+                    {else}
+                        <form method="post" action="{$confirm_send_url|escape}" class="auth-profile-value-confirm" data-section-form>
+                            {$wa->csrf()}
+                            <input type="hidden" name="index" value="{$i}">
+                            <button type="submit">{_wp('Confirm')|escape}</button>
+                        </form>
+                    {/if}
+
                     <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_wp('Edit')|escape}</a>
                 </li>
             {/foreach}

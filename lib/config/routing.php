@@ -8,6 +8,12 @@ return [
     'recovery/<token>/'     => 'frontend/recovery',
     'callback/<method_id>/' => 'frontend/callback',
     'confirm/<token>/'      => 'frontend/confirm',
+    // Resend of the signup confirmation email — the recourse decision 3 of
+    // docs/adr/005-value-confirmation.md requires: without it, a strict
+    // login gate blocking on an unconfirmed address has no way out once the
+    // original link's 24h TTL has passed. Declared below confirm/<token>/ so
+    // an actual token never falls through to this branch instead.
+    'confirm/'              => 'frontend/confirm',
     'challenge/'            => 'frontend/challenge',
     // Section id pattern kept to the ids the registry can hold, so an address
     // that cannot name a section is a routing 404 and never reaches the app.
@@ -27,6 +33,17 @@ return [
     'my/link/<method_id:[a-z0-9_:-]+>/' => [
         'module' => 'frontend',
         'action' => 'myLink',
+        'secure' => true,
+    ],
+    // Starts (or restarts) confirmation of an already-stored value — the
+    // explicit "Confirm" action next to an unconfirmed secondary email/phone
+    // in my/, see authFrontendMyConfirmSendController and decision 1 of
+    // docs/adr/005-value-confirmation.md. Declared above my/confirm/<token>/
+    // on purpose, matching the specific-before-generic order this file
+    // already uses for my/save/ and my/link/.
+    'my/confirm/send/<section:[a-z0-9_:-]+>/' => [
+        'module' => 'frontend',
+        'action' => 'myConfirmSend',
         'secure' => true,
     ],
     // Changing a login (email, phone) is proven before it is stored, see

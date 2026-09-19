@@ -20,6 +20,12 @@ non-obvious constraints, and they are not re-derivable from the code alone.
   phone itself; the anti-enumeration contract every provider (built-in or
   third-party) must uphold; why the shared `auth_password_recovery` row is
   keyed on the identifier hash rather than `contact_id`.
+- `005-value-confirmation.md` — why a secondary (non-login) email/phone is
+  confirmable too, superseding the last bullet of ADR 001 decision 2; the
+  `section` column on `auth_profile_confirm` and the section-substitution
+  hijack it closes; why the pending-confirmation queue stays one per field;
+  the strict-login gate (`authLoginConfirmGate`)'s composition and exemptions;
+  why there is no automatic backfill for `login_require_confirmed`.
 
 ## Tests
 

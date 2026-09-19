@@ -383,3 +383,45 @@ msgstr "Перейдите по ссылке ниже, чтобы задать �
 
 msgid "Your password recovery code: %s"
 msgstr "Ваш код восстановления пароля: %s"
+
+msgid "Require a confirmed login"
+msgstr "Требовать подтверждённый логин"
+
+msgid "Block sign-in until the email used to sign in has been confirmed"
+msgstr "Блокировать вход, пока email, используемый для входа, не подтверждён"
+
+msgid "Turns on only together with \"Require email confirmation\" on the Registration screen, for a domain that collects email at signup — otherwise an account never had anything to confirm."
+msgstr "Действует только вместе с «Требовать подтверждение email» на экране «Регистрация», для домена, который собирает email при регистрации — иначе аккаунту нечего было подтверждать."
+
+msgid "Has no effect yet: enable \"Require email confirmation\" on the Registration screen (with email in the signup fields) as well."
+msgstr "Пока не действует: включите также «Требовать подтверждение email» на экране «Регистрация» (с email в полях регистрации)."
+
+msgid "Enabling this blocks sign-in for every existing account whose email has never been confirmed. There is no automatic backfill — see the app's ADR 005 for the manual SQL, run only after you've reviewed what it marks confirmed."
+msgstr "Включение заблокирует вход всем существующим аккаунтам, чей email никогда не подтверждался. Автоматического заполнения нет — SQL для ручного запуска см. в ADR 005 приложения; выполняйте только после проверки, что именно он пометит подтверждённым."
+
+msgid "This profile section cannot be confirmed."
+msgstr "Этот раздел профиля нельзя подтвердить."
+
+msgid "The confirmation could not be sent."
+msgstr "Не удалось отправить подтверждение."
+
+msgid "Please confirm your email before signing in. We can send a new link."
+msgstr "Подтвердите email, прежде чем входить. Мы можем отправить новую ссылку."
+
+msgid "There is nothing to confirm."
+msgstr "Нечего подтверждать."
+
+msgid "Confirm your email address"
+msgstr "Подтвердите ваш email"
+
+msgid "Open the link below to confirm this address."
+msgstr "Перейдите по ссылке ниже, чтобы подтвердить этот адрес."
+
+msgid "This address is no longer on your profile."
+msgstr "Этого адреса больше нет в вашем профиле."
+
+msgid "This value is no longer on your profile."
+msgstr "Этого значения больше нет в вашем профиле."
+
+msgid "This number is no longer on your profile."
+msgstr "Этого номера больше нет в вашем профиле."

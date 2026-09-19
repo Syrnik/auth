@@ -162,6 +162,39 @@
                     </div>
                 </div>
             </div>
+
+            <div class="field-group">
+                <div class="field">
+                    <div class="name">[`Require a confirmed login`]</div>
+                    <div class="value">
+                        <label>
+                            <span class="wa-checkbox">
+                                <input type="checkbox" name="login_require_confirmed"
+                                    {if $config.login_require_confirmed}checked{/if}>
+                                <span>
+                                    <span class="icon">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                </span>
+                            </span>
+                            [`Block sign-in until the email used to sign in has been confirmed`]
+                        </label>
+                        <p class="hint custom-mt-4">
+                            [`Turns on only together with "Require email confirmation" on the Registration screen, for a domain that collects email at signup — otherwise an account never had anything to confirm.`]
+                        </p>
+                        {if $config.login_require_confirmed && !$confirm_gate_effective}
+                            <p class="hint text-orange custom-mt-4">
+                                [`Has no effect yet: enable "Require email confirmation" on the Registration screen (with email in the signup fields) as well.`]
+                            </p>
+                        {/if}
+                        {if $confirm_gate_effective}
+                            <p class="hint text-orange custom-mt-4">
+                                [`Enabling this blocks sign-in for every existing account whose email has never been confirmed. There is no automatic backfill — see the app's ADR 005 for the manual SQL, run only after you've reviewed what it marks confirmed.`]
+                            </p>
+                        {/if}
+                    </div>
+                </div>
+            </div>
         </form>
 
         <script>

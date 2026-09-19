@@ -119,20 +119,21 @@ class authFrontendRegisterAction extends waViewAction
 
         // Confirm by email
         if (authConfig::get('signup_confirm') && in_array('email', $fields)) {
-            $token = (new authSignupConfirmModel())->createToken($contact->getId());
+            $email = (string)$contact->get('email', 'default');
+            $token = (new authSignupConfirmModel())->createToken($contact->getId(), $email);
 
             $confirm_url = wa()->getRouteUrl(
                 'auth/frontend/confirm',
                 ['token' => $token],
                 true
             );
-            $this->sendConfirmEmail($contact->get('email', 'default'), $confirm_url);
+            $this->sendConfirmEmail($email, $confirm_url);
 
             if (waRequest::isXMLHttpRequest()) {
                 $this->sendJson(['status' => 'confirm_required']);
             } else {
                 $this->setLayout(new authFrontendLayout());
-                $this->view->assign(['email' => $contact->get('email', 'default')]);
+                $this->view->assign(['email' => $email]);
                 $this->setThemeTemplate('register.confirm.html');
             }
             return;

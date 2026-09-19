@@ -383,3 +383,45 @@ msgstr ""
 
 msgid "Your password recovery code: %s"
 msgstr ""
+
+msgid "Require a confirmed login"
+msgstr ""
+
+msgid "Block sign-in until the email used to sign in has been confirmed"
+msgstr ""
+
+msgid "Turns on only together with \"Require email confirmation\" on the Registration screen, for a domain that collects email at signup — otherwise an account never had anything to confirm."
+msgstr ""
+
+msgid "Has no effect yet: enable \"Require email confirmation\" on the Registration screen (with email in the signup fields) as well."
+msgstr ""
+
+msgid "Enabling this blocks sign-in for every existing account whose email has never been confirmed. There is no automatic backfill — see the app's ADR 005 for the manual SQL, run only after you've reviewed what it marks confirmed."
+msgstr ""
+
+msgid "This profile section cannot be confirmed."
+msgstr ""
+
+msgid "The confirmation could not be sent."
+msgstr ""
+
+msgid "Please confirm your email before signing in. We can send a new link."
+msgstr ""
+
+msgid "There is nothing to confirm."
+msgstr ""
+
+msgid "Confirm your email address"
+msgstr ""
+
+msgid "Open the link below to confirm this address."
+msgstr ""
+
+msgid "This address is no longer on your profile."
+msgstr ""
+
+msgid "This value is no longer on your profile."
+msgstr ""
+
+msgid "This number is no longer on your profile."
+msgstr ""

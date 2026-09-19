@@ -158,6 +158,19 @@ class authRecovery
     }
 
     /**
+     * The channel of the session's current pending code, or null when there
+     * is none — read without clearing anything, unlike complete(). Callers
+     * that need to know which channel just completed (to stamp
+     * authContactStatus::confirmPrimary(), see authFrontendRecoveryAction)
+     * have to ask before complete() clears the handle, not after.
+     */
+    public static function pendingChannel(): ?string
+    {
+        $handle = self::currentHandle();
+        return $handle ? $handle->channel : null;
+    }
+
+    /**
      * Guesses left on the session's current pending code, for telling the
      * visitor before they run out — same courtesy
      * authPhoneMethod::verifyOtp() already extends to a login OTP. Reads the

@@ -1,0 +1,41 @@
+{*
+    confirm/ — resend of the signup confirmation link (no token). See
+    authFrontendConfirmAction and decision 3 of docs/adr/005-value-confirmation.md.
+
+    Two states only, no code/password step — unlike recovery.html this never
+    signs anyone in or changes a credential, it only mails a fresh link.
+    $sent's message is identical whether or not $email actually resolved to
+    an account (anti-enumeration, same contract every authRecoveryProvider
+    already upholds) — the form is never shown a second time to "try again
+    with a different address" after a successful-looking send.
+*}
+<div class="auth-page auth-confirm-resend">
+
+    {if $error}
+        <div class="auth-error">{$error|escape}</div>
+    {/if}
+
+    {if $sent}
+        <div class="auth-success">
+            {capture assign="_email"}<strong>{$email|default:''|escape}</strong>{/capture}
+            {sprintf(_wp('If that address is registered and not yet confirmed, we sent a new link to %s.'), $_email)}
+        </div>
+        <div class="auth-links">
+            <a href="{$wa_app_url}login/">{_wp('Back to sign-in')|escape}</a>
+        </div>
+    {else}
+        <h2>{_wp('Resend the confirmation link')|escape}</h2>
+        <form method="post" class="auth-form">
+            {$wa->csrf()}
+            <div class="auth-field">
+                <label>{_wp('Email')|escape}</label>
+                <input type="email" name="email" autocomplete="username" autofocus>
+            </div>
+            <button type="submit" class="auth-submit">{_wp('Send a new confirmation link')|escape}</button>
+        </form>
+        <div class="auth-links">
+            <a href="{$wa_app_url}login/">{_wp('Back to sign-in')|escape}</a>
+        </div>
+    {/if}
+
+</div>

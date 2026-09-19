@@ -3,11 +3,20 @@ return [
     'auth_signup_confirm' => [
         'id'               => ['int', 11, 'null' => 0, 'autoincrement' => 1],
         'contact_id'       => ['int', 11, 'null' => 0],
+        // The address the confirmation link was actually mailed to — read back
+        // by authFrontendConfirmAction so it stamps *that* address confirmed,
+        // not whatever sits at sort = 0 when the link is clicked (the visitor
+        // may have changed it in between). See docs/adr/005-value-confirmation.md.
+        'email'            => ['varchar', 255, 'null' => 0, 'default' => ''],
         'token'            => ['varchar', 64, 'null' => 0],
         'created_datetime' => ['datetime', 'null' => 0],
         ':keys' => [
             'PRIMARY' => 'id',
             'token'   => ['token', 'unique' => 1],
+            // Non-unique: authSignupConfirmModel::deleteByContact() uses this
+            // to drop an earlier token before issuing a resend, so a resend
+            // never leaves two live tokens for one contact.
+            'contact' => ['contact_id'],
         ],
     ],
     // A login change waiting to be proven: the new email or phone the visitor
@@ -25,6 +34,18 @@ return [
         // (phone). Stored hashed, never in the clear.
         'code_hash'        => ['varchar', 255, 'null' => 0, 'default' => ''],
         'attempts'         => ['int', 11, 'null' => 0, 'default' => 0],
+        // Section id that issued this row (authProfileSection::getId(), e.g.
+        // 'login_email' or 'email'), empty for a row issued before this
+        // column existed. authFrontendMyConfirmAction::apply() resolves the
+        // section that redeems a token by this first, falling back to
+        // authProfileSectionRegistry::getConfirmable($field) only when it is
+        // empty — see docs/adr/005-value-confirmation.md for the hijack this
+        // prevents: resolving by $field alone at redemption time, rather than
+        // at issue time, can hand a row issued by the plain 'email' section to
+        // 'login_email' if login_methods changed while the token was live,
+        // promoting a secondary address to the login without ever checking
+        // isTaken() on it.
+        'section'          => ['varchar', 64, 'null' => 0, 'default' => ''],
         'created_datetime' => ['datetime', 'null' => 0],
         ':keys' => [
             'PRIMARY' => 'id',

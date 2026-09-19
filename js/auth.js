@@ -5,7 +5,12 @@
      * Handles forms with data-auth attribute by submitting them via fetch (AJAX).
      * JSON response protocol:
      *   {status: 'ok',              redirect: url}   → redirect to url
-     *   {status: 'error',           error: message}  → show error message
+     *   {status: 'error',           error: message,
+     *    resend_url?: url}                            → show error message,
+     *                                                    with a resend link
+     *                                                    when the domain's
+     *                                                    strict-login gate
+     *                                                    (AUTH-51) refused
      *   {status: 'step',            html: html}      → replace form content (OTP step etc.)
      *   {status: 'confirm_required'}                 → reload page
      *   {status: 'challenge',       redirect: url}   → redirect to challenge page
@@ -36,6 +41,17 @@
             } else if (data.status === 'error') {
                 errorEl.textContent = data.error || 'Ошибка.';
                 errorEl.style.display = '';
+                if (data.resend_url) {
+                    // authLoginConfirmGate's own refusal (AUTH-51): the
+                    // password was right, the login just is not confirmed
+                    // yet, and confirm/ is the way out — see
+                    // authLoginController::renderError()'s XHR branch.
+                    errorEl.appendChild(document.createTextNode(' '));
+                    var resendLink = document.createElement('a');
+                    resendLink.href = data.resend_url;
+                    resendLink.textContent = 'Отправить новую ссылку подтверждения';
+                    errorEl.appendChild(resendLink);
+                }
                 resetCaptcha(form);
                 if (data.captcha_widget) {
                     injectCaptcha(form, data.captcha_widget);

@@ -252,6 +252,38 @@ class authRecoveryTest extends TestCase
         $this->assertFalse($notFoundSecond->needsCode);
     }
 
+    /**
+     * pendingChannel() is what lets authFrontendRecoveryAction learn which
+     * channel just completed and stamp it confirmed (AUTH-51,
+     * docs/adr/005-value-confirmation.md) — has to be read before complete()
+     * clears the session handle, so this checks it survives right up to that
+     * point and is gone right after.
+     */
+    public function testPendingChannelReadsTheHandleUntilCompleteClearsIt(): void
+    {
+        $this->overrideAuthConfig(['recovery_channels' => ['phone']]);
+
+        $this->assertNull(authRecovery::pendingChannel());
+
+        authRecovery::request(self::TEST_PHONE_RAW);
+        $this->assertSame('phone', authRecovery::pendingChannel());
+
+        $model = new authPasswordRecoveryModel();
+        $row   = $model->getByField([
+            'identifier_hash' => hash('sha256', self::TEST_PHONE_NORMALIZED),
+            'channel'         => 'phone',
+        ]);
+        $model->updateById($row['id'], ['code_hash' => password_hash('123456', PASSWORD_DEFAULT)]);
+        authRecovery::verifyCode('123456');
+
+        // Still readable after a successful verifyCode() — only complete()
+        // clears the handle, not verifyCode().
+        $this->assertSame('phone', authRecovery::pendingChannel());
+
+        authRecovery::complete();
+        $this->assertNull(authRecovery::pendingChannel());
+    }
+
     public function testCorrectCodeCompletesToTheRealContact(): void
     {
         $this->overrideAuthConfig(['recovery_channels' => ['phone']]);

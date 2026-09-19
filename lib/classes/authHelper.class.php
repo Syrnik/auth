@@ -35,6 +35,16 @@ class authHelper
         return wa()->getRouteUrl('auth/frontend/mySave', ['section' => $section], true);
     }
 
+    /**
+     * Where the "Confirm" action for an already-stored value posts to, see
+     * authFrontendMyConfirmSendController and decision 1 of
+     * docs/adr/005-value-confirmation.md.
+     */
+    public static function getMyConfirmSendUrl(string $section): string
+    {
+        return wa()->getRouteUrl('auth/frontend/myConfirmSend', ['section' => $section], true);
+    }
+
     public static function getChallengeUrl(): string
     {
         return wa()->getRouteUrl('auth/frontend/challenge', [], true);
@@ -415,7 +425,8 @@ class authHelper
         string $goal_url = '',
         string $error = '',
         array $step_vars = [],
-        ?bool $captcha_required = null
+        ?bool $captcha_required = null,
+        string $resend_url = ''
     ): array {
         return [
             'goal_url'         => $goal_url,
@@ -430,6 +441,9 @@ class authHelper
             'register_url'     => self::getRegisterUrl(),
             'recovery_url'     => self::getRecoveryUrl(),
             'captcha_widget'   => self::loginCaptchaWidget($captcha_required),
+            // Set only when authLoginConfirmGate blocked this attempt —
+            // login.html shows the resend link next to $error only then.
+            'resend_url'       => $resend_url,
         ];
     }
 

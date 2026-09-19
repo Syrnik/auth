@@ -42,9 +42,16 @@ class authProfileConfirmModel extends waModel
      *
      * @param bool $with_code whether the value is proven by a code (phone) or
      *                        by following a link (email)
+     * @param string $section id of the section issuing this row
+     *                        (authProfileSection::getId()) — read back by
+     *                        authFrontendMyConfirmAction::apply() so a token
+     *                        redeems through the section that issued it, not
+     *                        whichever one a later config change happens to
+     *                        resolve for the same $field. See decision 2 of
+     *                        docs/adr/005-value-confirmation.md.
      * @return array ['token' => string, 'code' => string|null]
      */
-    public function issue(int $contact_id, string $field, string $value, bool $with_code): array
+    public function issue(int $contact_id, string $field, string $value, bool $with_code, string $section = ''): array
     {
         $this->deleteExpired();
         $this->deleteByField(['contact_id' => $contact_id, 'field' => $field]);
@@ -59,6 +66,7 @@ class authProfileConfirmModel extends waModel
             'token'            => $token,
             'code_hash'        => $code === null ? '' : password_hash($code, PASSWORD_DEFAULT),
             'attempts'         => 0,
+            'section'          => $section,
             'created_datetime' => date('Y-m-d H:i:s'),
         ]);
 

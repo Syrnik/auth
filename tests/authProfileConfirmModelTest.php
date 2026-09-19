@@ -46,6 +46,40 @@ class authProfileConfirmModelTest extends TestCase
         $this->assertSame('new@example.test', $row['value']);
     }
 
+    public function testIssueStoresTheIssuingSection(): void
+    {
+        $result = $this->model->issue(1, 'email', 'new@example.test', false, 'email');
+
+        $row = $this->model->getValid($result['token']);
+        $this->assertSame('email', $row['section']);
+    }
+
+    public function testIssueDefaultsSectionToEmptyString(): void
+    {
+        // No caller-supplied section: a legacy call site (or a test that does
+        // not care) must not end up with NULL, which the resolution in
+        // authFrontendMyConfirmAction::resolveSection() reads as "field-based
+        // fallback", same as an explicitly empty string.
+        $result = $this->model->issue(1, 'email', 'new@example.test', false);
+
+        $row = $this->model->getValid($result['token']);
+        $this->assertSame('', $row['section']);
+    }
+
+    public function testIssueReplacesEarlierRequestRegardlessOfSection(): void
+    {
+        // The unique key is still (contact_id, field) — a re-issue from a
+        // different section for the same field still replaces, it does not
+        // create a second live row (see docs/adr/005-value-confirmation.md,
+        // decision 6: one pending confirmation per field, not per value).
+        $first  = $this->model->issue(1, 'email', 'old@example.test', false, 'email');
+        $second = $this->model->issue(1, 'email', 'new@example.test', false, 'login_email');
+
+        $this->assertNull($this->model->getValid($first['token']));
+        $row = $this->model->getValid($second['token']);
+        $this->assertSame('login_email', $row['section']);
+    }
+
     public function testIssueDoesNotReplaceRequestForADifferentField(): void
     {
         $email_request = $this->model->issue(1, 'email', 'new@example.test', false);

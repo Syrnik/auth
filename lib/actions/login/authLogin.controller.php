@@ -27,7 +27,7 @@ class authLoginController extends waViewController
     // GET: display login form
     // -------------------------------------------------------------------------
 
-    private function showForm(string $error = '', array $step_vars = [], ?bool $captcha_required = null): void
+    private function showForm(string $error = '', array $step_vars = [], ?bool $captcha_required = null, string $resend_url = ''): void
     {
         $goal_url = waRequest::get('goal_url', '', 'string');
         if (!$goal_url) {
@@ -38,7 +38,7 @@ class authLoginController extends waViewController
         }
 
         $this->setLayout(new authFrontendLayout());
-        $this->executeAction(new authLoginFormAction($goal_url, $error, $step_vars, $captcha_required));
+        $this->executeAction(new authLoginFormAction($goal_url, $error, $step_vars, $captcha_required, $resend_url));
     }
 
     // -------------------------------------------------------------------------
@@ -136,6 +136,19 @@ class authLoginController extends waViewController
             return;
         }
 
+        // Strict-login gate (AUTH-51, docs/adr/005-value-confirmation.md).
+        // After authenticate() — needs $contact_id — and before guards/session,
+        // so a domain that enables it blocks the sign-in itself rather than
+        // letting guards or the challenge step run against an unconfirmed
+        // login first. Its own exception, not authCredentialFailureException:
+        // the password was correct, so this must never feed the throttle.
+        try {
+            authLoginConfirmGate::check($method, $contact_id);
+        } catch (authLoginUnconfirmedException $e) {
+            $this->renderError($e->getMessage(), [], null, $e->resend_url);
+            return;
+        }
+
         // Login guards
         try {
             foreach (authPluginManager::getGuardsEnabled('login') as $guard) {
@@ -195,7 +208,7 @@ class authLoginController extends waViewController
      * of date the moment a hit() just moved it. Null keeps the default for
      * paths that never touched the throttle (unknown method, a plain guard).
      */
-    private function renderError(string $message, array $extra = [], ?bool $captcha_required = null): void
+    private function renderError(string $message, array $extra = [], ?bool $captcha_required = null, string $resend_url = ''): void
     {
         if (waRequest::isXMLHttpRequest()) {
             $response = array_merge(['status' => 'error', 'error' => $message], $extra);
@@ -207,9 +220,12 @@ class authLoginController extends waViewController
                 // so a follow-up submit passes authHelper::isCaptchaShown().
                 $response['captcha_widget'] = authHelper::loginCaptchaWidget(true);
             }
+            if ($resend_url !== '') {
+                $response['resend_url'] = $resend_url;
+            }
             $this->sendJson($response);
         } else {
-            $this->showForm($message, [], $captcha_required);
+            $this->showForm($message, [], $captcha_required, $resend_url);
         }
     }
 
@@ -232,19 +248,32 @@ class authLoginFormAction extends waViewAction
     private string $error;
     private array  $step_vars;
     private ?bool  $captcha_required;
+    private string $resend_url;
 
-    public function __construct(string $goal_url = '', string $error = '', array $step_vars = [], ?bool $captcha_required = null)
-    {
+    public function __construct(
+        string $goal_url = '',
+        string $error = '',
+        array $step_vars = [],
+        ?bool $captcha_required = null,
+        string $resend_url = ''
+    ) {
         parent::__construct();
         $this->goal_url         = $goal_url;
         $this->error            = $error;
         $this->step_vars        = $step_vars;
         $this->captcha_required = $captcha_required;
+        $this->resend_url       = $resend_url;
     }
 
     public function execute(): void
     {
-        $this->view->assign(authHelper::loginViewData($this->goal_url, $this->error, $this->step_vars, $this->captcha_required));
+        $this->view->assign(authHelper::loginViewData(
+            $this->goal_url,
+            $this->error,
+            $this->step_vars,
+            $this->captcha_required,
+            $this->resend_url
+        ));
 
         $this->setThemeTemplate('login.html');
     }

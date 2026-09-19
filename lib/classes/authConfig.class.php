@@ -156,6 +156,16 @@ class authConfig
         return (array)($adapters[$id] ?? []);
     }
 
+    /**
+     * The raw setting, before authLoginConfirmGate::isEnabled() folds in
+     * signup_confirm/signup_fields — see that method for why the two must
+     * always be read together rather than this flag alone.
+     */
+    public static function isLoginRequireConfirmed(?string $domain = null): bool
+    {
+        return (bool)self::get('login_require_confirmed', false, $domain);
+    }
+
     // -------------------------------------------------------------------------
 
     /**

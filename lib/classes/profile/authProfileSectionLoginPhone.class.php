@@ -6,50 +6,19 @@
  *
  * See authProfileSectionLogin for everything the two login sections share, and
  * authProfileSectionPhone for what this field is when the domain does not sign
- * anyone in with it.
+ * anyone in with it. The proof-delivery mechanics (getConfirmableField(),
+ * usesCode(), normalize(), sendProof(), stampConfirmed(), prepareList()) come
+ * from authProfileConfirmPhoneTrait, shared with authProfileSectionPhone.
  */
 class authProfileSectionLoginPhone extends authProfileSectionLogin
 {
+    use authProfileConfirmPhoneTrait;
+
     protected static $id = 'login_phone';
 
     public function getName(): string
     {
         return _w('Sign-in phone');
-    }
-
-    public function getConfirmableField(): string
-    {
-        return 'phone';
-    }
-
-    public function usesCode(): bool
-    {
-        return true;
-    }
-
-    /**
-     * Numbers are only comparable — and only findable — in the form they are
-     * stored in, so a submitted number goes through the same normalization a
-     * save would apply. authProfileValues::preparePhones() works on a list, and
-     * this is the single-value edge of it.
-     */
-    protected function normalize(string $value): string
-    {
-        $list = [trim($value)];
-        authProfileValues::preparePhones($list, (int)$this->contact->getId());
-
-        return $list ? (string)$list[0]['value'] : '';
-    }
-
-    protected function sendProof(string $value, string $token, ?string $code): void
-    {
-        if ($code === null) {
-            throw new waException('a phone confirmation without a code');
-        }
-
-        // Same channel the phone login method uses (authPhoneMethod::sendSms()),
-        // so a site with SMS working for sign-in has it working for this too.
-        (new waSMS())->send($value, sprintf(_w('Your confirmation code: %s'), $code));
     }
 
     /**
@@ -73,14 +42,5 @@ class authProfileSectionLoginPhone extends authProfileSectionLogin
         return (bool)(new waContactModel())
             ->query($sql, ['phone' => $value, 'id' => $contact_id])
             ->fetchField('id');
-    }
-
-    /**
-     * Keeps the confirmation statuses of the other numbers, exactly as the
-     * plain phone section does — see authProfileSectionPhone::prepareList().
-     */
-    protected function prepareList(&$list): void
-    {
-        authProfileValues::preparePhones($list, (int)$this->contact->getId());
     }
 }

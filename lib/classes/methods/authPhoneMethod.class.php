@@ -132,6 +132,13 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
         // other numbers that IP has been requesting codes for.
         authThrottle::reset('otp_send', ['login' => $phone]);
 
+        // A correct code IS the proof: this is one of the four sites that
+        // stamp confirmed (docs/adr/005-value-confirmation.md), and the only
+        // one where the login value's own authentication mechanism is what
+        // proves it — see authLoginConfirmGate for why the strict-login gate
+        // must never run ahead of this stamp for this method specifically.
+        authContactStatus::confirmPhone((int)$stored['contact_id'], $phone);
+
         return (int)$stored['contact_id'];
     }
 

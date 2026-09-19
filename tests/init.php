@@ -38,3 +38,4 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 // test helpers must be required explicitly.
 require_once dirname(__FILE__) . '/authTestTemporaryTablesTrait.php';
 require_once dirname(__FILE__) . '/authTestConfigOverrideTrait.php';
+require_once dirname(__FILE__) . '/authTestContactFixtureTrait.php';

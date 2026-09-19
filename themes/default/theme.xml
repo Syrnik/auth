@@ -38,6 +38,10 @@
             <description locale="en_US">Email confirmation page</description>
             <description locale="ru_RU">Страница подтверждения email</description>
         </file>
+        <file path="confirm.resend.html">
+            <description locale="en_US">Resend the signup confirmation link</description>
+            <description locale="ru_RU">Повторная отправка ссылки подтверждения</description>
+        </file>
         <file path="recovery.html">
             <description locale="en_US">Password recovery</description>
             <description locale="ru_RU">Восстановление пароля</description>

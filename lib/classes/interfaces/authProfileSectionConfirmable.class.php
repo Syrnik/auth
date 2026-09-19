@@ -18,16 +18,28 @@
  * majority of sections store their data directly and would carry a permanently
  * null method, and a section implementing this one is a statement about that
  * section that is worth reading in its `implements` clause.
+ *
+ * Extends authProfileSection rather than standing alone: every real
+ * implementer already implements both (a section whose changes are never
+ * confirmable makes no sense), and authFrontendMyConfirmSendController reads
+ * getId()/getErrors()/render() straight off a value typed only as
+ * authProfileSectionConfirmable — those live on authProfileSection, so
+ * without this the interface alone cannot promise they exist.
  */
-interface authProfileSectionConfirmable
+interface authProfileSectionConfirmable extends authProfileSection
 {
     /**
      * Where to send the visitor instead of saving $data, or null when this
      * particular change can be stored right away.
      *
-     * Null is the normal answer, not a fallback: the same section handles both
-     * cases. Changing the email that is the login goes through confirmation;
-     * changing a second, non-login email does not.
+     * Two sections answer null, for two different reasons — decision 1 of
+     * docs/adr/005-value-confirmation.md. A login section (authProfileSectionLogin)
+     * answers null for a second address, an unchanged value, or a removal: none
+     * of those is a new login value to prove. A plain section
+     * (authProfileSectionEmail/Phone) answers null *always*: its value is
+     * stored on submit regardless, and proving it happens afterwards and
+     * separately, through sendConfirmation() (authProfileConfirmableValueTrait),
+     * not through this method at all.
      */
     public function getConfirmationUrl(array $data, ?int $index = null): ?string;
 
@@ -57,4 +69,28 @@ interface authProfileSectionConfirmable
      * pending row.
      */
     public function applyConfirmedValue(string $value): bool;
+
+    /**
+     * Starts (or restarts) confirmation of the stored value at $index —
+     * my/confirm/send/<section>/ (authFrontendMyConfirmSendController), the
+     * explicit "Confirm" action a plain section's already-stored value goes
+     * through, per decision 1 of docs/adr/005-value-confirmation.md. Never
+     * withholds anything: whatever the outcome, the value stays on the
+     * contact exactly as it is — only applyConfirmedValue()'s eventual stamp
+     * changes anything.
+     *
+     * Returns the same shape as getConfirmationUrl(): a URL to send the
+     * visitor to, or null with the reason on getErrors(). No index (or one
+     * past the end of the list) is itself a reason to answer null — "there is
+     * nothing to confirm" is as much a failure to report as a delivery error.
+     */
+    public function sendConfirmation(?int $index): ?string;
+
+    /**
+     * Whether the stored value at $index already carries status = confirmed.
+     * Read by the "Confirm" endpoint to skip re-sending a proof for a value
+     * already proven, and by a theme partial deciding whether to show a
+     * confirmed chip or the "Confirm" action.
+     */
+    public function isConfirmed(?int $index = null): bool;
 }

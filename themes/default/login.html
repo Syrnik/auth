@@ -1,7 +1,12 @@
 <div class="auth-page auth-login">
 
     {if $error}
-        <div class="auth-error">{$error|escape}</div>
+        <div class="auth-error">
+            {$error|escape}
+            {if $resend_url}
+                <a href="{$resend_url|escape}">{_wp('Send a new confirmation link')|escape}</a>
+            {/if}
+        </div>
     {/if}
 
     {* OAuth providers *}

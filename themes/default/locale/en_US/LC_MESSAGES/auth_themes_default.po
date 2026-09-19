@@ -221,3 +221,21 @@ msgstr ""
 
 msgid "Email or phone"
 msgstr ""
+
+msgid "Confirmed"
+msgstr ""
+
+msgid "Confirmation sent"
+msgstr ""
+
+msgid "If that address is registered and not yet confirmed, we sent a new link to %s."
+msgstr ""
+
+msgid "Resend the confirmation link"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Send a new confirmation link"
+msgstr ""

@@ -110,6 +110,10 @@ class authFrontendRecoveryAction extends waViewAction
             return;
         }
 
+        // Read before complete() clears the session handle — see
+        // authRecovery::pendingChannel()'s own docblock.
+        $channel = authRecovery::pendingChannel();
+
         $contact_id = authRecovery::complete();
         if ($contact_id === null) {
             authRecovery::clearHandle();
@@ -120,7 +124,7 @@ class authFrontendRecoveryAction extends waViewAction
         // Never the login-scope reset here — that key is whatever is typed
         // on the sign-in form, and a phone used only for recovery may have
         // no such counterpart. See finishRecovery()'s $reset_login_throttle.
-        $this->finishRecovery($contact_id, $password, false);
+        $this->finishRecovery($contact_id, $password, false, (string)$channel);
     }
 
     // -------------------------------------------------------------------------
@@ -155,12 +159,24 @@ class authFrontendRecoveryAction extends waViewAction
             return;
         }
 
-        $this->finishRecovery($contact_id, $password, (string)$row['channel'] === 'email');
+        $this->finishRecovery($contact_id, $password, (string)$row['channel'] === 'email', (string)$row['channel']);
     }
 
     // -------------------------------------------------------------------------
 
-    private function finishRecovery(int $contact_id, string $password, bool $reset_login_throttle): void
+    /**
+     * @param string $channel the recovery_channels id that completed
+     *                        ('email'/'phone' for the built-ins, or a plugin
+     *                        id) — stamped via authContactStatus::confirmPrimary(),
+     *                        which already no-ops for anything that is not
+     *                        'email'/'phone', so a plugin channel simply
+     *                        stamps nothing rather than needing special
+     *                        handling here. Recovering a password proves
+     *                        control of whichever identifier it was delivered
+     *                        to — one of the four sites that stamp confirmed,
+     *                        see docs/adr/005-value-confirmation.md.
+     */
+    private function finishRecovery(int $contact_id, string $password, bool $reset_login_throttle, string $channel = ''): void
     {
         $contact = new waContact($contact_id);
         if (!$contact->exists()) {
@@ -170,6 +186,10 @@ class authFrontendRecoveryAction extends waViewAction
 
         $contact['password'] = $password;
         $contact->save();
+
+        if ($channel !== '') {
+            authContactStatus::confirmPrimary($channel, $contact_id);
+        }
 
         // Any other pending recovery for this contact (a different channel,
         // or an older abandoned request) is invalidated too — completing one

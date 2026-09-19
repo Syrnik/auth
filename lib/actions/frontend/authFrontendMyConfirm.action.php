@@ -139,7 +139,7 @@ class authFrontendMyConfirmAction extends waViewAction
      */
     private function apply(authProfileConfirmModel $model, array $row): void
     {
-        $section = authProfileSectionRegistry::getConfirmable((string)$row['field'], $this->getContact());
+        $section = $this->resolveSection($row);
         if (!$section) {
             $model->deleteById($row['id']);
             $this->showPage(null, _w('This change can no longer be applied.'));
@@ -156,6 +156,42 @@ class authFrontendMyConfirmAction extends waViewAction
 
         wa()->getStorage()->set('my/profile/updated', true);
         $this->getResponse()->redirect(authHelper::getMyUrl());
+    }
+
+    /**
+     * The section a pending row redeems through — the section that issued it,
+     * and only that one, never a substitute.
+     *
+     * A row names its issuing section by id (the 'section' column, written by
+     * authProfileConfirmableValueTrait::startConfirmation()) for exactly this
+     * reason: a domain that changes login_methods while a 1h-TTL token is
+     * still live must not have a row issued by the plain 'email' section
+     * redeem through 'login_email' instead (or the reverse), because the two
+     * sections' applyConfirmedValue() do different things with the same
+     * value — one writes it to the contact for the first time, the other only
+     * stamps a status on a value already there. Substituting whichever
+     * section happens to resolve for the same field at redemption time is
+     * exactly the promotion decision 2 of docs/adr/005-value-confirmation.md
+     * exists to prevent — so when the named section is no longer available
+     * (isAvailable() now says no, because the config that made it available
+     * has changed), this returns null rather than falling through to
+     * getConfirmable($row['field']), which would hand back that very
+     * substitute.
+     *
+     * Field-based resolution is used only for a row issued before this
+     * column existed (empty 'section', from before this app's own upgrade)
+     * — the one case with no better information to resolve by, already
+     * accepted as-is before this method existed.
+     */
+    private function resolveSection(array $row): ?authProfileSectionConfirmable
+    {
+        $named = (string)($row['section'] ?? '');
+        if ($named === '') {
+            return authProfileSectionRegistry::getConfirmable((string)$row['field'], $this->getContact());
+        }
+
+        $candidate = authProfileSectionRegistry::getSection($named, $this->getContact());
+        return $candidate instanceof authProfileSectionConfirmable ? $candidate : null;
     }
 
     /**

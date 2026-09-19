@@ -13,11 +13,26 @@
     Taken away: nothing here decides visibility. The section exists only while
     the domain signs people in by email, which is login_methods' answer and not
     this template's — decision 1 of docs/adr/001-profile-config-boundaries.md.
+
+    Decision 1 of docs/adr/005-value-confirmation.md: every value, including
+    index 0, carries its own confirmation state and its own "Confirm" action —
+    see my.profile.login_email.view.html's docblock, unchanged here beyond the
+    field.
 *}
 <div class="auth-profile-section auth-profile-section-login" data-section="{$section->getId()|escape}">
     <div class="auth-profile-section-head">
         <h4>{$section->getName()|escape}</h4>
     </div>
+
+    {if $errors}
+        <div class="auth-error">
+            {foreach $errors as $field_messages}
+                {foreach (array)$field_messages as $message}
+                    {if $message}<div>{$message|escape}</div>{/if}
+                {/foreach}
+            {/foreach}
+        </div>
+    {/if}
 
     {if $pending}
         <div class="auth-notice auth-profile-pending">
@@ -35,6 +50,18 @@
                     <span class="auth-profile-value-badge">{_wp('Used to sign in')|escape}</span>
                 {elseif !empty($item.ext) && isset($ext_options[$item.ext])}
                     <span class="auth-profile-value-ext">{$ext_options[$item.ext]|escape}</span>
+                {/if}
+
+                {if $item.status == 'confirmed'}
+                    <span class="auth-profile-value-badge auth-profile-value-confirmed">{_wp('Confirmed')|escape}</span>
+                {elseif $pending && $pending.value == $item.value}
+                    <span class="auth-profile-value-badge">{_wp('Confirmation sent')|escape}</span>
+                {else}
+                    <form method="post" action="{$confirm_send_url|escape}" class="auth-profile-value-confirm" data-section-form>
+                        {$wa->csrf()}
+                        <input type="hidden" name="index" value="{$i}">
+                        <button type="submit">{_wp('Confirm')|escape}</button>
+                    </form>
                 {/if}
 
                 <a href="{$section->getValueEditUrl($i)|escape}" class="auth-profile-section-edit" data-section-link>{_wp('Edit')|escape}</a>

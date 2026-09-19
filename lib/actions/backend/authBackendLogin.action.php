@@ -39,6 +39,12 @@ class authBackendLoginAction extends authBackendDomainSettingsAction
         return [
             'available_methods' => $this->getAvailableMethods($config, $domain),
             'notices'           => $this->notices,
+            // The gate's own answer, not just $config.login_require_confirmed
+            // (already available via the base action's own 'config' var):
+            // a checked box has no effect until signup_confirm is also on
+            // and 'email' is in signup_fields (authLoginConfirmGate::isEnabled())
+            // — the template shows a warning when the two disagree.
+            'confirm_gate_effective' => authLoginConfirmGate::isEnabled($domain),
         ];
     }
 
@@ -55,14 +61,15 @@ class authBackendLoginAction extends authBackendDomainSettingsAction
         );
 
         return [
-            'login_methods'   => $this->stripDeletedLoginMethods((array)($post['login_methods'] ?? []), $deleted),
-            'adapters'        => $this->collectAdapterCredentials((array)($post['adapters'] ?? [])),
-            'plugin_settings' => $this->collectPluginSettings(
+            'login_methods'           => $this->stripDeletedLoginMethods((array)($post['login_methods'] ?? []), $deleted),
+            'adapters'                => $this->collectAdapterCredentials((array)($post['adapters'] ?? [])),
+            'plugin_settings'         => $this->collectPluginSettings(
                 $plugins,
                 (array)($post['plugin_settings'] ?? []),
                 (array)($current['plugin_settings'] ?? []),
                 $deleted
             ),
+            'login_require_confirmed' => !empty($post['login_require_confirmed']),
         ];
     }
 

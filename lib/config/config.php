@@ -83,6 +83,19 @@ return [
     'signup_confirm' => true,
     'signup_fields'  => ['firstname', 'lastname', 'email', 'password'],
 
+    // Пускать только с подтверждённым логином (AUTH-51) — см.
+    // docs/adr/005-value-confirmation.md. Выключено по умолчанию: статус
+    // сейчас не проставлен ни у одного существующего аккаунта, и включение
+    // «из коробки» закрыло бы вход всем сразу при обновлении приложения.
+    // Действует только вместе с signup_confirm (и 'email' в signup_fields) —
+    // см. authLoginConfirmGate::isEnabled(); иначе аккаунт, созданный при
+    // выключенном signup_confirm, окажется заблокирован с первого же входа,
+    // ничего не успев доказать. Применяется только к методам, для которых
+    // подтверждённость вообще имеет смысл проверять ДО входа (email-пароль) —
+    // authLoginMethod и authPhoneMethod исключены конструктивно, см.
+    // authLoginConfirmGate::fieldFor().
+    'login_require_confirmed' => false,
+
     // Восстановление пароля (AUTH-48) — см. docs/adr/004-recovery-channels.md.
     'recovery_enabled' => true,
 

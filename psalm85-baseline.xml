@@ -168,6 +168,9 @@
     <TooManyArguments>
       <code><![CDATA[auth]]></code>
     </TooManyArguments>
+    <UndefinedMagicMethod>
+      <code><![CDATA[fetchField]]></code>
+    </UndefinedMagicMethod>
     <UnusedClass>
       <code><![CDATA[authFrontendConfirmAction]]></code>
     </UnusedClass>
@@ -190,12 +193,18 @@
     </UnusedClass>
   </file>
   <file src="lib/actions/frontend/authFrontendMyConfirm.action.php">
-    <InvalidArgument>
-      <code><![CDATA[$section]]></code>
-    </InvalidArgument>
     <MissingOverrideAttribute>
       <code><![CDATA[public function execute(): void]]></code>
     </MissingOverrideAttribute>
+  </file>
+  <file src="lib/actions/frontend/authFrontendMyConfirmSend.controller.php">
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function display()]]></code>
+      <code><![CDATA[public function execute()]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[authFrontendMyConfirmSendController]]></code>
+    </UnusedClass>
   </file>
   <file src="lib/actions/frontend/authFrontendMyLink.action.php">
     <MissingOverrideAttribute>
@@ -290,6 +299,11 @@
       <code><![CDATA[fetchField]]></code>
     </UndefinedMagicMethod>
   </file>
+  <file src="lib/classes/authContactStatus.class.php">
+    <PossiblyUnusedReturnValue>
+      <code><![CDATA[bool]]></code>
+    </PossiblyUnusedReturnValue>
+  </file>
   <file src="lib/classes/authHelper.class.php">
     <PossiblyUnusedMethod>
       <code><![CDATA[getLogoutUrl]]></code>
@@ -373,12 +387,12 @@
       <code><![CDATA[public function getId(): string]]></code>
       <code><![CDATA[public function handleCallback(array $params): authCallbackResult]]></code>
     </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[getName]]></code>
+    </PossiblyUnusedMethod>
     <UndefinedMagicMethod>
       <code><![CDATA[fetchAssoc]]></code>
     </UndefinedMagicMethod>
-    <UnusedClass>
-      <code><![CDATA[authEmailMethod]]></code>
-    </UnusedClass>
   </file>
   <file src="lib/classes/methods/authLoginMethod.class.php">
     <MissingOverrideAttribute>
@@ -430,6 +444,16 @@
       <code><![CDATA[getName]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/classes/profile/authProfileConfirmEmail.trait.php">
+    <PossiblyUnusedParam>
+      <code><![CDATA[$code]]></code>
+    </PossiblyUnusedParam>
+  </file>
+  <file src="lib/classes/profile/authProfileConfirmPhone.trait.php">
+    <PossiblyUnusedParam>
+      <code><![CDATA[$token]]></code>
+    </PossiblyUnusedParam>
+  </file>
   <file src="lib/classes/profile/authProfileFields.class.php">
     <PossiblyUnusedMethod>
       <code><![CDATA[clearCache]]></code>
@@ -474,6 +498,9 @@
   </file>
   <file src="lib/classes/profile/authProfileSectionEmail.class.php">
     <MissingOverrideAttribute>
+      <code><![CDATA[protected function getTemplateVars(string $mode, ?int $index = null): array]]></code>
+      <code><![CDATA[public function applyConfirmedValue(string $value): bool]]></code>
+      <code><![CDATA[public function getConfirmationUrl(array $data, ?int $index = null): ?string]]></code>
       <code><![CDATA[public function getName(): string]]></code>
       <code><![CDATA[public function isAvailable(): bool]]></code>
     </MissingOverrideAttribute>
@@ -521,28 +548,16 @@
   <file src="lib/classes/profile/authProfileSectionLoginEmail.class.php">
     <MissingOverrideAttribute>
       <code><![CDATA[protected function isTaken(string $value): bool]]></code>
-      <code><![CDATA[protected function normalize(string $value): string]]></code>
-      <code><![CDATA[protected function sendProof(string $value, string $token, ?string $code): void]]></code>
-      <code><![CDATA[public function getConfirmableField(): string]]></code>
       <code><![CDATA[public function getName(): string]]></code>
-      <code><![CDATA[public function usesCode(): bool]]></code>
     </MissingOverrideAttribute>
     <UndefinedMagicMethod>
       <code><![CDATA[fetchField]]></code>
     </UndefinedMagicMethod>
-    <UnusedClass>
-      <code><![CDATA[authProfileSectionLoginEmail]]></code>
-    </UnusedClass>
   </file>
   <file src="lib/classes/profile/authProfileSectionLoginPhone.class.php">
     <MissingOverrideAttribute>
       <code><![CDATA[protected function isTaken(string $value): bool]]></code>
-      <code><![CDATA[protected function normalize(string $value): string]]></code>
-      <code><![CDATA[protected function prepareList(&$list): void]]></code>
-      <code><![CDATA[protected function sendProof(string $value, string $token, ?string $code): void]]></code>
-      <code><![CDATA[public function getConfirmableField(): string]]></code>
       <code><![CDATA[public function getName(): string]]></code>
-      <code><![CDATA[public function usesCode(): bool]]></code>
     </MissingOverrideAttribute>
     <UndefinedMagicMethod>
       <code><![CDATA[fetchField]]></code>
@@ -588,7 +603,9 @@
   </file>
   <file src="lib/classes/profile/authProfileSectionPhone.class.php">
     <MissingOverrideAttribute>
-      <code><![CDATA[protected function prepareList(&$list): void]]></code>
+      <code><![CDATA[protected function getTemplateVars(string $mode, ?int $index = null): array]]></code>
+      <code><![CDATA[public function applyConfirmedValue(string $value): bool]]></code>
+      <code><![CDATA[public function getConfirmationUrl(array $data, ?int $index = null): ?string]]></code>
       <code><![CDATA[public function getName(): string]]></code>
       <code><![CDATA[public function isAvailable(): bool]]></code>
     </MissingOverrideAttribute>

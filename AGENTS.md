@@ -26,6 +26,10 @@ non-obvious constraints, and they are not re-derivable from the code alone.
   hijack it closes; why the pending-confirmation queue stays one per field;
   the strict-login gate (`authLoginConfirmGate`)'s composition and exemptions;
   why there is no automatic backfill for `login_require_confirmed`.
+- `006-plugin-uninstall-cleanup.md` — why deleting a whole plugin is hooked via
+  `authPlugin::uninstall()` (the installer fires no event), what it strips from
+  every domain's config and purges from contacts, strict vs lenient id matching
+  per config list, and the `installerDummyPlugin` blind spot.
 
 ## Tests
 

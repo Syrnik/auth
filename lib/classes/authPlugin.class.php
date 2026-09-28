@@ -64,9 +64,9 @@ abstract class authPlugin extends waPlugin
     }
 
     /**
-     * How many contacts hold data tied to this instance — asked only when a
-     * named instance is about to be deleted (backend "Login" screen, AUTH-440),
-     * so the admin sees "N accounts linked" before confirming.
+     * How many contacts hold data tied to this instance — asked when a named
+     * instance is about to be deleted (backend "Login" screen, AUTH-440), so
+     * the admin sees "N accounts linked" before confirming.
      *
      * Default counts links stored under getLinkSource() — correct for a plain
      * authMethod, whose only footprint on a contact is that link. A plugin
@@ -83,8 +83,10 @@ abstract class authPlugin extends waPlugin
     /**
      * Removes every contact's data tied to this instance. Called once, right
      * after the instance's connection is deleted from the domain config
-     * (authBackendDomainSettingsAction::afterSave()) — never for a merely
-     * disabled instance, which keeps its settings and its links on purpose.
+     * (authBackendDomainSettingsAction::afterSave()), and for every instance —
+     * or the plugin object itself, for a single-slot plugin — when the whole
+     * plugin is uninstalled (uninstall(), AUTH-559). Never for a merely
+     * disabled instance or plugin, which keeps its settings and links on purpose.
      * Returns the number of contacts affected, for the admin log line the
      * caller writes.
      *
@@ -94,6 +96,24 @@ abstract class authPlugin extends waPlugin
     public function purgeInstanceData(): int
     {
         return authContactLinks::deleteBySource($this->getLinkSource());
+    }
+
+    /**
+     * The installer ("Plugins" screen) fires no event on deletion — this is
+     * the only point where the app learns a plugin is going away. Cleans the
+     * plugin out of every domain's config and purges its contacts' data
+     * (authPluginUninstaller, docs/adr/006-plugin-uninstall-cleanup.md) before
+     * the framework drops its tables and app settings. A cleanup failure is
+     * logged, never allowed to block the uninstall itself.
+     */
+    public function uninstall($force = false)
+    {
+        try {
+            authPluginUninstaller::run($this);
+        } catch (Throwable $e) {
+            waLog::log(sprintf('auth: cleanup on uninstall of plugin %s failed: %s', $this->id, $e->getMessage()), 'auth/auth.log');
+        }
+        parent::uninstall($force);
     }
 
     /**

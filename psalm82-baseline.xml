@@ -321,6 +321,7 @@
   <file src="lib/classes/authPlugin.class.php">
     <MissingOverrideAttribute>
       <code><![CDATA[public function getName()]]></code>
+      <code><![CDATA[public function uninstall($force = false)]]></code>
     </MissingOverrideAttribute>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>

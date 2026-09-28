@@ -60,14 +60,21 @@ class authBackendLoginAction extends authBackendDomainSettingsAction
             (array)($post['deleted_instances'] ?? [])
         );
 
+        // A refused new key is dropped exactly like a deleted one, just never
+        // queued for a purge — it never existed, so it owns no links.
+        $dropped = array_merge_recursive($deleted, $this->rejectOversizedInstances($plugins, $current, $post));
+
+        $login_methods = $this->stripDeletedLoginMethods((array)($post['login_methods'] ?? []), $dropped);
+        $login_methods = $this->stripUnfitSingleSlotMethods($login_methods, $plugins);
+
         return [
-            'login_methods'           => $this->stripDeletedLoginMethods((array)($post['login_methods'] ?? []), $deleted),
+            'login_methods'           => $login_methods,
             'adapters'                => $this->collectAdapterCredentials((array)($post['adapters'] ?? [])),
             'plugin_settings'         => $this->collectPluginSettings(
                 $plugins,
                 (array)($post['plugin_settings'] ?? []),
                 (array)($current['plugin_settings'] ?? []),
-                $deleted
+                $dropped
             ),
             'login_require_confirmed' => !empty($post['login_require_confirmed']),
         ];
@@ -239,14 +246,124 @@ class authBackendLoginAction extends authBackendDomainSettingsAction
     }
 
     /**
+     * New instance keys in this submit whose account links could not be
+     * stored: wa_contact_data.field is varchar(32), see
+     * authContactResolver::fitsSourceField() (AUTH-560). A key counts as new
+     * whether it came as a settings block or only as a login_methods entry —
+     * either alone makes it an instance (knownInstanceKeys()), so a forged or
+     * stale checkbox must not slip one past this. Keys already stored are not
+     * judged: they have to stay deletable, and there are no installs from
+     * before this check to clean up. Each refusal leaves a notice.
+     *
+     * @param array $plugins [plugin_id => authPlugin instance]
+     * @param array $current this domain's currently stored config
+     * @param array $post the whole POST of this submit
+     * @return array<string, string[]> [plugin_dir => [instance_key, ...]]
+     */
+    private function rejectOversizedInstances(array $plugins, array $current, array $post): array
+    {
+        $rejected      = [];
+        $login_methods = (array)($post['login_methods'] ?? []);
+
+        foreach ($plugins as $dir => $plugin) {
+            if (empty($plugin->getInfo()['multi_instance'])) {
+                continue;
+            }
+
+            $method_id = $dir . '_plugin';
+            $posted    = is_array($post['plugin_settings'][$dir] ?? null) ? array_keys($post['plugin_settings'][$dir]) : [];
+            foreach ($login_methods as $id) {
+                [$base_id, $instance] = authPluginManager::splitInstance((string)$id);
+                if ($base_id === $method_id && $instance !== null) {
+                    $posted[] = $instance;
+                }
+            }
+
+            $known = $this->knownInstanceKeys($dir, $current);
+            $keys  = array_unique(array_map(static fn($key) => strtolower(trim((string)$key)), $posted));
+
+            foreach ($keys as $key) {
+                if (isset($known[$key]) || !authPluginManager::isValidInstanceKey($key)) {
+                    continue;
+                }
+                $instance_plugin = $this->resolveInstancePlugin($dir, $key);
+                if ($instance_plugin === null || $instance_plugin->linkSourceFits()) {
+                    continue;
+                }
+
+                $rejected[$dir][] = $key;
+
+                $max = $this->maxInstanceKeyLength($dir);
+                $this->notices[] = $max !== null
+                    ? sprintf(_w('Connection "%s" was not added: its ID is too long for this plugin (at most %d characters).'), $key, $max)
+                    : sprintf(_w('Connection "%s" was not added: its ID is too long for this plugin.'), $key);
+            }
+        }
+
+        return $rejected;
+    }
+
+    /**
+     * Drops a single-slot plugin whose own link source is already too long
+     * for wa_contact_data.field (a very long plugin directory name) — the
+     * screen shows it disabled, this is the server's half of that.
+     *
+     * @param array $plugins [plugin_id => authPlugin instance]
+     */
+    private function stripUnfitSingleSlotMethods(array $login_methods, array $plugins): array
+    {
+        $unfit = [];
+        foreach ($plugins as $dir => $plugin) {
+            if (empty($plugin->getInfo()['multi_instance']) && !$plugin->linkSourceFits()) {
+                $unfit[$dir . '_plugin'] = true;
+            }
+        }
+        if (!$unfit) {
+            return $login_methods;
+        }
+
+        return array_values(array_filter(
+            $login_methods,
+            static fn($id) => !isset($unfit[$id])
+        ));
+    }
+
+    /**
+     * The longest instance key a multi-instance plugin can take, for the
+     * "+ Add connection" prompt and the refusal notice. Probed through the
+     * plugin's real getLinkSource() with one- and two-character keys rather
+     * than assuming the default '<id>_<instance>' shape; null when the key
+     * doesn't change the source's length at all (an override sharing one
+     * identity between instances) or the plugin won't load. Only a hint —
+     * rejectOversizedInstances() checks each actual key exactly.
+     */
+    private function maxInstanceKeyLength(string $dir): ?int
+    {
+        $one = $this->resolveInstancePlugin($dir, 'a');
+        $two = $this->resolveInstancePlugin($dir, 'aa');
+        if ($one === null || $two === null) {
+            return null;
+        }
+
+        $length = strlen(authContactResolver::getSourceField($one->getLinkSource()));
+        if (strlen(authContactResolver::getSourceField($two->getLinkSource())) === $length) {
+            return null;
+        }
+
+        return max(0, authContactResolver::SOURCE_FIELD_MAX_LENGTH - $length + 1);
+    }
+
+    /**
      * Every method the admin can enable for this domain: built-in form methods,
      * every framework-level OAuth adapter (Webasyst ID, VK, Google, ...) whether
      * or not it's configured yet, and this app's own plugins.
      * Returns [id => ['name' => ..., 'oauth' => bool, 'controls' => [field_id => ['label'|'html', 'value']]]]
      * Plugin entries are keyed '{dir}_plugin' and add 'plugin_id'; a plugin with
      * multi_instance => true gets 'instances' (existing named instances with their
-     * controls) and 'new_controls' (empty controls for the add-instance template)
-     * instead of a single 'controls' block.
+     * controls), 'new_controls' (empty controls for the add-instance template)
+     * and 'max_key_length' (null = no limit from the link field) instead of a
+     * single 'controls' block; a single-slot plugin gets 'unfit' — true when
+     * its links could not be stored at all (AUTH-560), shown disabled.
      */
     private function getAvailableMethods(array $config, string $domain): array
     {
@@ -294,7 +411,9 @@ class authBackendLoginAction extends authBackendDomainSettingsAction
                 $entry['multi_instance'] = true;
                 $entry['instances']      = $this->getPluginInstances($dir, $plugin, $domain, $config);
                 $entry['new_controls']   = $plugin->getSettingsControls([]);
+                $entry['max_key_length'] = $this->maxInstanceKeyLength($dir);
             } else {
+                $entry['unfit']           = !$plugin->linkSourceFits();
                 $entry['plugin_controls'] = $plugin->getSettingsControls(
                     authConfig::getPluginSettings($dir, $domain)
                 );

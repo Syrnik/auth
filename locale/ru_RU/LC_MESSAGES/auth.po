@@ -425,3 +425,21 @@ msgstr "Этого значения больше нет в вашем профи
 
 msgid "This number is no longer on your profile."
 msgstr "Этого номера больше нет в вашем профиле."
+
+msgid "This sign-in method is misconfigured. Please contact the site administrator."
+msgstr "Этот способ входа настроен неправильно. Обратитесь к администратору сайта."
+
+msgid "Connection \"%s\" was not added: its ID is too long for this plugin (at most %d characters)."
+msgstr "Подключение «%s» не добавлено: ID слишком длинный для этого плагина (не более %d символов)."
+
+msgid "Connection \"%s\" was not added: its ID is too long for this plugin."
+msgstr "Подключение «%s» не добавлено: ID слишком длинный для этого плагина."
+
+msgid "The plugin ID is too long: accounts linked through a new connection could not be stored."
+msgstr "Слишком длинный ID плагина: привязки аккаунтов через новое подключение невозможно сохранить."
+
+msgid "The plugin ID is too long: accounts linked through this method could not be stored, so it cannot be enabled."
+msgstr "Слишком длинный ID плагина: привязки аккаунтов через этот способ невозможно сохранить, поэтому его нельзя включить."
+
+msgid "ID is too long for this plugin: at most %d characters."
+msgstr "ID слишком длинный для этого плагина: не более %d символов."

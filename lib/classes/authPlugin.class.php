@@ -64,6 +64,19 @@ abstract class authPlugin extends waPlugin
     }
 
     /**
+     * Whether a link under getLinkSource() fits wa_contact_data.field
+     * (authContactResolver::fitsSourceField(), AUTH-560). Asked of the real
+     * getLinkSource(), not of the default '<id>_<instance>' formula, so an
+     * override is judged by what it actually stores. The backend Login screen
+     * refuses a new instance key, or a single-slot plugin, for which this is
+     * false.
+     */
+    public function linkSourceFits(): bool
+    {
+        return authContactResolver::fitsSourceField($this->getLinkSource());
+    }
+
+    /**
      * How many contacts hold data tied to this instance — asked when a named
      * instance is about to be deleted (backend "Login" screen, AUTH-440), so
      * the admin sees "N accounts linked" before confirming.

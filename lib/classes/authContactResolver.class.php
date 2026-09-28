@@ -15,6 +15,11 @@ class authContactResolver
     const UNUSABLE_PASSWORD_PREFIX = '!';
 
     /**
+     * Width of wa_contact_data.field (varchar(32), wa-system/webasyst/lib/config/db.php).
+     */
+    const SOURCE_FIELD_MAX_LENGTH = 32;
+
+    /**
      * Find an existing contact for this identity, or run signup guards and
      * create a new one. Guards run against the raw OAuth data BEFORE any
      * contact is created, same as the plain registration form — a blocked
@@ -25,6 +30,12 @@ class authContactResolver
      */
     public static function resolve(array $data): array
     {
+        // The backend refuses such a source when a connection is added
+        // (authBackendLoginAction), this only covers a hand-edited config.
+        if (!self::fitsSourceField((string)($data['source'] ?? ''))) {
+            throw new authGuardException(_w('This sign-in method is misconfigured. Please contact the site administrator.'));
+        }
+
         $intent = authLinkIntent::match((string)($data['source'] ?? ''));
         if ($intent !== null) {
             return [self::link($data, (int)$intent['contact_id'], (string)$intent['method_id']), false];
@@ -106,6 +117,18 @@ class authContactResolver
     public static function getSourceField(string $source): string
     {
         return $source . '_id';
+    }
+
+    /**
+     * Whether a link under $source can be stored at all (AUTH-560). A longer
+     * field name either fails the write (strict SQL mode — a 500 in the middle
+     * of an OAuth login) or is silently truncated, and two sources equal in
+     * their first 32 characters would then share one link: the same account
+     * takeover AUTH-440 closes, reached through overflow instead of key reuse.
+     */
+    public static function fitsSourceField(string $source): bool
+    {
+        return strlen(self::getSourceField($source)) <= self::SOURCE_FIELD_MAX_LENGTH;
     }
 
     /**

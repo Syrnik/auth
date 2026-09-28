@@ -69,7 +69,7 @@
                                            a single checkbox. Each instance is enabled separately as
                                            login method '{$id}:{key}' and keeps its own settings block. *}
                                         <div>{$m.name|escape} <span class="hint">[`several named connections can be added`]</span></div>
-                                        <div class="js-auth-instances custom-ml-24" data-method="{$id|escape}">
+                                        <div class="js-auth-instances custom-ml-24" data-method="{$id|escape}"{if $m.max_key_length !== null} data-max-key-length="{$m.max_key_length}"{/if}>
                                             {foreach $m.instances as $ikey => $inst}
                                                 <div class="js-auth-instance custom-mt-12" data-key="{$ikey|escape}" data-existing="1" data-links="{$inst.links|default:0}">
                                                     <div class="js-auth-instance-fields">
@@ -121,13 +121,17 @@
                                             </div>
                                         </template>
                                         <div class="custom-mt-8 custom-ml-24">
-                                            <a href="#" class="js-auth-instance-add">+ [`Add connection`]</a>
+                                            {if $m.max_key_length === 0}
+                                                <span class="hint text-orange">[`The plugin ID is too long: accounts linked through a new connection could not be stored.`]</span>
+                                            {else}
+                                                <a href="#" class="js-auth-instance-add">+ [`Add connection`]</a>
+                                            {/if}
                                         </div>
                                     {else}
                                         <label>
                                             <span class="wa-checkbox">
                                                 <input type="checkbox" name="login_methods[]" value="{$id|escape}"
-                                                    {if in_array($id, $config.login_methods)}checked{/if}>
+                                                    {if !empty($m.unfit)}disabled{elseif in_array($id, $config.login_methods)}checked{/if}>
                                                 <span>
                                                     <span class="icon">
                                                         <i class="fas fa-check"></i>
@@ -136,6 +140,9 @@
                                             </span>
                                             {$m.name|escape}
                                         </label>
+                                        {if !empty($m.unfit)}
+                                            <div class="hint text-orange custom-ml-24">[`The plugin ID is too long: accounts linked through this method could not be stored, so it cannot be enabled.`]</div>
+                                        {/if}
                                         {if !empty($m.oauth) && !empty($m.controls)}
                                             <div class="custom-mt-8 custom-ml-24">
                                                 {foreach $m.controls as $field_id => $c}
@@ -269,6 +276,11 @@
                 key = key.trim().toLowerCase();
                 if (!/^[a-z0-9][a-z0-9_-]*$/.test(key)) {
                     alert('[`Invalid ID. Allowed: Latin letters, digits, hyphen, underscore; starts with a letter or digit.`]');
+                    return;
+                }
+                var maxLength = parseInt(container.getAttribute('data-max-key-length') || '', 10);
+                if (!isNaN(maxLength) && key.length > maxLength) {
+                    alert('[`ID is too long for this plugin: at most %d characters.`]'.replace('%d', maxLength));
                     return;
                 }
                 if (container.querySelector('.js-auth-instance[data-key="' + key + '"]')) {

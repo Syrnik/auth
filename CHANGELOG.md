@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Phone sign-in now normalizes the typed number before using it (AUTH-572).** `authPhoneMethod` passed it on as typed, so `+7 900 123-45-67` and `79001234567` were two independent `otp_send` counters for one person — and a different budget from the one `authPhoneRecoveryProvider` spends, which already keyed on the normalized number. The number now goes through `authProfileValues::normalizePhone()` once, at `authenticate()`, so the throttle key, the contact lookup, the OTP session state and its reset on a correct code all use the same form as the stored value
+
 ## [0.3.0] - 2026-09-28
 
 ### Added

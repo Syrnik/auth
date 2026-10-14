@@ -25,7 +25,12 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
 
     public function authenticate(array $params): ?int
     {
-        $phone = trim((string)($params['phone'] ?? ''));
+        // One number, one form, from here on: the otp_send throttle key, the
+        // contact lookup, the session state and its reset on a correct code
+        // all have to agree that '+7 900 123-45-67' and '79001234567' are the
+        // same phone — and agree with authPhoneRecoveryProvider, which keys
+        // the very same otp_send budget on the normalized number (AUTH-572).
+        $phone = authProfileValues::normalizePhone(trim((string)($params['phone'] ?? '')));
 
         if ($phone === '') {
             throw new authGuardException('Введите номер телефона.');

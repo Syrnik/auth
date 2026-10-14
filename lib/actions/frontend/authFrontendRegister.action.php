@@ -10,6 +10,8 @@ class authFrontendRegisterAction extends waViewAction
             throw new waException('Регистрация отключена.', 404);
         }
 
+        authCsrf::token();
+
         if (waRequest::method() === 'post') {
             $this->handlePost();
         } else {
@@ -39,6 +41,15 @@ class authFrontendRegisterAction extends waViewAction
         $post = waRequest::post();
         $fields = authConfig::get('signup_fields', ['firstname', 'email', 'password']);
         $errors = [];
+
+        // First, before the throttle hit and anything that creates a
+        // contact or sends mail (AUTH-573, see authCsrf). The password is
+        // never echoed back into the re-rendered form.
+        if (!authCsrf::isValid()) {
+            unset($post['password']);
+            $this->showForm(['general' => authCsrf::errorMessage()], $post);
+            return;
+        }
 
         // Throttle: only by IP (AUTH-49) — a signup has no identifier that
         // repeats across attempts, unlike login, so there is nothing else to

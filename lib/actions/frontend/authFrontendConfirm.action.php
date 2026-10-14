@@ -19,6 +19,8 @@ class authFrontendConfirmAction extends waViewAction
             return;
         }
 
+        authCsrf::token();
+
         if (waRequest::method() === 'post') {
             $this->resend();
             return;
@@ -87,6 +89,12 @@ class authFrontendConfirmAction extends waViewAction
      */
     private function resend(): void
     {
+        // Before the throttle hit and the mail (AUTH-573, see authCsrf).
+        if (!authCsrf::isValid()) {
+            $this->showResendForm(authCsrf::errorMessage());
+            return;
+        }
+
         $email = trim((string)waRequest::post('email', ''));
 
         $throttle_keys = ['ip' => waRequest::getIp(), 'login' => $email];

@@ -52,6 +52,20 @@
                     resendLink.textContent = 'Отправить новую ссылку подтверждения';
                     errorEl.appendChild(resendLink);
                 }
+                if (data.csrf_token) {
+                    // The POST was refused for a stale or missing _csrf
+                    // (AUTH-573, authCsrf): the server has just issued a
+                    // fresh cookie, so the field must follow it for the
+                    // next submit to pass.
+                    var csrfInput = form.querySelector('input[name="_csrf"]');
+                    if (!csrfInput) {
+                        csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_csrf';
+                        form.appendChild(csrfInput);
+                    }
+                    csrfInput.value = data.csrf_token;
+                }
                 resetCaptcha(form);
                 if (data.captcha_widget) {
                     injectCaptcha(form, data.captcha_widget);

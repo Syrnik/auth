@@ -19,6 +19,8 @@ class authFrontendRecoveryAction extends waViewAction
             throw new waException('Страница не найдена', 404);
         }
 
+        authCsrf::token();
+
         $token = waRequest::param('token', '', 'string');
 
         if ($token !== '') {
@@ -45,6 +47,13 @@ class authFrontendRecoveryAction extends waViewAction
 
     private function handleRequestPost(): void
     {
+        // Every POST branch of this action checks the token first (AUTH-573,
+        // see authCsrf) — here before the provider's throttle hit and send.
+        if (!authCsrf::isValid()) {
+            $this->renderRequestForm(authCsrf::errorMessage());
+            return;
+        }
+
         $identifier = trim((string)waRequest::post('identifier', ''));
         $response   = authRecovery::request($identifier);
 
@@ -77,6 +86,12 @@ class authFrontendRecoveryAction extends waViewAction
     {
         if (waRequest::method() !== 'post') {
             $this->renderCodeForm();
+            return;
+        }
+
+        // Before verifyCode(), which spends one of the code's attempts.
+        if (!authCsrf::isValid()) {
+            $this->renderCodeForm(authCsrf::errorMessage());
             return;
         }
 
@@ -141,6 +156,11 @@ class authFrontendRecoveryAction extends waViewAction
 
         if (waRequest::method() !== 'post') {
             $this->renderPasswordForm($token);
+            return;
+        }
+
+        if (!authCsrf::isValid()) {
+            $this->renderPasswordForm($token, authCsrf::errorMessage());
             return;
         }
 

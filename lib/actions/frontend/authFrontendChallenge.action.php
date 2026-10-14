@@ -29,7 +29,25 @@ class authFrontendChallengeAction extends waViewAction
             return;
         }
 
+        // The visitor is still anonymous here — signed in only once the
+        // challenge passes — so this is one of the forms authCsrf covers.
+        authCsrf::token();
+
         if (waRequest::method() === 'post') {
+            if (!authCsrf::isValid()) {
+                if (waRequest::isXMLHttpRequest()) {
+                    $this->sendJson(['status' => 'error', 'error' => authCsrf::errorMessage(), 'csrf_token' => authCsrf::token()]);
+                    return;
+                }
+                $this->setLayout(new authFrontendLayout());
+                $this->view->assign([
+                    'error'               => authCsrf::errorMessage(),
+                    'challenge_form_html' => $this->getChallengeFormHtml($challenge),
+                ]);
+                $this->setThemeTemplate('challenge.html');
+                return;
+            }
+
             $verified = $challenge->verify(waRequest::post());
 
             if (!$verified) {

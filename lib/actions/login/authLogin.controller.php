@@ -16,6 +16,10 @@ class authLoginController extends waViewController
             throw new waException('Страница не найдена', 404);
         }
 
+        // Before anything renders: a first-time anonymous visitor gets the
+        // token the form below has to carry back (see authCsrf).
+        authCsrf::token();
+
         if (waRequest::method() === 'post') {
             $this->handlePost();
         } else {
@@ -47,7 +51,14 @@ class authLoginController extends waViewController
 
     private function handlePost(): void
     {
-        // CSRF validated by framework (csrf: true in app.php).
+        // Not by the framework: login/ is not a 'secure' route, so
+        // waDispatch never checks _csrf here (AUTH-573). First, before the
+        // throttle or the captcha — a forged POST must not get to spend the
+        // victim's attempts, nor an SMS through authPhoneMethod.
+        if (!authCsrf::isValid()) {
+            $this->renderError(authCsrf::errorMessage(), ['csrf_token' => authCsrf::token()]);
+            return;
+        }
 
         $goal_url = waRequest::post('goal_url', '', 'string');
         if ($goal_url) {

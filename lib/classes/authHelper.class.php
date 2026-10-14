@@ -408,11 +408,12 @@ class authHelper
     }
 
     /**
-     * CSRF token value from cookie (for use in hidden form fields).
+     * CSRF token for a hidden form field — issued first for a visitor who
+     * has none yet, anonymous ones included (see authCsrf).
      */
     public static function getCsrfToken(): string
     {
-        return waRequest::cookie('_csrf', '');
+        return authCsrf::token();
     }
 
     /**

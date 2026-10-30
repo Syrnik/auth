@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A challenge plugin can now tell the visitor an attempt was refused by its attempt limit, not by a wrong code (AUTH-660).** `authChallenge::verify()` only returns `bool`, so every refusal read "Incorrect code." — including a *correct* TOTP code entered a second too early inside `authThrottle`'s growing delay, which looks like the authenticator app being wrong. A plugin now throws `authChallengeThrottledException($retry_after)` from `verify()` for that case, and `authFrontendChallengeAction` shows the same `authThrottle::blockedMessage()` every other throttled form uses (plus `retry_after` in the AJAX response). The interface itself is unchanged, so existing challenge plugins keep working as before; the wording stays the app's, never the plugin's
+
 ### Fixed
 
 - **The anonymous forms — sign-in, signup, password recovery, the signup-confirmation resend and the 2FA challenge — are now protected against CSRF (AUTH-573).** The framework checked none of them: `waDispatch` verifies `_csrf` only on `secure` routes, and the `_csrf` cookie exists only for signed-in visitors, so `{$wa->csrf()}` printed an empty value and any cross-site POST went through. `authCsrf` now issues that same `_csrf` cookie to anonymous visitors (so every `{$wa->csrf()}` in themes and plugin templates keeps working, and `waAuthUser` keeps the token after sign-in) and requires a non-empty matching value as the first step of each of those POSTs, before the throttle, captcha, SMS/email or contact creation. A refused POST re-renders the form with a fresh token rather than a 403; the XHR response carries `csrf_token` and `js/auth.js` updates the form field. **A site's own override of one of those theme templates must keep `{$wa->csrf()}` (or `$csrf_token`) in its POST form, or the form can no longer be submitted.** See `docs/adr/007-anonymous-csrf.md`

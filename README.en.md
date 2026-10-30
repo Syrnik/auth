@@ -111,6 +111,8 @@ class myPluginAuthChallenge implements authChallenge {
 }
 ```
 
+`verify()` returns `false` for a wrong response — the form is shown again with "Incorrect code.". If the plugin's own attempt limit (e.g. `authThrottle`) refused the attempt without checking the response at all, throw `authChallengeThrottledException($retry_after)` instead: the form is shown with the standard "Too many attempts. Try again in N seconds." (`authThrottle::blockedMessage()`), and the AJAX response gains `retry_after`. The refusal wording is the app's, not the plugin's. Check the limit before the response itself, so a correct code submitted too early is refused as "wait", not as "wrong". Available since Auth 0.4.0 — a plugin relying on it must raise its minimum Auth version in `requirements.php`.
+
 ### `authCaptcha` — Captcha
 
 ```php

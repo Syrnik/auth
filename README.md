@@ -112,6 +112,8 @@ class myPluginAuthChallenge implements authChallenge {
 }
 ```
 
+`verify()` возвращает `false` на неверный ответ — форма показывается снова с «Incorrect code.». Если попытку отклонил собственный лимит плагина (например, `authThrottle`), а ответ даже не проверялся, бросайте `authChallengeThrottledException($retry_after)`: форма покажется с типовым «Too many attempts. Try again in N seconds.» (`authThrottle::blockedMessage()`), в AJAX-ответ добавится `retry_after`. Текст отказа задаёт приложение, не плагин. Лимит проверяйте до самого ответа, чтобы верный код, введённый раньше времени, отклонялся как «подождите», а не как «неверно». Механизм появился в Auth 0.4.0 — плагину, который его использует, нужно поднять минимальную версию Auth в `requirements.php`.
+
 ### `authCaptcha` — капча
 
 ```php

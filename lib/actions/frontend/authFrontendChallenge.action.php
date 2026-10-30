@@ -48,20 +48,20 @@ class authFrontendChallengeAction extends waViewAction
                 return;
             }
 
-            $verified = $challenge->verify(waRequest::post());
+            $refusal = self::verifyChallenge($challenge, waRequest::post());
 
-            if (!$verified) {
+            if ($refusal !== null) {
                 // JSON path returns only the error message, the plugin's form
                 // stays as rendered — fine for a stateless code input like
                 // totp. A challenge needing a fresh form per attempt should
                 // use {status: 'step', html: ...} instead (see auth.js).
                 if (waRequest::isXMLHttpRequest()) {
-                    $this->sendJson(['status' => 'error', 'error' => _w('Incorrect code.')]);
+                    $this->sendJson(['status' => 'error'] + $refusal);
                     return;
                 }
                 $this->setLayout(new authFrontendLayout());
                 $this->view->assign([
-                    'error'              => _w('Incorrect code.'),
+                    'error'              => $refusal['error'],
                     'challenge_form_html' => $this->getChallengeFormHtml($challenge),
                 ]);
                 $this->setThemeTemplate('challenge.html');
@@ -92,6 +92,29 @@ class authFrontendChallengeAction extends waViewAction
             'challenge_form_html' => $this->getChallengeFormHtml($challenge),
         ]);
         $this->setThemeTemplate('challenge.html');
+    }
+
+    /**
+     * null if the challenge passed, otherwise the refusal the form is shown
+     * again with: ['error' => message] for a wrong response, plus
+     * 'retry_after' (seconds) when the plugin refused the attempt by its own
+     * limit (authChallengeThrottledException, AUTH-660). Only that one
+     * exception is caught — anything else a plugin throws is a bug, not a
+     * message for the visitor.
+     *
+     * @return array{error:string,retry_after?:int}|null
+     */
+    private static function verifyChallenge(authChallenge $challenge, array $post): ?array
+    {
+        try {
+            if ($challenge->verify($post)) {
+                return null;
+            }
+        } catch (authChallengeThrottledException $e) {
+            $retry_after = max(1, $e->retryAfter);
+            return ['error' => authThrottle::blockedMessage($retry_after), 'retry_after' => $retry_after];
+        }
+        return ['error' => _w('Incorrect code.')];
     }
 
     /**

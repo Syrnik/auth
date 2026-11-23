@@ -22,6 +22,11 @@
  * contact (already verified against their source: a status already equal is
  * a silent no-op, not a false) — a real "the value moved from under us"
  * case, logged here rather than swallowed.
+ *
+ * A successful stamp of the login value also settles a pending profile
+ * confirmation of that very value (auth_profile_confirm, AUTH-986): proven
+ * by OTP login, recovery or a signup link, it would otherwise keep showing
+ * "awaiting confirmation" until the row expired. See dropSettledPending().
  */
 class authContactStatus
 {
@@ -39,6 +44,8 @@ class authContactStatus
                 sprintf('auth: cannot confirm email for contact %d — value not on contact', $contact_id),
                 'auth.log'
             );
+        } else {
+            self::dropSettledPending('email', $contact_id, $email);
         }
 
         return $ok;
@@ -58,6 +65,8 @@ class authContactStatus
                 sprintf('auth: cannot confirm phone for contact %d — value not on contact', $contact_id),
                 'auth.log'
             );
+        } else {
+            self::dropSettledPending('phone', $contact_id, $phone);
         }
 
         return $ok;
@@ -99,5 +108,57 @@ class authContactStatus
         }
 
         return false;
+    }
+
+    /**
+     * Deletes the field's pending profile confirmation once $value — just
+     * stamped confirmed — has made it moot.
+     *
+     * Only when both hold:
+     *   - the pending row is for $value itself;
+     *   - $value is the contact's login value (sort = 0).
+     *
+     * The second condition is what tells "confirm the value I already have"
+     * from "make this my login": a pending login change is always to a value
+     * other than the current login one, even when that value already sits on
+     * the contact as a secondary — and confirming that secondary must not
+     * cancel the change. One row per (contact, field) at most
+     * (authProfileConfirmModel::issue()), so fetching it is enough.
+     *
+     * Both sides normalized here, not compared in SQL: rows are stored the
+     * way the profile normalizes (lowercased email, normalizePhone()), while
+     * callers hand in the value as they have it.
+     */
+    private static function dropSettledPending(string $field, int $contact_id, string $value): void
+    {
+        $value = self::normalizeFor($field, $value);
+        if ($value === '') {
+            return;
+        }
+
+        if ($field === 'email') {
+            $primary = (new waContactEmailsModel())->getByField(['contact_id' => $contact_id, 'sort' => 0]);
+            $primary_value = $primary ? (string)$primary['email'] : '';
+        } else {
+            $primary = (new waContactDataModel())
+                ->getByField(['contact_id' => $contact_id, 'field' => 'phone', 'sort' => 0]);
+            $primary_value = $primary ? (string)$primary['value'] : '';
+        }
+        if (self::normalizeFor($field, $primary_value) !== $value) {
+            return;
+        }
+
+        $model = new authProfileConfirmModel();
+        $row = $model->getByField(['contact_id' => $contact_id, 'field' => $field]);
+        if ($row && self::normalizeFor($field, (string)$row['value']) === $value) {
+            $model->deleteById($row['id']);
+        }
+    }
+
+    private static function normalizeFor(string $field, string $value): string
+    {
+        return $field === 'email'
+            ? mb_strtolower(trim($value))
+            : authProfileValues::normalizePhone($value);
     }
 }

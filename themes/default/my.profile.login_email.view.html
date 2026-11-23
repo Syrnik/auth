@@ -27,7 +27,7 @@
     {if $errors}
         <div class="auth-error">
             {foreach $errors as $field_messages}
-                {foreach (array)$field_messages as $message}
+                {foreach $field_messages as $message}
                     {if $message}<div>{$message|escape}</div>{/if}
                 {/foreach}
             {/foreach}

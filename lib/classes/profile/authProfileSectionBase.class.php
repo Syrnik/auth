@@ -77,7 +77,14 @@ abstract class authProfileSectionBase implements authProfileSection
      */
     public function restoreFailedSave(array $data, array $errors, ?int $index = null): void
     {
-        $this->errors = $errors;
+        // Back in the shape addError() builds — field => list of messages —
+        // since these come from the session rather than this object, and the
+        // partials iterate each field's messages as a list (AUTH-985: Smarty
+        // has no cast for a template to fall back on).
+        $this->errors = [];
+        foreach ($errors as $field_id => $messages) {
+            $this->errors[(string)$field_id] = array_values((array)$messages);
+        }
     }
 
     /**

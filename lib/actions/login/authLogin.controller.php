@@ -111,7 +111,16 @@ class authLoginController extends waViewController
         // token, which would otherwise blame the visitor for a "wrong
         // captcha" and charge their IP a hit before the password is ever
         // checked (see authHelper::loginCaptchaWidget()).
-        if ($throttle_state->captchaRequired) {
+        //
+        // Not on a POST that only continues a step begun behind a captcha
+        // that passed — the OTP code after the number (AUTH-856, see
+        // authLoginStepPass). Any other POST drops the pass: it is good for
+        // continuations of that one step and nothing else.
+        $step_pass = $this->hasStepPass($method, $method_id, $post);
+        if (!$step_pass) {
+            authLoginStepPass::clear();
+        }
+        if ($throttle_state->captchaRequired && !$step_pass) {
             $captcha = authPluginManager::getCaptchaPlugin();
             if ($captcha) {
                 if (!authHelper::isCaptchaShown($post)) {
@@ -134,19 +143,31 @@ class authLoginController extends waViewController
         try {
             $contact_id = $method->authenticate($post);
         } catch (authCredentialFailureException $e) {
+            authLoginStepPass::clear();
             $hit_state = authThrottle::hit('login', $throttle_keys);
             $this->renderError($e->getMessage(), ['attempts' => $hit_state->attempts], $hit_state->captchaRequired);
             return;
         } catch (authMethodStepException $e) {
+            // Issued only here, behind a captcha that passed or wasn't asked
+            // for — a continuation that re-raises the step (a wrong code)
+            // keeps the pass it came with, deadline included.
+            if (!$step_pass && $method instanceof authSteppedMethod) {
+                authLoginStepPass::begin($method_id, $method->getStepSubject($post));
+            }
             $this->renderStep($method_id, $e->getTemplateVars());
             return;
         } catch (authGuardException $e) {
+            authLoginStepPass::clear();
             $this->renderError($e->getMessage());
             return;
         } catch (waException $e) {
+            authLoginStepPass::clear();
             $this->renderError($e->getMessage());
             return;
         }
+
+        // The step is over: signed in, or on to the gate/guards/challenge.
+        authLoginStepPass::clear();
 
         if ($contact_id === null) {
             // OAuth redirect already performed by method->authenticate()
@@ -217,6 +238,20 @@ class authLoginController extends waViewController
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Whether this POST may skip the captcha as the continuation of a step
+     * (AUTH-856): only for a method that says it is one, and only while the
+     * pass from that step's start is live for this very method instance and
+     * subject. Never decided by anything the client sends on its own.
+     */
+    private function hasStepPass(authMethod $method, string $method_id, array $post): bool
+    {
+        if (!$method instanceof authSteppedMethod || !$method->isStepContinuation($post)) {
+            return false;
+        }
+        return authLoginStepPass::isLive($method_id, $method->getStepSubject($post));
+    }
 
     /**
      * $captcha_required overrides the login form's default (auto, IP-only)

@@ -1,6 +1,6 @@
 <?php
 
-class authPhoneMethod extends authBuiltinMethod implements authMethod
+class authPhoneMethod extends authBuiltinMethod implements authMethod, authSteppedMethod
 {
     const AUTH_TYPE  = 'form';
     // A one-time code sent to the phone, no password involved.
@@ -30,22 +30,35 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
         // all have to agree that '+7 900 123-45-67' and '79001234567' are the
         // same phone — and agree with authPhoneRecoveryProvider, which keys
         // the very same otp_send budget on the normalized number (AUTH-572).
-        $phone = authProfileValues::normalizePhone(trim((string)($params['phone'] ?? '')));
+        $phone = $this->getStepSubject($params);
 
         if ($phone === '') {
             throw new authGuardException('Введите номер телефона.');
         }
 
-        $otp_code = trim((string)($params['otp_code'] ?? ''));
-
-        // "Send the code again" submits the same step-2 form, so a code the
-        // visitor already typed still rides along — the flag, not an empty
-        // otp_code, is what says "resend" here (AUTH-855).
-        if ($otp_code !== '' && empty($params['otp_resend'])) {
-            return $this->verifyOtp($phone, $otp_code);
+        if ($this->isStepContinuation($params)) {
+            return $this->verifyOtp($phone, trim((string)$params['otp_code']));
         }
 
         return $this->sendOtp($phone);
+    }
+
+    public function getStepSubject(array $params): string
+    {
+        return authProfileValues::normalizePhone(trim((string)($params['phone'] ?? '')));
+    }
+
+    /**
+     * Only a POST that verifies a code — never one that can reach sendOtp():
+     * a live authLoginStepPass lets this skip the captcha (AUTH-856), and
+     * the captcha is what guards the paid SMS. "Send the code again" submits
+     * the same step-2 form, so a code the visitor already typed still rides
+     * along — the flag, not an empty otp_code, is what says "resend" here
+     * (AUTH-855).
+     */
+    public function isStepContinuation(array $params): bool
+    {
+        return trim((string)($params['otp_code'] ?? '')) !== '' && empty($params['otp_resend']);
     }
 
     public function handleCallback(array $params): authCallbackResult

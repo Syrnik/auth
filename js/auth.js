@@ -77,6 +77,11 @@
                     injectCaptcha(form, data.captcha_widget);
                 }
             } else if (data.status === 'step') {
+                // The captcha stays outside the step area, still showing the
+                // token this submit just spent. Continuing the step (the
+                // code) needs none (AUTH-856, authLoginStepPass), but
+                // "Send the code again" does — with a fresh one.
+                resetCaptcha(form);
                 var stepHtml = data.html || '';
                 if (stepHtml) {
                     var wrapper = form.querySelector('[data-auth-step]') || form;
@@ -101,10 +106,25 @@
      * reCAPTCHA tokens are single-use: after any failed submit the widget
      * still shows solved but its token is already spent, so a retry without
      * resetting fails server-side with invalid-input-response.
+     *
+     * reset() with no argument resets widget 0 — the first form's on a login
+     * page with several methods, not necessarily this one's. The widget id
+     * comes from the response textarea reCAPTCHA renders into it:
+     * "g-recaptcha-response" for widget 0, "g-recaptcha-response-N" after.
+     *
+     * The invisible and v3 widgets keep their token in a hidden input of
+     * their own and fetch a new one only while it is empty — so emptying it
+     * is their reset.
      */
     function resetCaptcha(form) {
-        if (window.grecaptcha && form.querySelector('.g-recaptcha')) {
-            window.grecaptcha.reset();
+        var response = form.querySelector('textarea[name="g-recaptcha-response"]');
+        if (window.grecaptcha && response) {
+            var id = /-(\d+)$/.exec(response.id);
+            window.grecaptcha.reset(id ? parseInt(id[1], 10) : 0);
+        }
+        var tokens = form.querySelectorAll('input[name="g-recaptcha-response"]');
+        for (var i = 0; i < tokens.length; i++) {
+            tokens[i].value = '';
         }
     }
 

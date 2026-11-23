@@ -15,8 +15,14 @@
      *   {status: 'confirm_required'}                 → reload page
      *   {status: 'challenge',       redirect: url}   → redirect to challenge page
      */
-    function submitAuthForm(form) {
+    function submitAuthForm(form, submitter) {
         var formData = new FormData(form);
+        // FormData(form) leaves the pressed button out, and a named one is
+        // how the form says which action it means — e.g. "send the code
+        // again" (otp_resend) on the phone OTP step (AUTH-855).
+        if (submitter && submitter.name) {
+            formData.append(submitter.name, submitter.value);
+        }
         var errorEl  = form.querySelector('.auth-error') || createErrorEl(form);
 
         fetch(form.action || window.location.href, {
@@ -75,6 +81,11 @@
                 if (stepHtml) {
                     var wrapper = form.querySelector('[data-auth-step]') || form;
                     wrapper.innerHTML = stepHtml;
+                    // autofocus in injected markup is ignored by the browser.
+                    var focusEl = wrapper.querySelector('[autofocus]');
+                    if (focusEl) {
+                        focusEl.focus();
+                    }
                 }
             } else if (data.status === 'confirm_required') {
                 window.location.reload();
@@ -141,6 +152,6 @@
             return;
         }
         event.preventDefault();
-        submitAuthForm(form);
+        submitAuthForm(form, event.submitter);
     });
 }());

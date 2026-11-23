@@ -1,23 +1,13 @@
-{if !empty($step_vars.show_code_field)}
+<div class="auth-field">
+    <label>{_wp('E-mail')|escape}</label>
+    <input type="email" name="email" autocomplete="email" autofocus>
+</div>
+<div class="auth-field">
+    <label>{_wp('Password')|escape}</label>
+    <input type="password" name="password" autocomplete="current-password">
+</div>
+{if $rememberme}
     <div class="auth-field">
-        <label>{_wp('Code from the message')|escape}</label>
-        <input type="text" name="otp_code" autocomplete="one-time-code" autofocus>
+        <label><input type="checkbox" name="rememberme" value="1"> {_wp('Remember me')|escape}</label>
     </div>
-    {if !empty($step_vars.error)}
-        <div class="auth-field-error">{$step_vars.error|escape}</div>
-    {/if}
-{else}
-    <div class="auth-field">
-        <label>{_wp('E-mail')|escape}</label>
-        <input type="email" name="email" autocomplete="email" autofocus>
-    </div>
-    <div class="auth-field">
-        <label>{_wp('Password')|escape}</label>
-        <input type="password" name="password" autocomplete="current-password">
-    </div>
-    {if $rememberme}
-        <div class="auth-field">
-            <label><input type="checkbox" name="rememberme" value="1"> {_wp('Remember me')|escape}</label>
-        </div>
-    {/if}
 {/if}

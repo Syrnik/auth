@@ -38,7 +38,10 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
 
         $otp_code = trim((string)($params['otp_code'] ?? ''));
 
-        if ($otp_code !== '') {
+        // "Send the code again" submits the same step-2 form, so a code the
+        // visitor already typed still rides along — the flag, not an empty
+        // otp_code, is what says "resend" here (AUTH-855).
+        if ($otp_code !== '' && empty($params['otp_resend'])) {
             return $this->verifyOtp($phone, $otp_code);
         }
 
@@ -69,7 +72,8 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
         if ($state->blocked) {
             throw new authMethodStepException([
                 'show_code_field' => true,
-                'error' => sprintf(
+                'phone'           => $phone,
+                'error'           => sprintf(
                     'Код уже отправлен. Повторная отправка через %d сек.',
                     $state->retryAfter
                 ),
@@ -95,7 +99,10 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
 
         $this->sendSms($phone, $code);
 
-        throw new authMethodStepException(['show_code_field' => true]);
+        // The number travels with every step: step 2 has to post it back,
+        // authenticate() refuses without it and verifyOtp() matches it
+        // against the session state.
+        throw new authMethodStepException(['show_code_field' => true, 'phone' => $phone]);
     }
 
     private function verifyOtp(string $phone, string $code): int
@@ -106,6 +113,7 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
             wa()->getStorage()->del(self::OTP_SESSION_KEY);
             throw new authMethodStepException([
                 'show_code_field' => true,
+                'phone'           => $phone,
                 'error'           => 'Код устарел. Запросите новый.',
             ]);
         }
@@ -122,6 +130,7 @@ class authPhoneMethod extends authBuiltinMethod implements authMethod
             $left = self::MAX_ATTEMPTS - $stored['attempts'];
             throw new authMethodStepException([
                 'show_code_field' => true,
+                'phone'           => $phone,
                 'error'           => $left > 0
                     ? sprintf('Неверный код. Осталось попыток: %d.', $left)
                     : 'Неверный код.',

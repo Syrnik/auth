@@ -1,0 +1,31 @@
+{if !empty($step_vars.show_code_field)}
+    {* Step 2. The number goes back with every submit: authPhoneMethod
+       refuses without it and checks it against the code it sent. *}
+    {* Enter submits through a form's first submit button, and the resend
+       button below would otherwise be it: this one, first in the form and
+       out of sight, keeps Enter meaning "sign in with this code". *}
+    <button type="submit" class="auth-default-submit" tabindex="-1" aria-hidden="true"></button>
+    <div class="auth-field">
+        <label>{_wp('Phone')|escape}</label>
+        <input type="tel" name="phone" value="{$step_vars.phone|default:''|escape}" autocomplete="tel" readonly>
+    </div>
+    <div class="auth-field">
+        <label>{_wp('Code from the message')|escape}</label>
+        <input type="text" name="otp_code" inputmode="numeric" autocomplete="one-time-code" autofocus>
+    </div>
+    {if !empty($step_vars.error)}
+        <div class="auth-field-error">{$step_vars.error|escape}</div>
+    {/if}
+    <div class="auth-field">
+        {* formnovalidate: asking for a new code must not depend on what is in the code field *}
+        <button type="submit" name="otp_resend" value="1" class="auth-link-button" formnovalidate>{_wp('Send the code again')|escape}</button>
+    </div>
+{else}
+    <div class="auth-field">
+        <label>{_wp('Phone')|escape}</label>
+        <input type="tel" name="phone" autocomplete="tel" autofocus>
+    </div>
+    {if !empty($step_vars.error)}
+        <div class="auth-field-error">{$step_vars.error|escape}</div>
+    {/if}
+{/if}

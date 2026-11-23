@@ -239,3 +239,9 @@ msgstr ""
 
 msgid "Send a new confirmation link"
 msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "Send the code again"
+msgstr ""

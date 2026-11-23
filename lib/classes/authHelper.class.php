@@ -427,12 +427,17 @@ class authHelper
         string $error = '',
         array $step_vars = [],
         ?bool $captcha_required = null,
-        string $resend_url = ''
+        string $resend_url = '',
+        string $step_method = ''
     ): array {
         return [
             'goal_url'         => $goal_url,
             'error'            => $error,
             'step_vars'        => $step_vars,
+            // Which method's form the step_vars belong to: login.html hands
+            // them only to that partial, so with email and phone both enabled
+            // the OTP step never leaks into the email form (AUTH-855).
+            'step_method'      => $step_method,
             'form_methods'     => self::getFormMethods(),
             'oauth_providers'  => self::getOAuthProviders(),
             'csrf_token'       => self::getCsrfToken(),

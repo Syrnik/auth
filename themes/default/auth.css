@@ -12,6 +12,11 @@
     margin-bottom: 12px;
 }
 
+.auth-field-error {
+    color: #c00;
+    margin-bottom: 12px;
+}
+
 .auth-success {
     color: #060;
     margin-bottom: 12px;
@@ -27,12 +32,35 @@
 }
 
 .auth-field input[type=text],
+.auth-field input[type=tel],
 .auth-field input[type=email],
 .auth-field input[type=password] {
     width: 100%;
     box-sizing: border-box;
     padding: 8px;
     border: 1px solid #ccc;
+}
+
+.auth-field input[readonly] {
+    background: #f5f5f5;
+}
+
+/* phone.login_form.html: the form's default button for Enter, never seen */
+.auth-default-submit {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.auth-link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .auth-submit {

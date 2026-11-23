@@ -31,7 +31,13 @@ class authLoginController extends waViewController
     // GET: display login form
     // -------------------------------------------------------------------------
 
-    private function showForm(string $error = '', array $step_vars = [], ?bool $captcha_required = null, string $resend_url = ''): void
+    private function showForm(
+        string $error = '',
+        array $step_vars = [],
+        ?bool $captcha_required = null,
+        string $resend_url = '',
+        string $step_method = ''
+    ): void
     {
         $goal_url = waRequest::get('goal_url', '', 'string');
         if (!$goal_url) {
@@ -42,7 +48,7 @@ class authLoginController extends waViewController
         }
 
         $this->setLayout(new authFrontendLayout());
-        $this->executeAction(new authLoginFormAction($goal_url, $error, $step_vars, $captcha_required, $resend_url));
+        $this->executeAction(new authLoginFormAction($goal_url, $error, $step_vars, $captcha_required, $resend_url, $step_method));
     }
 
     // -------------------------------------------------------------------------
@@ -132,7 +138,7 @@ class authLoginController extends waViewController
             $this->renderError($e->getMessage(), ['attempts' => $hit_state->attempts], $hit_state->captchaRequired);
             return;
         } catch (authMethodStepException $e) {
-            $this->renderStep($method, $e->getTemplateVars());
+            $this->renderStep($method_id, $e->getTemplateVars());
             return;
         } catch (authGuardException $e) {
             $this->renderError($e->getMessage());
@@ -240,12 +246,21 @@ class authLoginController extends waViewController
         }
     }
 
-    private function renderStep(authMethod $method, array $vars): void
+    /**
+     * The XHR answer carries the method's own partial, rendered for this
+     * step, as 'html': js/auth.js swaps it into the form's [data-auth-step]
+     * wrapper and has no other way to draw the step (AUTH-855).
+     */
+    private function renderStep(string $method_id, array $vars): void
     {
         if (waRequest::isXMLHttpRequest()) {
-            $this->sendJson(array_merge(['status' => 'step'], $vars));
+            $action = new authLoginStepAction($method_id, $vars);
+            $this->sendJson(array_merge($vars, [
+                'status' => 'step',
+                'html'   => (string)$action->display(),
+            ]));
         } else {
-            $this->showForm('', $vars);
+            $this->showForm('', $vars, null, '', $method_id);
         }
     }
 
@@ -260,13 +275,15 @@ class authLoginFormAction extends waViewAction
     private array  $step_vars;
     private ?bool  $captcha_required;
     private string $resend_url;
+    private string $step_method;
 
     public function __construct(
         string $goal_url = '',
         string $error = '',
         array $step_vars = [],
         ?bool $captcha_required = null,
-        string $resend_url = ''
+        string $resend_url = '',
+        string $step_method = ''
     ) {
         parent::__construct();
         $this->goal_url         = $goal_url;
@@ -274,6 +291,7 @@ class authLoginFormAction extends waViewAction
         $this->step_vars        = $step_vars;
         $this->captcha_required = $captcha_required;
         $this->resend_url       = $resend_url;
+        $this->step_method      = $step_method;
     }
 
     public function execute(): void
@@ -283,9 +301,43 @@ class authLoginFormAction extends waViewAction
             $this->error,
             $this->step_vars,
             $this->captcha_required,
-            $this->resend_url
+            $this->resend_url,
+            $this->step_method
         ));
 
         $this->setThemeTemplate('login.html');
+    }
+}
+
+// Companion action: renders one method's login partial for an XHR step.
+// Through setThemeTemplate(), not a bare fetch: _wp() resolves against the
+// active theme, and without it the strings fall back to the app catalog.
+class authLoginStepAction extends waViewAction
+{
+    private string $method_id;
+    private array  $step_vars;
+
+    public function __construct(string $method_id, array $step_vars)
+    {
+        parent::__construct();
+        $this->method_id = $method_id;
+        $this->step_vars = $step_vars;
+    }
+
+    public function execute(): void
+    {
+        // The same variable set login.html gives the partial.
+        $this->view->assign(authHelper::loginViewData(
+            '',
+            '',
+            $this->step_vars,
+            null,
+            '',
+            $this->method_id
+        ));
+
+        // Instances share the plugin's partial, see authHelper::getFormMethods().
+        [$base_id, ] = authPluginManager::splitInstance($this->method_id);
+        $this->setThemeTemplate($base_id . '.login_form.html');
     }
 }
